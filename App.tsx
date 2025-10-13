@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { getActiveCustomerOrder, clearActiveCustomerOrder } from './services/customerOrderStorage';
-import useSiteContent from './hooks/useSiteContent';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { getActiveCustomerOrder } from './services/customerOrderStorage';
 import useSiteContent from './hooks/useSiteContent';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedLayout from './pages/ProtectedLayout';
@@ -21,6 +20,29 @@ import SiteCustomization from './pages/SiteCustomization';
 import { SITE_CUSTOMIZER_PERMISSION_KEY } from './constants';
 import { getHomeRedirectPath, isPermissionGranted } from './utils/navigation';
 import NoAccess from './components/NoAccess';
+
+type ProtectedRouteConfig = {
+  path: string;
+  permissionKey: string;
+  Component: React.ComponentType;
+};
+
+const PROTECTED_ROUTES: ProtectedRouteConfig[] = [
+  { path: '/dashboard', permissionKey: '/dashboard', Component: Dashboard },
+  { path: '/para-llevar', permissionKey: '/para-llevar', Component: ParaLlevar },
+  { path: '/ventes', permissionKey: '/ventes', Component: Ventes },
+  { path: '/commande/:tableId', permissionKey: '/ventes', Component: Commande },
+  { path: '/cocina', permissionKey: '/cocina', Component: Cuisine },
+  { path: '/resume-ventes', permissionKey: '/resume-ventes', Component: ResumeVentes },
+  { path: '/ingredients', permissionKey: '/ingredients', Component: Ingredients },
+  { path: '/produits', permissionKey: '/produits', Component: Produits },
+  { path: '/promotions', permissionKey: '/promotions', Component: Promotions },
+  {
+    path: SITE_CUSTOMIZER_PERMISSION_KEY,
+    permissionKey: SITE_CUSTOMIZER_PERMISSION_KEY,
+    Component: SiteCustomization,
+  },
+];
 
 const LoadingScreen: React.FC = () => (
   <div className="flex items-center justify-center h-screen">
@@ -59,8 +81,7 @@ const PrivateRoute: React.FC<{ children: React.ReactElement; permissionKey?: str
 
 const RootRoute: React.FC = () => {
   const { role, loading, logout } = useAuth();
-  const navigate = useNavigate();
-  const [activeOrderId, setActiveOrderId] = useState<string | null>(() => {
+  const [, setActiveOrderId] = useState<string | null>(() => {
     const order = getActiveCustomerOrder();
     return order ? order.orderId : null;
   });
@@ -74,12 +95,6 @@ const RootRoute: React.FC = () => {
     window.addEventListener("storage", checkActiveOrder); // Listen for changes in localStorage
     return () => window.removeEventListener("storage", checkActiveOrder);
   }, []);
-
-  const handleNewOrder = () => {
-    clearActiveCustomerOrder();
-    setActiveOrderId(null);
-    navigate("/"); // Navigate to home to refresh the view
-  };
 
   if (loading) {
     return <LoadingScreen />;
@@ -111,86 +126,17 @@ const AppRoutes: React.FC = () => (
     <Route path="/commande-client" element={<CommandeClient />} />
 
     <Route element={<ProtectedAppShell />}>
-      <Route
-        path="/dashboard"
-        element={
-          <PrivateRoute permissionKey="/dashboard">
-            <Dashboard />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/para-llevar"
-        element={
-          <PrivateRoute permissionKey="/para-llevar">
-            <ParaLlevar />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/ventes"
-        element={
-          <PrivateRoute permissionKey="/ventes">
-            <Ventes />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/commande/:tableId"
-        element={
-          <PrivateRoute permissionKey="/ventes">
-            <Commande />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/cocina"
-        element={
-          <PrivateRoute permissionKey="/cocina">
-            <Cuisine />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/resume-ventes"
-        element={
-          <PrivateRoute permissionKey="/resume-ventes">
-            <ResumeVentes />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/ingredients"
-        element={
-          <PrivateRoute permissionKey="/ingredients">
-            <Ingredients />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/produits"
-        element={
-          <PrivateRoute permissionKey="/produits">
-            <Produits />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/promotions"
-        element={
-          <PrivateRoute permissionKey="/promotions">
-            <Promotions />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path={SITE_CUSTOMIZER_PERMISSION_KEY}
-        element={
-          <PrivateRoute permissionKey={SITE_CUSTOMIZER_PERMISSION_KEY}>
-            <SiteCustomization />
-          </PrivateRoute>
-        }
-      />
+      {PROTECTED_ROUTES.map(({ path, permissionKey, Component }) => (
+        <Route
+          key={path}
+          path={path}
+          element={(
+            <PrivateRoute permissionKey={permissionKey}>
+              <Component />
+            </PrivateRoute>
+          )}
+        />
+      ))}
     </Route>
 
     <Route path="*" element={<NotFound />} />
