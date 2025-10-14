@@ -475,9 +475,8 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
             </div>
 
             {/* Order Summary / Cart */}
-            <div className="lg:w-96 bg-white p-4 lg:p-6 shadow-lg flex flex-col">
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold text-gray-800">Mi Carrito</h2>
+            <div className="lg:w-96 flex flex-col">
+                <div className="flex items-center gap-3 mb-4">
                     <button
                         type="button"
                         onClick={() => navigate('/')}
@@ -486,10 +485,11 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
                         <ArrowLeft size={16} className="mr-1" />
                         Volver
                     </button>
+                    <h2 className="text-2xl font-bold text-gray-800">Mi Carrito</h2>
                 </div>
-
-                {/* Tus ultimos pedidos - Compact version in cart */}
-                {orderHistory.length > 0 && (
+                <div className="bg-white p-4 lg:p-6 shadow-lg flex flex-col">
+                    {/* Tus ultimos pedidos - Compact version in cart */}
+                    {orderHistory.length > 0 && (
                     <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                         <h3 className="text-sm font-bold text-gray-700 mb-2">Tus últimos pedidos</h3>
                         <div className="space-y-2">
@@ -835,6 +835,7 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
                 />
             )}
         </div>
+    </div>
     );
 };
 
