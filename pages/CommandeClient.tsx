@@ -438,7 +438,17 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
         <div className="flex flex-col lg:flex-row">
             {/* Main Content */}
             <div className="flex-1 p-4 lg:p-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-6 drop-shadow-md">Realizar Pedido</h1>
+                <div className="flex items-center justify-between mb-6">
+                    <h1 className="text-3xl font-bold text-gray-900 drop-shadow-md">Realizar Pedido</h1>
+                    <button
+                        type="button"
+                        onClick={() => navigate('/')}
+                        className="inline-flex items-center text-sm font-semibold text-brand-primary hover:text-brand-primary/80 transition-colors"
+                    >
+                        <ArrowLeft size={16} className="mr-1" />
+                        Volver
+                    </button>
+                </div>
 
                 {/* Active Promotions Display */}
                 <ActivePromotionsDisplay />
@@ -476,17 +486,7 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
 
             {/* Order Summary / Cart */}
             <div className="lg:w-96 flex flex-col">
-                <div className="flex items-center gap-3 mb-4">
-                    <button
-                        type="button"
-                        onClick={() => navigate('/')}
-                        className="inline-flex items-center text-sm font-semibold text-brand-primary hover:text-brand-primary/80 transition-colors"
-                    >
-                        <ArrowLeft size={16} className="mr-1" />
-                        Volver
-                    </button>
-                    <h2 className="text-2xl font-bold text-gray-800">Mi Carrito</h2>
-                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">Mon panier</h2>
                 <div className="bg-white p-4 lg:p-6 shadow-lg flex flex-col">
                     {/* Tus ultimos pedidos - Compact version in cart */}
                     {orderHistory.length > 0 && (
