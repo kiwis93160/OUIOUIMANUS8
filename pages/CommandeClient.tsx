@@ -171,6 +171,7 @@ interface OrderMenuViewProps {
 }
 
 const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
+    const navigate = useNavigate();
     const { content: siteContent } = useSiteContent();
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
@@ -475,8 +476,18 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
 
             {/* Order Summary / Cart */}
             <div className="lg:w-96 bg-white p-4 lg:p-6 shadow-lg flex flex-col">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Mi Carrito</h2>
-                
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold text-gray-800">Mi Carrito</h2>
+                    <button
+                        type="button"
+                        onClick={() => navigate('/')}
+                        className="inline-flex items-center text-sm font-semibold text-brand-primary hover:text-brand-primary/80 transition-colors"
+                    >
+                        <ArrowLeft size={16} className="mr-1" />
+                        Volver
+                    </button>
+                </div>
+
                 {/* Tus ultimos pedidos - Compact version in cart */}
                 {orderHistory.length > 0 && (
                     <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
