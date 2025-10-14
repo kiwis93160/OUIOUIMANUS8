@@ -1661,9 +1661,7 @@ export const api = {
   },
 
   getKitchenOrders: async (): Promise<KitchenTicket[]> => {
-    const response = await selectOrdersQuery()
-      .eq('estado_cocina', 'recibido')
-      .or('statut.eq.en_cours,type.eq.a_emporter');
+    const response = await selectOrdersQuery().eq('estado_cocina', 'recibido');
     const rows = unwrap<SupabaseOrderRow[]>(response as SupabaseResponse<SupabaseOrderRow[]>);
     const orders = rows.map(mapOrderRow);
 
@@ -2206,9 +2204,11 @@ export const api = {
     const rows = unwrap<SupabaseOrderRow[]>(response as SupabaseResponse<SupabaseOrderRow[]>);
     const orders = rows.map(mapOrderRow);
 
+    const isTakeawayOrder = (order: Order) => order.type === 'a_emporter' || order.type === 'pedir_en_linea';
+
     return {
-      pendingTakeaway: orders.filter(order => order.type === 'a_emporter' && order.statut === 'pendiente_validacion' && order.estado_cocina === 'no_enviado').length,
-      readyTakeaway: orders.filter(order => order.type === 'a_emporter' && order.estado_cocina === 'listo').length,
+      pendingTakeaway: orders.filter(order => isTakeawayOrder(order) && order.statut === 'pendiente_validacion' && order.estado_cocina === 'no_enviado').length,
+      readyTakeaway: orders.filter(order => isTakeawayOrder(order) && order.estado_cocina === 'listo').length,
       kitchenOrders: orders.filter(order => order.estado_cocina === 'recibido').length,
       lowStockIngredients: (await fetchIngredients()).filter(
         ingredient => ingredient.stock_actuel <= ingredient.stock_minimum,
