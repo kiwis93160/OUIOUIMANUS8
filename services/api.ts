@@ -1632,7 +1632,7 @@ export const api = {
   },
 
   getTakeawayOrders: async (): Promise<{ pending: Order[]; ready: Order[] }> => {
-    const response = await selectOrdersQuery().eq('type', 'a_emporter');
+    const response = await selectOrdersQuery().in('type', ['a_emporter', 'pedir_en_linea']);
     const rows = unwrap<SupabaseOrderRow[]>(response as SupabaseResponse<SupabaseOrderRow[]>);
     const orders = rows.map(mapOrderRow);
     return {
