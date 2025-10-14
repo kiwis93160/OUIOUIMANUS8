@@ -8,7 +8,7 @@ import { api } from '../services/api';
 import { formatCurrencyCOP } from '../utils/formatIntegerAmount';
 import { uploadPaymentReceipt } from '../services/cloudinary';
 import { ShoppingCart, Plus, Minus, History, ArrowLeft } from 'lucide-react';
-import { getActiveCustomerOrder, storeActiveCustomerOrder, clearActiveCustomerOrder } from '../services/customerOrderStorage';
+import { storeActiveCustomerOrder, ONE_DAY_IN_MS } from '../services/customerOrderStorage';
 import ProductCardWithPromotion from '../components/ProductCardWithPromotion';
 import ActivePromotionsDisplay from '../components/ActivePromotionsDisplay';
 import { fetchActivePromotions, applyPromotionsToOrder } from '../services/promotionsApi';
@@ -413,6 +413,7 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
             console.log('submitted.total après createOrder:', submitted.total);
             setSubmittedOrder(submitted);
             setConfirmOpen(true);
+            storeActiveCustomerOrder(submitted.id, Date.now() + ONE_DAY_IN_MS);
             onOrderSubmitted?.(submitted);
             
             // Store order in history

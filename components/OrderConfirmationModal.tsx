@@ -123,9 +123,9 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
     const message = generateWhatsAppMessage();
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
     window.open(whatsappUrl, '_blank');
-    
-    // Redirect to tracking page immediately after opening WhatsApp
-    navigate(`/suivi-commande/${order.id}`);
+
+    // Redirect customer to the public home page where the tracker is displayed
+    navigate('/');
   };
 
   return (
