@@ -714,6 +714,75 @@ const runProductsQueryWithFallback = async <T>(
   return response;
 };
 
+const resolveOrderType = (type?: string): Order['type'] => {
+  if (type === 'sur_place' || type === 'a_emporter' || type === 'pedir_en_linea') {
+    return type;
+  }
+
+  return 'a_emporter';
+};
+
+const resolveOrderStatut = (statut?: string): Order['statut'] => {
+  if (statut === 'en_cours' || statut === 'finalisee' || statut === 'pendiente_validacion') {
+    return statut;
+  }
+
+  if (statut === 'pending') {
+    return 'pendiente_validacion';
+  }
+
+  return 'pendiente_validacion';
+};
+
+const resolvePaymentStatus = (status?: string): Order['payment_status'] => {
+  if (status === 'paid' || status === 'unpaid') {
+    return status;
+  }
+
+  return 'unpaid';
+};
+
+const resolvePaymentMethod = (method?: string | null): Order['payment_method'] | null => {
+  if (!method) {
+    return null;
+  }
+
+  const normalized = method.trim().toLowerCase();
+
+  if (
+    normalized === 'tarjeta' ||
+    normalized === 'card' ||
+    normalized === 'credit_card' ||
+    normalized === 'debit_card' ||
+    normalized === 'carte' ||
+    normalized === 'carte_bancaire' ||
+    normalized === 'pago_online' ||
+    normalized === 'online'
+  ) {
+    return 'tarjeta';
+  }
+
+  if (
+    normalized === 'efectivo' ||
+    normalized === 'cash' ||
+    normalized === 'liquide' ||
+    normalized === 'contado'
+  ) {
+    return 'efectivo';
+  }
+
+  if (
+    normalized === 'transferencia' ||
+    normalized === 'transfer' ||
+    normalized === 'bank_transfer' ||
+    normalized === 'transfert'
+  ) {
+    return 'transferencia';
+  }
+
+  return null;
+};
+
 const fetchOrderById = async (orderId: string): Promise<Order | null> => {
   const response = await selectOrdersQuery().eq('id', orderId).maybeSingle();
   const row = unwrapMaybe<SupabaseOrderRow>(response as SupabaseResponse<SupabaseOrderRow | null>);
@@ -2079,21 +2148,31 @@ export const api = {
 
   validateTakeawayOrder: async (orderId: string): Promise<Order> => {
     const nowIso = new Date().toISOString();
-    await supabase
+    const orderUpdate = await supabase
       .from('orders')
       .update({
         statut: 'en_cours',
         estado_cocina: 'recibido',
         payment_status: 'paid',
-        payment_method: 'carte_bancaire', // Assumer un paiement par carte pour les commandes en ligne validées
+        payment_method: 'tarjeta', // Assumer un paiement par carte pour les commandes en ligne validées
         date_envoi_cuisine: nowIso,
       })
       .eq('id', orderId);
 
-    await supabase
+    if (orderUpdate.error) {
+      console.error('Failed to update takeaway order status', orderUpdate.error);
+      throw new Error(`Failed to update takeaway order status: ${orderUpdate.error.message}`);
+    }
+
+    const itemsUpdate = await supabase
       .from('order_items')
       .update({ estado: 'enviado', date_envoi: nowIso })
       .eq('order_id', orderId);
+
+    if (itemsUpdate.error) {
+      console.error('Failed to mark takeaway order items as sent', itemsUpdate.error);
+      throw new Error(`Failed to mark takeaway order items as sent: ${itemsUpdate.error.message}`);
+    }
 
     publishOrderChange();
     const updatedOrder = await fetchOrderById(orderId);
@@ -2240,20 +2319,27 @@ export const api = {
   },
 
   createOrder: async (order: Partial<Order>): Promise<Order> => {
+    const normalizedType = resolveOrderType((order.order_type as string | undefined) ?? (order.type as string | undefined));
+    const normalizedStatut = resolveOrderStatut((order.status as string | undefined) ?? (order.statut as string | undefined));
+    const normalizedPaymentStatus = resolvePaymentStatus(order.payment_status as string | undefined);
+
     // Préparer les données de la commande
+    const normalizedPaymentMethod = resolvePaymentMethod(order.payment_method as string | undefined);
+
     const orderPayload: Record<string, unknown> = {
-      type: order.order_type || 'para_llevar',
-      statut: order.status || 'pending',
-      estado_cocina: 'en_attente',
-      payment_status: 'pending',
+      type: normalizedType,
+      statut: normalizedStatut,
+      estado_cocina: 'no_enviado',
+      payment_status: normalizedPaymentStatus,
       date_creation: new Date().toISOString(),
       total: order.total ?? 0,
       subtotal: order.subtotal ?? 0,
       total_discount: order.total_discount ?? 0,
       promo_code: order.promo_code || null,
       applied_promotions: order.applied_promotions ? JSON.stringify(order.applied_promotions) : null,
-      payment_method: order.payment_method || null,
+      payment_method: normalizedPaymentMethod,
       payment_receipt_url: order.receipt_url || null,
+      receipt_url: order.receipt_url || null,
       client_nom: order.client_name || order.clientInfo?.nom || null,
       client_telephone: order.client_phone || order.clientInfo?.telephone || null,
       client_adresse: order.client_address || order.clientInfo?.adresse || null,
