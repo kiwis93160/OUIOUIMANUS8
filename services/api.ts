@@ -714,6 +714,34 @@ const runProductsQueryWithFallback = async <T>(
   return response;
 };
 
+const resolveOrderType = (type?: string): Order['type'] => {
+  if (type === 'sur_place' || type === 'a_emporter' || type === 'pedir_en_linea') {
+    return type;
+  }
+
+  return 'a_emporter';
+};
+
+const resolveOrderStatut = (statut?: string): Order['statut'] => {
+  if (statut === 'en_cours' || statut === 'finalisee' || statut === 'pendiente_validacion') {
+    return statut;
+  }
+
+  if (statut === 'pending') {
+    return 'pendiente_validacion';
+  }
+
+  return 'pendiente_validacion';
+};
+
+const resolvePaymentStatus = (status?: string): Order['payment_status'] => {
+  if (status === 'paid' || status === 'unpaid') {
+    return status;
+  }
+
+  return 'unpaid';
+};
+
 const fetchOrderById = async (orderId: string): Promise<Order | null> => {
   const response = await selectOrdersQuery().eq('id', orderId).maybeSingle();
   const row = unwrapMaybe<SupabaseOrderRow>(response as SupabaseResponse<SupabaseOrderRow | null>);
@@ -2240,12 +2268,16 @@ export const api = {
   },
 
   createOrder: async (order: Partial<Order>): Promise<Order> => {
+    const normalizedType = resolveOrderType((order.order_type as string | undefined) ?? (order.type as string | undefined));
+    const normalizedStatut = resolveOrderStatut((order.status as string | undefined) ?? (order.statut as string | undefined));
+    const normalizedPaymentStatus = resolvePaymentStatus(order.payment_status as string | undefined);
+
     // Préparer les données de la commande
     const orderPayload: Record<string, unknown> = {
-      type: order.order_type || 'para_llevar',
-      statut: order.status || 'pending',
-      estado_cocina: 'en_attente',
-      payment_status: 'pending',
+      type: normalizedType,
+      statut: normalizedStatut,
+      estado_cocina: 'no_enviado',
+      payment_status: normalizedPaymentStatus,
       date_creation: new Date().toISOString(),
       total: order.total ?? 0,
       subtotal: order.subtotal ?? 0,
@@ -2254,6 +2286,7 @@ export const api = {
       applied_promotions: order.applied_promotions ? JSON.stringify(order.applied_promotions) : null,
       payment_method: order.payment_method || null,
       payment_receipt_url: order.receipt_url || null,
+      receipt_url: order.receipt_url || null,
       client_nom: order.client_name || order.clientInfo?.nom || null,
       client_telephone: order.client_phone || order.clientInfo?.telephone || null,
       client_adresse: order.client_address || order.clientInfo?.adresse || null,
