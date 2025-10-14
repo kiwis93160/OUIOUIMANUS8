@@ -2254,9 +2254,9 @@ export const api = {
       applied_promotions: order.applied_promotions ? JSON.stringify(order.applied_promotions) : null,
       payment_method: order.payment_method || null,
       payment_receipt_url: order.receipt_url || null,
-      client_nom: order.client_name || null,
-      client_telephone: order.client_phone || null,
-      client_adresse: order.client_address || null,
+      client_nom: order.client_name || order.clientInfo?.nom || null,
+      client_telephone: order.client_phone || order.clientInfo?.telephone || null,
+      client_adresse: order.client_address || order.clientInfo?.adresse || null,
     };
 
     // Insérer la commande dans la base de données
