@@ -79,9 +79,17 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
 
     useEffect(() => {
         let isMounted = true;
-        let interval: ReturnType<typeof setInterval>;
+        let interval: ReturnType<typeof setInterval> | null = null;
+        let unsubscribe: (() => void) | undefined;
+        let isFetching = false;
 
         const fetchStatus = async () => {
+            if (isFetching) {
+                return;
+            }
+
+            isFetching = true;
+
             try {
                 const orderStatus = await api.getCustomerOrderStatus(orderId);
                 if (isMounted) {
@@ -91,7 +99,10 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                         orderStatus?.estado_cocina === 'servido' ||
                         orderStatus?.estado_cocina === 'entregada'
                     ) {
-                        if (interval) clearInterval(interval);
+                        if (interval) {
+                            clearInterval(interval);
+                            interval = null;
+                        }
                         saveOrderToHistory(orderStatus);
                         const servedAt = orderStatus.date_servido ?? Date.now();
                         storeActiveCustomerOrder(orderStatus.id, servedAt + ONE_DAY_IN_MS);
@@ -106,16 +117,27 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
             } catch (e) {
                 console.error("Failed to fetch order status", e);
             } finally {
-                if (isMounted) setLoading(false);
+                if (isMounted) {
+                    setLoading(prev => (prev ? false : prev));
+                }
+                isFetching = false;
             }
         };
 
+        setLoading(true);
+        setOrder(null);
         fetchStatus();
         interval = setInterval(fetchStatus, 5000);
+        unsubscribe = api.notifications.subscribe('orders_updated', fetchStatus);
 
         return () => {
             isMounted = false;
-            clearInterval(interval);
+            if (interval) {
+                clearInterval(interval);
+            }
+            if (unsubscribe) {
+                unsubscribe();
+            }
         };
     }, [orderId]);
 
