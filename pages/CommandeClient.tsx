@@ -486,69 +486,69 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
 
             {/* Order Summary / Cart */}
             <div className="lg:w-96 flex flex-col">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Mon panier</h2>
                 <div className="bg-white p-4 lg:p-6 shadow-lg flex flex-col">
+                    <h2 className="text-3xl font-bold text-gray-900 drop-shadow-md mb-4">Mon panier</h2>
                     {/* Tus ultimos pedidos - Compact version in cart */}
                     {orderHistory.length > 0 && (
-                    <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <h3 className="text-sm font-bold text-gray-700 mb-2">Tus últimos pedidos</h3>
-                        <div className="space-y-2">
-                            {orderHistory.map(order => {
-                                // Try to get date from multiple possible fields
-                                let orderDate = 'Fecha no disponible';
-                                const dateField = order.created_at || order.date_commande || order.date_servido || order.timestamp;
-                                
-                                if (dateField) {
-                                    try {
-                                        const date = new Date(dateField);
-                                        if (!isNaN(date.getTime())) {
-                                            orderDate = date.toLocaleDateString('es-ES', { 
-                                                day: '2-digit', 
-                                                month: '2-digit',
-                                                year: 'numeric'
-                                            });
+                        <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <h3 className="text-sm font-bold text-gray-700 mb-2">Tus últimos pedidos</h3>
+                            <div className="space-y-2">
+                                {orderHistory.map(order => {
+                                    // Try to get date from multiple possible fields
+                                    let orderDate = 'Fecha no disponible';
+                                    const dateField = order.created_at || order.date_commande || order.date_servido || order.timestamp;
+
+                                    if (dateField) {
+                                        try {
+                                            const date = new Date(dateField);
+                                            if (!isNaN(date.getTime())) {
+                                                orderDate = date.toLocaleDateString('es-ES', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric'
+                                                });
+                                            }
+                                        } catch (e) {
+                                            console.error('Error parsing date:', e);
                                         }
-                                    } catch (e) {
-                                        console.error('Error parsing date:', e);
                                     }
-                                }
-                                
-                                // If still no date, use current date as fallback
-                                if (orderDate === 'Fecha no disponible') {
-                                    orderDate = new Date().toLocaleDateString('es-ES', { 
-                                        day: '2-digit', 
-                                        month: '2-digit',
-                                        year: 'numeric'
-                                    });
-                                }
-                                
-                                // Count items excluding delivery fee
-                                const itemCount = order.items 
-                                    ? order.items
-                                        .filter(item => !isDeliveryFeeItem(item))
-                                        .reduce((acc, item) => acc + item.quantite, 0) 
-                                    : 0;
-                                
-                                return (
-                                    <div key={order.id} className="flex justify-between items-center bg-white p-2 rounded border border-gray-200 hover:border-yellow-500 transition-all">
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-xs font-bold text-gray-800 truncate">Pedido del {orderDate}</p>
-                                            <p className="text-xs text-gray-600">
-                                                {itemCount} article{itemCount > 1 ? 's' : ''} • {formatCurrencyCOP(order.total)}
-                                            </p>
+
+                                    // If still no date, use current date as fallback
+                                    if (orderDate === 'Fecha no disponible') {
+                                        orderDate = new Date().toLocaleDateString('es-ES', {
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric'
+                                        });
+                                    }
+
+                                    // Count items excluding delivery fee
+                                    const itemCount = order.items
+                                        ? order.items
+                                            .filter(item => !isDeliveryFeeItem(item))
+                                            .reduce((acc, item) => acc + item.quantite, 0)
+                                        : 0;
+
+                                    return (
+                                        <div key={order.id} className="flex justify-between items-center bg-white p-2 rounded border border-gray-200 hover:border-yellow-500 transition-all">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-bold text-gray-800 truncate">Pedido del {orderDate}</p>
+                                                <p className="text-xs text-gray-600">
+                                                    {itemCount} article{itemCount > 1 ? 's' : ''} • {formatCurrencyCOP(order.total)}
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() => handleReorder(order)}
+                                                className="ml-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold px-3 py-1 rounded text-xs whitespace-nowrap transition-all"
+                                            >
+                                                Pedir de nuevo
+                                            </button>
                                         </div>
-                                        <button 
-                                            onClick={() => handleReorder(order)} 
-                                            className="ml-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold px-3 py-1 rounded text-xs whitespace-nowrap transition-all"
-                                        >
-                                            Pedir de nuevo
-                                        </button>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
 
                 {cart.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
