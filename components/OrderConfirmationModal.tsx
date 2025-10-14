@@ -22,47 +22,96 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   if (!isOpen || !order) return null;
 
   const generateWhatsAppMessage = (): string => {
-    const itemsText = order.items
-      .filter(item => !item.nom_produit?.toLowerCase().includes('domicilio'))
+    const nonDeliveryItems = order.items.filter(
+      item => !item.nom_produit?.toLowerCase().includes('domicilio')
+    );
+
+    const itemsText = nonDeliveryItems
       .map(item => `- ${item.quantite}x ${item.nom_produit} (${formatCurrencyCOP(item.prix_unitaire)})`)
       .join('\n');
-    
-    let messageParts: string[] = [];
 
-    messageParts.push(`¡Hola! Aquí está mi pedido:\n\nPedido #${order.id.slice(-6)}`);
+    const productCount = nonDeliveryItems.reduce((acc, item) => acc + (item.quantite ?? 0), 0);
 
-    messageParts.push(`\n\nProductos:\n${itemsText}`);
+    const subtotalBeforePromotions =
+      order.subtotal ?? nonDeliveryItems.reduce((acc, item) => acc + (item.quantite ?? 0) * item.prix_unitaire, 0);
 
-    if (order.subtotal !== undefined) {
-      messageParts.push(`\nSous-total: ${formatCurrencyCOP(order.subtotal)}`);
+    const creationDate = typeof order.date_creation === 'number'
+      ? new Date(order.date_creation)
+      : undefined;
+
+    const formattedDate = creationDate
+      ? new Intl.DateTimeFormat('es-CO', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }).format(creationDate)
+      : 'No disponible';
+
+    const formattedTime = creationDate
+      ? new Intl.DateTimeFormat('es-CO', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }).format(creationDate)
+      : 'No disponible';
+
+    const clientName = order.clientInfo?.nom ?? order.client_name ?? 'No especificado';
+    const clientPhone = order.clientInfo?.telephone ?? order.client_phone ?? 'No especificado';
+    const clientAddress = order.clientInfo?.adresse ?? order.client_address;
+
+    const totalDiscount = order.total_discount ?? 0;
+    const hasPromotions = (order.applied_promotions?.length ?? 0) > 0;
+    const paymentMethodLabel =
+      order.payment_method === 'transferencia'
+        ? 'Transferencia'
+        : order.payment_method === 'tarjeta'
+          ? 'Tarjeta'
+          : 'Efectivo';
+
+    const messageParts: string[] = [];
+
+    messageParts.push('¡Hola! Aquí están los detalles de mi pedido:');
+    messageParts.push(`Pedido #${order.id.slice(-6)}`);
+    messageParts.push(`Fecha: ${formattedDate}`);
+    messageParts.push(`Hora: ${formattedTime}`);
+    messageParts.push('');
+    messageParts.push(`Cliente: ${clientName}`);
+    messageParts.push(`Teléfono: ${clientPhone}`);
+    if (clientAddress) {
+      messageParts.push(`Dirección: ${clientAddress}`);
     }
-
-    if (order.total_discount && order.total_discount > 0) {
-      messageParts.push(`Réduction totale: - ${formatCurrencyCOP(order.total_discount)}`);
+    messageParts.push('');
+    messageParts.push(`Número de productos: ${productCount}`);
+    if (itemsText) {
+      messageParts.push('Productos:');
+      messageParts.push(itemsText);
     }
-
-    if (order.applied_promotions && order.applied_promotions.length > 0) {
-      messageParts.push(`\nPromotions appliquées:`);
-      order.applied_promotions.forEach(promo => {
-        messageParts.push(`- ${promo.name}: - ${formatCurrencyCOP(promo.discount_amount)}`);
-      });
-    }
+    messageParts.push('');
+    messageParts.push(`Total antes de promociones: ${formatCurrencyCOP(subtotalBeforePromotions)}`);
 
     if (order.shipping_cost !== undefined) {
       if (order.shipping_cost > 0) {
-        messageParts.push(`Frais de livraison: ${formatCurrencyCOP(order.shipping_cost)}`);
+        messageParts.push(`Costo de envío: ${formatCurrencyCOP(order.shipping_cost)}`);
       } else if (order.applied_promotions?.some(p => p.type === 'FREE_SHIPPING')) {
-        messageParts.push(`Livraison gratuite: ${formatCurrencyCOP(0)}`);
+        messageParts.push('Costo de envío: Gratis');
       }
     }
 
-    messageParts.push(`\nTotal: ${formatCurrencyCOP(order.total)}`);
-
-    messageParts.push(`\n\nCliente: ${order.clientInfo?.nom} (${order.clientInfo?.telephone})`);
-    if (order.clientInfo?.adresse) {
-      messageParts.push(`Dirección: ${order.clientInfo?.adresse}`);
+    if (totalDiscount > 0) {
+      messageParts.push(`Descuento total: -${formatCurrencyCOP(totalDiscount)}`);
     }
-    messageParts.push(`Método de pago: ${order.payment_method === 'transferencia' ? 'Transferencia' : 'Efectivo'}`);
+
+    if (hasPromotions) {
+      messageParts.push('Promociones aplicadas:');
+      order.applied_promotions?.forEach(promo => {
+        messageParts.push(`- ${promo.name}: -${formatCurrencyCOP(promo.discount_amount)}`);
+      });
+    } else {
+      messageParts.push('Promociones aplicadas: Ninguna');
+    }
+
+    messageParts.push(`Total a pagar: ${formatCurrencyCOP(order.total)}`);
+    messageParts.push(`Método de pago: ${paymentMethodLabel}`);
+
     if (order.receipt_url) {
       messageParts.push(`Comprobante: ${order.receipt_url}`);
     }
