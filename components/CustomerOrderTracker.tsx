@@ -178,6 +178,11 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
         );
     }
     
+    const originalSubtotal = order.subtotal ?? order.total ?? 0;
+    const totalDiscount = order.total_discount ?? 0;
+    const subtotalAfterDiscounts = Math.max(originalSubtotal - totalDiscount, 0);
+    const hasAppliedPromotions = (order.applied_promotions?.length ?? 0) > 0;
+
     return (
         <>
         <div className={containerClasses}>
@@ -376,20 +381,53 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                     </div>
                     
                     {/* Affichage du subtotal, des promotions et des codes promo */}
-                    {(order.subtotal !== undefined && order.subtotal !== null && order.subtotal !== order.total) && (
+                    {(order.subtotal !== undefined && order.subtotal !== null) && (
                         <div className={`flex justify-between ${variant === 'hero' ? 'text-gray-300' : 'text-gray-600'}`}>
                             <span>Subtotal</span>
                             <span>{formatCurrencyCOP(order.subtotal)}</span>
                         </div>
                     )}
 
-                    {order.promo_code && order.total_discount && order.total_discount > 0 && (
-                        <div className={`flex justify-between items-center ${variant === 'hero' ? 'text-green-400' : 'text-green-600'}`}>
-                            <span className="text-sm">🎟️ Code promo: {order.promo_code}</span>
-                            <span className="text-sm font-semibold">-{formatCurrencyCOP(order.total_discount)}</span>
+                    {hasAppliedPromotions && (
+                        <div className="space-y-1">
+                            <p className={`text-sm font-semibold ${variant === 'hero' ? 'text-green-300' : 'text-green-700'}`}>
+                                Promotions appliquées
+                            </p>
+                            {order.applied_promotions!.map(promotion => {
+                                const promoCode = typeof promotion.config === 'object' && promotion.config !== null
+                                    ? (promotion.config as Record<string, unknown>).promo_code
+                                    : undefined;
+
+                                return (
+                                    <div
+                                        key={`${promotion.promotion_id}-${promotion.name}`}
+                                        className={`flex justify-between text-sm ${variant === 'hero' ? 'text-green-200' : 'text-green-600'}`}
+                                    >
+                                        <span>
+                                            {promotion.name}
+                                            {promoCode ? ` (Code: ${promoCode})` : ''}
+                                        </span>
+                                        <span>-{formatCurrencyCOP(promotion.discount_amount || 0)}</span>
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
-                    
+
+                    {totalDiscount > 0 && (
+                        <div className={`flex justify-between ${variant === 'hero' ? 'text-green-200' : 'text-green-700'}`}>
+                            <span className="text-sm font-semibold">Réductions totales</span>
+                            <span className="text-sm font-semibold">-{formatCurrencyCOP(totalDiscount)}</span>
+                        </div>
+                    )}
+
+                    {totalDiscount > 0 && order.subtotal !== undefined && order.subtotal !== null && (
+                        <div className={`flex justify-between ${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`}>
+                            <span>Sous-total après réductions</span>
+                            <span>{formatCurrencyCOP(subtotalAfterDiscounts)}</span>
+                        </div>
+                    )}
+
 
                     
                     <div className={`flex justify-between font-bold text-lg border-t pt-2 ${variant === 'hero' ? 'text-white border-gray-500' : 'text-gray-800'}`}>

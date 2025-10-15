@@ -335,6 +335,8 @@ export interface Order {
     promotion_id: string;
     name: string;
     discount_amount: number;
+    type?: string;
+    config?: Record<string, unknown>;
   }[];
   shipping_cost?: number; // Coût de la livraison, utilisé pour les promotions de livraison gratuite
 }
