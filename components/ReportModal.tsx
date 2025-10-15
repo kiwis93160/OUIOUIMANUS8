@@ -5,14 +5,14 @@ import { DailyReport, RoleLogin } from '../types';
 import { Users, ShoppingCart, DollarSign, Package, AlertTriangle, MessageSquare, LogIn } from 'lucide-react';
 import { formatCurrencyCOP } from '../utils/formatIntegerAmount';
 
-const ReportStat: React.FC<{ icon: React.ReactNode, label: string, value: string | number }> = ({ icon, label, value }) => (
-    <div className="bg-gray-100 p-3 sm:p-4 rounded-lg flex flex-col sm:flex-row sm:items-center items-start gap-3">
-        <div className="p-2 sm:p-3 bg-brand-primary/20 text-brand-primary rounded-full">
+const ReportStat: React.FC<{ icon: React.ReactNode; label: string; value: React.ReactNode }> = ({ icon, label, value }) => (
+    <div className="flex flex-col items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 shadow-sm sm:flex-row sm:items-center">
+        <div className="rounded-full bg-brand-primary/20 p-2 text-brand-primary sm:p-3">
             {icon}
         </div>
         <div className="space-y-1">
-            <p className="text-xs sm:text-sm text-gray-500 font-semibold">{label}</p>
-            <p className="font-bold text-gray-800 text-[clamp(1.1rem,2.5vw,1.5rem)]">{value}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 sm:text-sm">{label}</p>
+            <div className="text-[clamp(1.1rem,2.5vw,1.6rem)] font-bold text-slate-800">{value}</div>
         </div>
     </div>
 );
@@ -62,8 +62,9 @@ const ReportModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
 
         parts.push(`*Estadísticas del día*`);
         parts.push(`- Ventas: *${formatCurrencyCOP(reportData.ventesDuJour)}*`);
-        parts.push(`- Clientes: *${reportData.clientsDuJour}*`);
+        parts.push(`- Clientes: *${reportData.clientsDuJour}* (Sala: ${reportData.clientsSurPlace ?? 0} | En línea: ${reportData.clientsEnLigne ?? 0})`);
         parts.push(`- Ticket promedio: *${formatCurrencyCOP(reportData.panierMoyen)}*`);
+        parts.push(`- Total promociones aplicadas: *${formatCurrencyCOP(reportData.totalPromotionsApplied ?? 0)}*`);
         parts.push('---');
 
         parts.push(`*Productos vendidos*`);
@@ -149,7 +150,18 @@ const ReportModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                 <ReportStat icon={<DollarSign/>} label="Ventas del día" value={formatCurrencyCOP(report.ventesDuJour)} />
-                                <ReportStat icon={<Users/>} label="Clientes del día" value={report.clientsDuJour} />
+                                <ReportStat
+                                    icon={<Users/>}
+                                    label="Clientes del día"
+                                    value={
+                                        <>
+                                            {report.clientsDuJour}
+                                            <span className="mt-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                                Salle : {report.clientsSurPlace ?? 0} • En ligne : {report.clientsEnLigne ?? 0}
+                                            </span>
+                                        </>
+                                    }
+                                />
                                 <ReportStat icon={<ShoppingCart/>} label="Ticket promedio" value={formatCurrencyCOP(report.panierMoyen)} />
                             </div>
 
@@ -168,6 +180,10 @@ const ReportModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                                             </ul>
                                         </div>
                                     ))}
+                                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700 shadow-sm">
+                                        <p className="text-xs font-semibold uppercase tracking-wide">Promotions appliquées</p>
+                                        <p className="mt-1 text-2xl font-bold">{formatCurrencyCOP(report.totalPromotionsApplied ?? 0)}</p>
+                                    </div>
                                 </div>
                             </div>
 

@@ -87,7 +87,11 @@ const TableCard: React.FC<{
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const handleCardClick = () => {
-    navigate(`/commande/${table.id}`);
+    if (table.commandeId) {
+      navigate(`/commande/${table.commandeId}`);
+    } else if (canEdit && onEdit) {
+      onEdit(table);
+    }
   };
 
   const handleCardKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {

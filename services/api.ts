@@ -2428,9 +2428,15 @@ export const api = {
       return snapshot;
     };
 
-    const ventesDuJour = orders.reduce((sum, order) => sum + getSnapshotForOrder(order).totalRevenue, 0);
-    const clientsDuJour = orders.reduce((sum, order) => sum + (order.couverts ?? 0), 0);
-    const panierMoyen = orders.length > 0 ? ventesDuJour / orders.length : 0;
+    const clientsSurPlace = orders.reduce(
+      (sum, order) => sum + (order.type === 'sur_place' ? Math.max(order.couverts ?? 0, 0) : 0),
+      0,
+    );
+    const clientsEnLigne = orders.filter(order => order.type === 'pedir_en_linea').length;
+    const clientsDuJour = clientsSurPlace + clientsEnLigne;
+
+    let ventesDuJour = 0;
+    let totalPromotionsApplied = 0;
 
     const ingredientMap = new Map(ingredients.map(ingredient => [ingredient.id, ingredient]));
     const productRows = unwrap<SupabaseProductRow[]>(productRowsResponse as SupabaseResponse<SupabaseProductRow[]>);
@@ -2446,6 +2452,8 @@ export const api = {
     const soldProductsByCategory = new Map<string, { categoryName: string; products: SoldProduct[] }>();
     orders.forEach(order => {
       const snapshot = getSnapshotForOrder(order);
+      ventesDuJour += snapshot.totalRevenue;
+      totalPromotionsApplied += snapshot.totalDiscount;
       order.items.forEach((item, index) => {
         const product = productMap.get(item.produitRef);
         const categoryName = product ? categoryMap.get(product.categoria_id) ?? 'Sans catégorie' : 'Sans catégorie';
@@ -2476,12 +2484,17 @@ export const api = {
       ingredient => ingredient.stock_actuel <= ingredient.stock_minimum,
     );
 
+    const panierMoyen = orders.length > 0 ? ventesDuJour / orders.length : 0;
+
     return {
       generatedAt: now.toISOString(),
       startDate: start.toISOString(),
       clientsDuJour,
+      clientsSurPlace,
+      clientsEnLigne,
       panierMoyen,
       ventesDuJour,
+      totalPromotionsApplied,
       soldProducts: Array.from(soldProductsByCategory.values()),
       lowStockIngredients: ingredientsStockBas,
       roleLogins: roleLoginsResult,
