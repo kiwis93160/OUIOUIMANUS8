@@ -771,9 +771,13 @@ body {
 }
 
 .menu-card__title {
-  font-size: var(--font-size-xl);
+  font-size: clamp(1.05rem, 2.3vw, 1.45rem);
+  line-height: 1.2;
   color: var(--color-heading);
   margin: 0;
+  hyphens: auto;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 .menu-card__description {

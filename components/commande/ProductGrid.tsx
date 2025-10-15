@@ -96,7 +96,9 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                                 alt={product.nom_produit}
                                 className="w-24 h-24 object-cover rounded-md mb-2"
                             />
-                            <p className="font-semibold text-sm text-gray-800">{product.nom_produit}</p>
+                            <p className="font-semibold text-[clamp(0.9rem,1.8vw,1.05rem)] leading-snug text-gray-800 break-words text-balance whitespace-normal [hyphens:auto]">
+                                {product.nom_produit}
+                            </p>
                             <p className="text-xs text-gray-600 px-1 h-10 overflow-hidden flex-grow">
                                 {product.description}
                             </p>

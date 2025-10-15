@@ -91,7 +91,9 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
                                 <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white shadow-md ${urgencyStyles.accent}`}>
                                     {item.quantite}
                                 </span>
-                                <p className="truncate text-xl font-semibold text-gray-900">{item.nom_produit}</p>
+                                <p className="text-[clamp(1rem,2.1vw,1.35rem)] font-semibold leading-snug text-gray-900 break-words text-balance whitespace-normal [hyphens:auto]">
+                                    {item.nom_produit}
+                                </p>
                             </div>
                             {item.commentaire && (
                                 <p className="mt-2 rounded-md border border-dashed border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium italic text-blue-800">

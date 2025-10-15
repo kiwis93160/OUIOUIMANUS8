@@ -90,7 +90,9 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, selectedPr
             <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-6">
                     <div className="flex justify-between items-start mb-4">
-                        <h2 className="text-xl font-bold text-gray-800">{selectedProduct.product.nom_produit}</h2>
+                        <h2 className="text-[clamp(1.1rem,2.3vw,1.5rem)] font-bold leading-snug text-gray-800 break-words text-balance whitespace-normal [hyphens:auto]">
+                            {selectedProduct.product.nom_produit}
+                        </h2>
                         <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -561,7 +563,9 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
                         {cart.map((item) => (
                             <div key={item.id} className="flex items-start justify-between py-4 border-b border-gray-200 last:border-b-0 bg-white rounded-lg px-3 mb-2 shadow-sm">
                                 <div className="flex-1">
-                                    <p className="font-bold text-lg text-gray-900 mb-1">{item?.nom_produit || 'Article inconnu'}</p>
+                                    <p className="font-bold text-[clamp(1rem,2vw,1.3rem)] leading-snug text-gray-900 mb-1 break-words text-balance whitespace-normal [hyphens:auto]">
+                                        {item?.nom_produit || 'Article inconnu'}
+                                    </p>
                                     {item.commentaire && (
                                         <p className="text-sm text-gray-600 italic mb-1 bg-yellow-50 p-2 rounded border-l-2 border-yellow-400">
                                             💬 {item.commentaire}

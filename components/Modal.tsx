@@ -52,7 +52,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-slate-200 bg-white/80 px-4 py-3 sm:px-6">
-          <h3 id={headingId} className="text-lg font-semibold text-slate-900 sm:text-xl">
+          <h3
+            id={headingId}
+            className="text-[clamp(1.05rem,2.2vw,1.4rem)] font-semibold leading-snug text-slate-900 break-words text-balance whitespace-normal [hyphens:auto]"
+          >
             {title}
           </h3>
           <button

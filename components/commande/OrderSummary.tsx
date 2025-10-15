@@ -67,7 +67,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                                                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-yellow-500 text-base font-bold text-white shadow-md">
                                                     {item.quantite}
                                                 </span>
-                                                <p className="font-bold text-gray-900">
+                                                <p className="font-bold text-gray-900 text-[clamp(0.95rem,1.9vw,1.2rem)] leading-snug break-words text-balance whitespace-normal [hyphens:auto]">
                                                     {item.nom_produit}
                                                 </p>
                                             </div>
@@ -125,7 +125,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                                                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-600 text-base font-bold text-white shadow-md">
                                                     {item.quantite}
                                                 </span>
-                                                <p className="font-bold text-gray-900">
+                                                <p className="font-bold text-gray-900 text-[clamp(0.95rem,1.9vw,1.2rem)] leading-snug break-words text-balance whitespace-normal [hyphens:auto]">
                                                     {item.nom_produit}
                                                 </p>
                                             </div>
