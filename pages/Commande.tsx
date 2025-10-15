@@ -50,17 +50,20 @@ export const mergeProductIntoPendingItems = (
     defaultExcludedIngredients: string[] = [],
 ): OrderItem[] => {
     const trimmedComment = normalizeComment(result.comment);
+    const isCommentBlank = trimmedComment.length === 0;
     const sanitizedQuantity = Number.isFinite(result.quantity)
         ? Math.max(1, Math.floor(result.quantity))
         : 1;
 
-    // Chercher un item existant compatible, même avec un ID temporaire
-    const existingIndex = items.findIndex(
-        item => item.produitRef === product.id
-            && item.estado === 'en_attente'
-            && normalizeComment(item.commentaire) === trimmedComment
-            && haveSameExcludedIngredients(item.excluded_ingredients ?? [], defaultExcludedIngredients),
-    );
+    // Ne fusionner que les items sans commentaire pour éviter d'écraser un message existant
+    const existingIndex = isCommentBlank
+        ? items.findIndex(
+            item => item.produitRef === product.id
+                && item.estado === 'en_attente'
+                && normalizeComment(item.commentaire) === ''
+                && haveSameExcludedIngredients(item.excluded_ingredients ?? [], defaultExcludedIngredients),
+        )
+        : -1;
 
     if (existingIndex > -1) {
         return items.map((item, index) => (
