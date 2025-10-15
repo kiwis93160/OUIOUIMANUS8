@@ -2041,12 +2041,61 @@ export const api = {
     updates: Partial<Order> & { removedItemIds?: string[] },
     options?: PublishOrderChangeOptions,
   ): Promise<Order> => {
-    let items: OrderItem[] | undefined;
-    if (updates.items) {
-      items = updates.items;
+    const { items: incomingItems, clientInfo, removedItemIds = [], ...rest } = updates;
+
+    let existingItems: OrderItem[] = [];
+    if (incomingItems) {
+      const existingOrder = await fetchOrderById(orderId);
+      if (!existingOrder) {
+        throw new Error('Order not found');
+      }
+
+      existingItems = existingOrder.items;
+
+      const existingItemIds = new Set(existingItems.map(item => item.id));
+      const itemsToInsert = incomingItems.filter(item => !isUuid(item.id) || !existingItemIds.has(item.id));
+      const itemsToUpdate = incomingItems.filter(
+        item => isUuid(item.id) && existingItemIds.has(item.id),
+      );
+
+      if (itemsToInsert.length > 0) {
+        await supabase.from('order_items').insert(
+          itemsToInsert.map(item => ({
+            ...(isUuid(item.id) ? { id: item.id } : {}),
+            order_id: orderId,
+            produit_id: item.produitRef,
+            nom_produit: item.nom_produit,
+            prix_unitaire: item.prix_unitaire,
+            quantite: item.quantite,
+            excluded_ingredients: item.excluded_ingredients ?? [],
+            commentaire: item.commentaire ?? null,
+            estado: item.estado ?? 'en_attente',
+            date_envoi: item.date_envoi ? new Date(item.date_envoi).toISOString() : null,
+          })),
+        );
+      }
+
+      if (itemsToUpdate.length > 0) {
+        await Promise.all(
+          itemsToUpdate.map(item =>
+            supabase
+              .from('order_items')
+              .update({
+                produit_id: item.produitRef,
+                nom_produit: item.nom_produit,
+                prix_unitaire: item.prix_unitaire,
+                quantite: item.quantite,
+                excluded_ingredients: item.excluded_ingredients ?? [],
+                commentaire: item.commentaire ?? null,
+                estado: item.estado ?? 'en_attente',
+                date_envoi: item.date_envoi ? new Date(item.date_envoi).toISOString() : null,
+              })
+              .eq('id', item.id),
+          ),
+        );
+      }
     }
 
-    const { items: _, clientInfo, removedItemIds = [], ...rest } = updates;
     const payload: Record<string, unknown> = {};
 
     if (rest.type) payload.type = rest.type;
@@ -2067,13 +2116,24 @@ export const api = {
     if (rest.date_listo_cuisine !== undefined) payload.date_listo_cuisine = toIsoString(rest.date_listo_cuisine);
     if (rest.date_servido !== undefined) payload.date_servido = toIsoString(rest.date_servido);
 
-    if (updates.items) {
-      payload.total = updates.items.reduce((sum, item) => sum + item.prix_unitaire * item.quantite, 0);
+    if (incomingItems) {
+      payload.total = incomingItems.reduce((sum, item) => sum + item.prix_unitaire * item.quantite, 0);
     }
 
-    const persistedIdsToDelete = removedItemIds.filter(id => isUuid(id));
-    if (persistedIdsToDelete.length > 0) {
-      await supabase.from('order_items').delete().in('id', persistedIdsToDelete);
+    const incomingItemIds = new Set((incomingItems ?? []).map(item => item.id));
+    const persistedIdsToDelete = new Set<string>();
+
+    removedItemIds.filter(id => isUuid(id)).forEach(id => persistedIdsToDelete.add(id));
+
+    existingItems
+      .filter(item => isUuid(item.id) && !incomingItemIds.has(item.id))
+      .forEach(item => persistedIdsToDelete.add(item.id));
+
+    if (persistedIdsToDelete.size > 0) {
+      await supabase
+        .from('order_items')
+        .delete()
+        .in('id', Array.from(persistedIdsToDelete));
     }
 
     if (clientInfo) {
@@ -2092,10 +2152,10 @@ export const api = {
       throw new Error('Order not found after update');
     }
 
-    if (updates.items) {
+    if (incomingItems) {
       return {
         ...updatedOrder,
-        items: reorderOrderItems(updates.items, updatedOrder.items),
+        items: reorderOrderItems(incomingItems, updatedOrder.items),
       };
     }
 
