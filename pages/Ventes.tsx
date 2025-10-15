@@ -91,10 +91,13 @@ const TableCard: React.FC<{
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const handleCardClick = () => {
+    if (table.statut === 'libre' && onSeatGuests) {
+      onSeatGuests(table);
+      return;
+    }
+
     if (table.commandeId) {
       navigate(`/commande/${table.id}`);
-    } else if (table.statut === 'libre' && onSeatGuests) {
-      onSeatGuests(table);
     } else if (canEdit && onEdit) {
       onEdit(table);
     }
