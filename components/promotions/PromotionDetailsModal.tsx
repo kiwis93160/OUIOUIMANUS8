@@ -75,227 +75,232 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-xl font-semibold">Détails de la promotion</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <X size={24} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4 py-6 backdrop-blur-sm">
+      <div className="flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        <div className="flex flex-col gap-3 border-b border-white/20 bg-gradient-to-r from-brand-primary to-brand-primary-dark px-6 py-5 text-white sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-xl font-semibold leading-snug sm:text-2xl">Détails de la promotion</h2>
+          <button
+            onClick={onClose}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70"
+            aria-label="Fermer les détails de la promotion"
+          >
+            <X size={22} />
           </button>
         </div>
 
-        <div className="flex border-b">
+        <div className="flex flex-wrap gap-2 border-b border-slate-200 bg-slate-50/80 px-4 py-3 sm:px-6">
           <button
-            className={`px-4 py-3 font-medium ${activeTab === 'details' ? 'border-b-2 border-brand-primary text-brand-primary' : 'text-gray-600'}`}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary ${
+              activeTab === 'details'
+                ? 'bg-brand-primary text-white shadow'
+                : 'text-slate-600 hover:bg-white hover:text-brand-primary'
+            }`}
             onClick={() => setActiveTab('details')}
           >
             Détails
           </button>
           <button
-            className={`px-4 py-3 font-medium ${activeTab === 'usages' ? 'border-b-2 border-brand-primary text-brand-primary' : 'text-gray-600'}`}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary ${
+              activeTab === 'usages'
+                ? 'bg-brand-primary text-white shadow'
+                : 'text-slate-600 hover:bg-white hover:text-brand-primary'
+            }`}
             onClick={() => setActiveTab('usages')}
           >
             Utilisations ({promotion.usage_count})
           </button>
         </div>
 
-        <div className="overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto bg-white px-4 py-6 sm:px-6">
           {activeTab === 'details' && (
             <div className="space-y-6">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">{promotion.name}</h3>
-                  <div className="flex items-center mt-1">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[promotion.status]}`}>
-                      {statusLabels[promotion.status]}
-                    </span>
-                    <span className="ml-2 text-sm text-gray-500">
-                      {typeLabels[promotion.type]}
-                    </span>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900">{promotion.name}</h3>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusColors[promotion.status]}`}>
+                        {statusLabels[promotion.status]}
+                      </span>
+                      <span className="text-sm font-medium text-slate-600">{typeLabels[promotion.type]}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="mt-2 md:mt-0">
-                  <span className="text-sm text-gray-500">Priorité: {promotion.priority}</span>
+                  <div className="rounded-full border border-slate-200 bg-white/80 px-4 py-1.5 text-sm font-semibold text-slate-600 shadow-sm">
+                    Priorité : {promotion.priority}
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-3 flex items-center">
-                    <Info size={16} className="mr-1" />
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm">
+                  <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+                    <Info size={16} />
                     Informations générales
                   </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">ID:</span>
-                      <span className="text-sm font-mono">{promotion.id}</span>
+                  <dl className="space-y-2 text-sm text-slate-600">
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">ID</dt>
+                      <dd className="rounded bg-white/80 px-2 py-0.5 font-mono text-slate-700 shadow-sm">{promotion.id}</dd>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Créée le:</span>
-                      <span className="text-sm">{formatDate(promotion.created_at)}</span>
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Créée le</dt>
+                      <dd>{formatDate(promotion.created_at)}</dd>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Mise à jour:</span>
-                      <span className="text-sm">{formatDate(promotion.updated_at)}</span>
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Mise à jour</dt>
+                      <dd>{formatDate(promotion.updated_at)}</dd>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Utilisations:</span>
-                      <span className="text-sm">{promotion.usage_count}</span>
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Utilisations</dt>
+                      <dd>{promotion.usage_count}</dd>
                     </div>
-                  </div>
+                  </dl>
                 </div>
 
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-3 flex items-center">
-                    <Percent size={16} className="mr-1" />
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm">
+                  <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+                    <Percent size={16} />
                     Réduction
                   </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Type:</span>
-                      <span className="text-sm">
-                        {promotion.discount.type === 'percentage' ? 'Pourcentage' : 'Montant fixe'}
-                      </span>
+                  <dl className="space-y-2 text-sm text-slate-600">
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Type</dt>
+                      <dd>{promotion.discount.type === 'percentage' ? 'Pourcentage' : 'Montant fixe'}</dd>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Valeur:</span>
-                      <span className="text-sm font-medium">
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Valeur</dt>
+                      <dd className="font-semibold text-slate-800">
                         {promotion.discount.value}
                         {promotion.discount.type === 'percentage' ? '%' : '€'}
-                      </span>
+                      </dd>
                     </div>
                     {promotion.discount.max_discount_amount && (
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Maximum:</span>
-                        <span className="text-sm">{promotion.discount.max_discount_amount}€</span>
+                      <div className="flex items-center justify-between">
+                        <dt className="font-medium">Maximum</dt>
+                        <dd>{promotion.discount.max_discount_amount}€</dd>
                       </div>
                     )}
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Application:</span>
-                      <span className="text-sm">
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Application</dt>
+                      <dd>
                         {promotion.discount.applies_to === 'total' && 'Total de la commande'}
                         {promotion.discount.applies_to === 'products' && 'Produits spécifiques'}
                         {promotion.discount.applies_to === 'shipping' && 'Frais de livraison'}
-                      </span>
+                      </dd>
                     </div>
-                  </div>
+                  </dl>
                 </div>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-3 flex items-center">
-                  <Calendar size={16} className="mr-1" />
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm">
+                <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+                  <Calendar size={16} />
                   Conditions
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <dl className="grid grid-cols-1 gap-3 text-sm text-slate-600 md:grid-cols-2">
                   {promotion.conditions.promo_code && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Code promo:</span>
-                      <span className="text-sm font-mono bg-gray-100 px-2 py-0.5 rounded">
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Code promo</dt>
+                      <dd className="rounded bg-white/80 px-2 py-0.5 font-mono text-slate-700 shadow-sm">
                         {promotion.conditions.promo_code}
-                      </span>
+                      </dd>
                     </div>
                   )}
 
                   {promotion.conditions.min_order_amount && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Montant minimum:</span>
-                      <span className="text-sm">{promotion.conditions.min_order_amount}€</span>
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Montant minimum</dt>
+                      <dd>{promotion.conditions.min_order_amount}€</dd>
                     </div>
                   )}
 
                   {promotion.conditions.max_order_amount && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Montant maximum:</span>
-                      <span className="text-sm">{promotion.conditions.max_order_amount}€</span>
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Montant maximum</dt>
+                      <dd>{promotion.conditions.max_order_amount}€</dd>
                     </div>
                   )}
 
                   {promotion.conditions.start_date && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Date de début:</span>
-                      <span className="text-sm">{formatDate(promotion.conditions.start_date)}</span>
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Date de début</dt>
+                      <dd>{formatDate(promotion.conditions.start_date)}</dd>
                     </div>
                   )}
 
                   {promotion.conditions.end_date && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Date de fin:</span>
-                      <span className="text-sm">{formatDate(promotion.conditions.end_date)}</span>
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Date de fin</dt>
+                      <dd>{formatDate(promotion.conditions.end_date)}</dd>
                     </div>
                   )}
 
                   {promotion.conditions.days_of_week && promotion.conditions.days_of_week.length > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Jours:</span>
-                      <span className="text-sm">
-                        {promotion.conditions.days_of_week.map(day => 
-                          ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][day]
-                        ).join(', ')}
-                      </span>
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Jours</dt>
+                      <dd>{promotion.conditions.days_of_week.map(day => ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][day]).join(', ')}</dd>
                     </div>
                   )}
 
                   {promotion.conditions.hours_of_day && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Heures:</span>
-                      <span className="text-sm">
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Heures</dt>
+                      <dd>
                         {promotion.conditions.hours_of_day.start} - {promotion.conditions.hours_of_day.end}
-                      </span>
+                      </dd>
                     </div>
                   )}
 
                   {promotion.conditions.max_uses_total && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Utilisations max:</span>
-                      <span className="text-sm">{promotion.conditions.max_uses_total}</span>
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Utilisations max.</dt>
+                      <dd>{promotion.conditions.max_uses_total}</dd>
                     </div>
                   )}
 
                   {promotion.conditions.max_uses_per_customer && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Max par client:</span>
-                      <span className="text-sm">{promotion.conditions.max_uses_per_customer}</span>
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Max par client</dt>
+                      <dd>{promotion.conditions.max_uses_per_customer}</dd>
                     </div>
                   )}
 
                   {promotion.conditions.first_order_only && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Première commande:</span>
-                      <span className="text-sm">Oui</span>
+                    <div className="flex items-center justify-between">
+                      <dt className="font-medium">Première commande</dt>
+                      <dd>Oui</dd>
                     </div>
                   )}
 
                   {promotion.type === 'buy_x_get_y' && (
                     <>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Achetez:</span>
-                        <span className="text-sm">{promotion.conditions.buy_quantity}</span>
+                      <div className="flex items-center justify-between">
+                        <dt className="font-medium">Achetez</dt>
+                        <dd>{promotion.conditions.buy_quantity}</dd>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Obtenez:</span>
-                        <span className="text-sm">{promotion.conditions.get_quantity}</span>
+                      <div className="flex items-center justify-between">
+                        <dt className="font-medium">Obtenez</dt>
+                        <dd>{promotion.conditions.get_quantity}</dd>
                       </div>
                     </>
                   )}
-                </div>
+                </dl>
               </div>
 
               {promotion.visuals && Object.keys(promotion.visuals).length > 0 && (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-3 flex items-center">
-                    <Tag size={16} className="mr-1" />
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm">
+                  <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+                    <Tag size={16} />
                     Éléments visuels
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 text-sm text-slate-600 md:grid-cols-2">
                     {promotion.visuals.badge_text && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Badge:</span>
-                        <span 
-                          className="text-sm px-2 py-1 rounded-full" 
-                          style={{ 
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Badge</span>
+                        <span
+                          className="rounded-full px-3 py-1 text-xs font-semibold text-white"
+                          style={{
                             backgroundColor: promotion.visuals.badge_color || '#F9A826',
-                            color: '#ffffff'
                           }}
                         >
                           {promotion.visuals.badge_text}
@@ -304,27 +309,27 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
                     )}
 
                     {promotion.visuals.banner_text && (
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Texte bannière:</span>
-                        <span className="text-sm">{promotion.visuals.banner_text}</span>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Texte bannière</span>
+                        <span className="text-right text-slate-700">{promotion.visuals.banner_text}</span>
                       </div>
                     )}
 
                     {promotion.visuals.banner_cta && (
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Bouton:</span>
-                        <span className="text-sm">{promotion.visuals.banner_cta}</span>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Bouton</span>
+                        <span className="text-right text-slate-700">{promotion.visuals.banner_cta}</span>
                       </div>
                     )}
                   </div>
 
                   {promotion.visuals.banner_image && (
                     <div className="mt-4">
-                      <span className="text-sm text-gray-600 block mb-2">Image de bannière:</span>
-                      <img 
-                        src={promotion.visuals.banner_image} 
-                        alt="Bannière promotionnelle" 
-                        className="w-full h-auto max-h-40 object-cover rounded-lg"
+                      <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-600">Image de bannière</span>
+                      <img
+                        src={promotion.visuals.banner_image}
+                        alt="Bannière promotionnelle"
+                        className="w-full max-h-40 rounded-xl object-cover shadow-sm"
                       />
                     </div>
                   )}
@@ -334,54 +339,53 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
           )}
 
           {activeTab === 'usages' && (
-            <div>
+            <div className="space-y-4">
               {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <div className="rounded-xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm font-medium text-red-700 shadow-sm">
                   {error}
                 </div>
               )}
 
               {loading ? (
-                <div className="flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
-                  <span className="ml-2">Chargement...</span>
+                <div className="flex items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 py-10 text-slate-600 shadow-sm">
+                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-brand-primary"></div>
+                  <span>Chargement…</span>
                 </div>
               ) : usages.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/80 py-10 text-center text-sm font-medium text-slate-500 shadow-sm">
                   Aucune utilisation enregistrée pour cette promotion
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="bg-gray-50 border-b">
+                <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+                  <table className="w-full divide-y divide-slate-200 text-sm text-slate-700">
+                    <thead className="bg-slate-50/90 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <tr>
                         <th className="px-4 py-3 text-left">Date</th>
                         <th className="px-4 py-3 text-left">Commande</th>
                         <th className="px-4 py-3 text-left">Client</th>
                         <th className="px-4 py-3 text-right">Montant</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-slate-100">
                       {usages.map((usage) => (
-                        <tr key={usage.id} className="border-b hover:bg-gray-50">
-                          <td className="px-4 py-3">{formatDate(usage.applied_at)}</td>
+                        <tr key={usage.id} className="bg-white/80 transition hover:bg-brand-accent-soft">
+                          <td className="px-4 py-3 font-medium text-slate-600">{formatDate(usage.applied_at)}</td>
                           <td className="px-4 py-3">
-                            <a 
-                              href="#" 
-                              className="text-brand-primary hover:underline flex items-center"
+                            <a
+                              href="#"
+                              className="inline-flex items-center gap-2 text-brand-primary transition hover:underline"
                               onClick={(e) => {
                                 e.preventDefault();
-                                // Ici, vous pourriez ouvrir un modal avec les détails de la commande
                               }}
                             >
                               {usage.order_id.substring(0, 8)}...
-                              <ExternalLink size={14} className="ml-1" />
+                              <ExternalLink size={14} />
                             </a>
                           </td>
                           <td className="px-4 py-3">
-                            {usage.customer_phone || '-'}
+                            {usage.customer_phone || '—'}
                           </td>
-                          <td className="px-4 py-3 text-right font-medium">
+                          <td className="px-4 py-3 text-right font-semibold text-slate-800">
                             {usage.discount_amount.toFixed(2)}€
                           </td>
                         </tr>
@@ -394,11 +398,11 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
           )}
         </div>
 
-        <div className="flex justify-end p-6 border-t">
+        <div className="flex justify-end border-t border-slate-200 bg-slate-50/80 p-6">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+            className="inline-flex items-center justify-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary"
           >
             Fermer
           </button>

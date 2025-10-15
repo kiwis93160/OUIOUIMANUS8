@@ -411,8 +411,11 @@ export interface DailyReport {
     generatedAt: string;
     startDate: string;
     clientsDuJour: number;
+    clientsSurPlace: number;
+    clientsEnLigne: number;
     panierMoyen: number;
     ventesDuJour: number;
+    totalPromotionsApplied: number;
     soldProducts: SoldProductsByCategory[];
     lowStockIngredients: Ingredient[];
     roleLogins: RoleLogin[];

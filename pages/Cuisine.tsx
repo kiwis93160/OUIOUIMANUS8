@@ -98,7 +98,9 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
                 <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 sm:justify-between">
                     <OrderTimer
                         startTime={order.date_envoi_cuisine || Date.now()}
-                        className="text-base font-semibold text-gray-900 sm:text-lg"
+                        variant="chip"
+                        label="TIMER"
+                        accentClassName={urgencyStyles.accent}
                     />
                     <span
                         className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-white shadow ${urgencyStyles.accent}`}
