@@ -1700,6 +1700,26 @@ body {
   color: color-mix(in srgb, var(--color-surface) 88%, transparent);
 }
 
+.promotions-page {
+  color: var(--color-heading);
+}
+
+.promotions-page :where(h1, h2, h3, h4, h5, h6, p, span, label, strong, em, th, td, li, dt, dd) {
+  color: inherit;
+}
+
+.promotions-page input,
+.promotions-page select,
+.promotions-page textarea {
+  color: var(--color-heading);
+  background-color: #ffffff;
+}
+
+.promotions-page ::placeholder {
+  color: color-mix(in srgb, var(--color-text-muted) 85%, transparent);
+  opacity: 1;
+}
+
 .app-sidebar {
   background: var(--color-surface);
   color: var(--color-text);
@@ -2580,6 +2600,23 @@ p {
   }
 }
 
+
+/* Promotion modal text color */
+.promotion-modal,
+.promotion-modal__content {
+  color: #000000;
+}
+
+.promotion-modal input,
+.promotion-modal select,
+.promotion-modal textarea {
+  color: #000000;
+}
+
+.promotion-modal input::placeholder,
+.promotion-modal textarea::placeholder {
+  color: rgba(0, 0, 0, 0.6);
+}
 
 /* Table notification badge */
 .table-notification-badge {
