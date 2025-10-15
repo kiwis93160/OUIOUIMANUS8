@@ -1754,6 +1754,64 @@ export const api = {
     return mapIngredientRow(row);
   },
 
+  resupplyIngredient: async (
+    ingredientId: string,
+    quantity: number,
+    unitPrice: number,
+  ): Promise<Ingredient> => {
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      throw new Error('Quantity must be a positive number');
+    }
+
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+      throw new Error('Unit price must be a non-negative number');
+    }
+
+    const ingredientResponse = await supabase
+      .from('ingredients')
+      .select('id, nom, unite, stock_minimum, stock_actuel, prix_unitaire')
+      .eq('id', ingredientId)
+      .single();
+    const ingredientRow = unwrap<SupabaseIngredientRow>(
+      ingredientResponse as SupabaseResponse<SupabaseIngredientRow>,
+    );
+
+    const currentStock = toNumber(ingredientRow.stock_actuel) ?? 0;
+    const currentPrice = toNumber(ingredientRow.prix_unitaire) ?? 0;
+    const purchaseQuantity = Number(quantity);
+    const totalStock = currentStock + purchaseQuantity;
+    const totalCost = currentStock * currentPrice + purchaseQuantity * unitPrice;
+    const updatedUnitPrice = totalStock > 0 ? totalCost / totalStock : 0;
+
+    const updateResponse = await supabase
+      .from('ingredients')
+      .update({
+        stock_actuel: totalStock,
+        prix_unitaire: updatedUnitPrice,
+      })
+      .eq('id', ingredientId)
+      .select('id, nom, unite, stock_minimum, stock_actuel, prix_unitaire')
+      .single();
+
+    const updatedRow = unwrap<SupabaseIngredientRow>(
+      updateResponse as SupabaseResponse<SupabaseIngredientRow>,
+    );
+
+    const purchaseResponse = await supabase.from('purchases').insert({
+      ingredient_id: ingredientId,
+      quantite_achetee: purchaseQuantity,
+      prix_total: purchaseQuantity * unitPrice,
+      date_achat: new Date().toISOString(),
+    });
+
+    if (purchaseResponse.error) {
+      throw new Error(purchaseResponse.error.message);
+    }
+
+    notificationsService.publish('notifications_updated');
+    return mapIngredientRow(updatedRow);
+  },
+
   deleteIngredient: async (ingredientId: string): Promise<{ success: boolean }> => {
     const relatedRecipesResponse = await supabase
       .from('product_recipes')
