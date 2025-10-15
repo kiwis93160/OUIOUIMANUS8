@@ -125,7 +125,12 @@ const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
     window.open(whatsappUrl, '_blank');
 
     // Redirect customer to the public home page where the tracker is displayed
-    navigate('/');
+    navigate('/', { replace: true });
+
+    // Ensure the tracker is visible by scrolling to the top after navigation
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   };
 
   return (

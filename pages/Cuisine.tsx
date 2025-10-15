@@ -77,11 +77,11 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
     );
 
     const sentAt = new Date(order.date_envoi_cuisine || Date.now());
-    const sentAtFormatted = sentAt.toLocaleString('es-CO', {
-        day: '2-digit',
-        month: '2-digit',
+    const sentAtFormatted = sentAt.toLocaleTimeString('es-CO', {
         hour: '2-digit',
         minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
     });
     const displayName = order.table_nom || `Para llevar #${order.id.slice(-4)}`;
     const nameClass = computeNameSizeClass(displayName);
