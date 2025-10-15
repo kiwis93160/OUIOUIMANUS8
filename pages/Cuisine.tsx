@@ -6,6 +6,24 @@ import { useAuth } from '../contexts/AuthContext';
 import OrderTimer from '../components/OrderTimer';
 import { getOrderUrgencyStyles } from '../utils/orderUrgency';
 
+const computeNameSizeClass = (label: string) => {
+    const trimmedLength = label.trim().length;
+
+    if (trimmedLength <= 10) {
+        return 'text-[clamp(1.35rem,3vw,1.75rem)]';
+    }
+
+    if (trimmedLength <= 16) {
+        return 'text-[clamp(1.25rem,2.9vw,1.6rem)]';
+    }
+
+    if (trimmedLength <= 24) {
+        return 'text-[clamp(1.15rem,2.7vw,1.45rem)]';
+    }
+
+    return 'text-[clamp(1.05rem,2.5vw,1.3rem)]';
+};
+
 const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId: string, ticketTimestamp?: number) => void; canMarkReady: boolean }> = ({ order, onReady, canMarkReady }) => {
 
     const urgencyStyles = getOrderUrgencyStyles(order.date_envoi_cuisine || Date.now());
@@ -60,26 +78,28 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
 
     const sentAt = new Date(order.date_envoi_cuisine || Date.now());
     const sentAtFormatted = sentAt.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+    const displayName = order.table_nom || `Para llevar #${order.id.slice(-4)}`;
+    const nameClass = computeNameSizeClass(displayName);
 
     return (
         <div className={`flex h-full flex-col overflow-hidden rounded-xl text-gray-900 shadow-lg transition-shadow duration-300 hover:shadow-xl ${urgencyStyles.border} ${urgencyStyles.background}`}>
-            <div className="flex flex-col gap-4 px-5 py-4">
-                <div className="space-y-1">
-                    <h3 className="truncate text-lg font-semibold text-gray-900 sm:text-xl">
-                        {order.table_nom || `Para llevar #${order.id.slice(-4)}`}
+            <div className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                <div className="min-w-0 flex-1 space-y-1">
+                    <h3 className={`font-semibold leading-tight text-gray-900 ${nameClass} whitespace-nowrap`}>
+                        <span className="block max-w-full">{displayName}</span>
                     </h3>
-                    <p className="text-xs text-gray-500">Enviado {sentAtFormatted}</p>
+                    <p className="text-xs text-gray-500 sm:text-sm">Enviado {sentAtFormatted}</p>
                 </div>
-                <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600 sm:w-auto sm:flex-col sm:items-end sm:justify-end">
                     <OrderTimer
                         startTime={order.date_envoi_cuisine || Date.now()}
-                        className="text-lg font-semibold text-gray-900"
+                        className="text-base font-semibold text-gray-900 sm:text-lg"
                     />
                     <span
-                        className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold text-white shadow ${urgencyStyles.accent}`}
+                        className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-white shadow ${urgencyStyles.accent}`}
                     >
-                        <span className="uppercase tracking-[0.2em] text-white/70">Total</span>
-                        <span className="text-lg">{totalProducts}</span>
+                        <span className="text-white/70">PRODUITS</span>
+                        <span className="text-lg tracking-normal">{totalProducts}</span>
                     </span>
                 </div>
             </div>
