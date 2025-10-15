@@ -27,6 +27,7 @@ export interface OrderSummaryProps {
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
     categorizedItems,
+    order,
     total,
     onQuantityChange,
     onCommentChange,
