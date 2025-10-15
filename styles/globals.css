@@ -2581,6 +2581,23 @@ p {
 }
 
 
+/* Promotion modal text color */
+.promotion-modal,
+.promotion-modal__content {
+  color: #000000;
+}
+
+.promotion-modal input,
+.promotion-modal select,
+.promotion-modal textarea {
+  color: #000000;
+}
+
+.promotion-modal input::placeholder,
+.promotion-modal textarea::placeholder {
+  color: rgba(0, 0, 0, 0.6);
+}
+
 /* Table notification badge */
 .table-notification-badge {
   display: inline-flex;

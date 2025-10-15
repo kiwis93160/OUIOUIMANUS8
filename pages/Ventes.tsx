@@ -47,6 +47,8 @@ const formatTableName = (name: string): string => {
   return [firstWord, ...rest.slice(index)].join(' ');
 };
 
+const sanitizeNumericInput = (value: string): string => value.replace(/\D+/g, '');
+
 const getTableStatus = (table: Table): StatusDescriptor => {
   switch (table.statut) {
     case 'libre':
@@ -256,6 +258,7 @@ const Ventes: React.FC = () => {
   const [isSeatGuestsModalOpen, setSeatGuestsModalOpen] = useState(false);
   const [seatGuestsTable, setSeatGuestsTable] = useState<Table | null>(null);
   const [seatGuestsValue, setSeatGuestsValue] = useState('');
+  const [seatGuestsPlaceholder, setSeatGuestsPlaceholder] = useState('');
   const [seatGuestsError, setSeatGuestsError] = useState<string | null>(null);
   const [isSeatingGuests, setIsSeatingGuests] = useState(false);
   const fetchIdRef = useRef(0);
@@ -324,15 +327,21 @@ const Ventes: React.FC = () => {
     }
   }, [isSeatGuestsModalOpen]);
 
-  const handleSeatGuests = useCallback((table: Table) => {
-    setSeatGuestsTable(table);
-    const initialValue = table.couverts ?? table.capacite;
-    setSeatGuestsValue(initialValue !== undefined && initialValue !== null ? String(initialValue) : '');
-    setSeatGuestsError(null);
-    setActionError(null);
-    setActionSuccess(null);
-    setSeatGuestsModalOpen(true);
-  }, [setActionError, setActionSuccess]);
+  const handleSeatGuests = useCallback(
+    (table: Table) => {
+      setSeatGuestsTable(table);
+      const initialValue = table.couverts ?? table.capacite;
+      setSeatGuestsValue('');
+      setSeatGuestsPlaceholder(
+        initialValue !== undefined && initialValue !== null ? String(initialValue) : '',
+      );
+      setSeatGuestsError(null);
+      setActionError(null);
+      setActionSuccess(null);
+      setSeatGuestsModalOpen(true);
+    },
+    [setActionError, setActionSuccess],
+  );
 
   const handleSeatGuestsClose = useCallback(() => {
     if (isSeatingGuests) {
@@ -342,16 +351,61 @@ const Ventes: React.FC = () => {
     setSeatGuestsModalOpen(false);
     setSeatGuestsTable(null);
     setSeatGuestsValue('');
+    setSeatGuestsPlaceholder('');
     setSeatGuestsError(null);
   }, [isSeatingGuests]);
 
-  const handleSeatGuestsValueChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const digitsOnly = event.target.value.replace(/\D+/g, '');
-    setSeatGuestsValue(digitsOnly);
-    if (seatGuestsError) {
-      setSeatGuestsError(null);
+  const handleSeatGuestsValueChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const digitsOnly = sanitizeNumericInput(event.target.value);
+      setSeatGuestsValue(digitsOnly);
+      if (seatGuestsError) {
+        setSeatGuestsError(null);
+      }
+    },
+    [seatGuestsError],
+  );
+
+  const handleSeatGuestsKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+      return;
     }
-  }, [seatGuestsError]);
+
+    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'];
+
+    if (allowedKeys.includes(event.key)) {
+      return;
+    }
+
+    if (!/^\d$/.test(event.key)) {
+      event.preventDefault();
+    }
+  }, []);
+
+  const handleSeatGuestsPaste = useCallback(
+    (event: React.ClipboardEvent<HTMLInputElement>) => {
+      event.preventDefault();
+      const clipboardValue = sanitizeNumericInput(event.clipboardData.getData('text'));
+
+      if (!clipboardValue) {
+        return;
+      }
+
+      const target = event.currentTarget;
+      const selectionStart = target.selectionStart ?? target.value.length;
+      const selectionEnd = target.selectionEnd ?? target.value.length;
+
+      const nextValue = sanitizeNumericInput(
+        `${target.value.slice(0, selectionStart)}${clipboardValue}${target.value.slice(selectionEnd)}`,
+      );
+
+      setSeatGuestsValue(nextValue);
+      if (seatGuestsError) {
+        setSeatGuestsError(null);
+      }
+    },
+    [seatGuestsError],
+  );
 
   const handleSeatGuestsSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -381,6 +435,7 @@ const Ventes: React.FC = () => {
         setSeatGuestsModalOpen(false);
         setSeatGuestsTable(null);
         setSeatGuestsValue('');
+        setSeatGuestsPlaceholder('');
         await fetchTables();
         navigate(`/commande/${seatGuestsTable.id}`);
       } catch (error) {
@@ -549,7 +604,8 @@ const Ventes: React.FC = () => {
         <form onSubmit={handleSeatGuestsSubmit} className="space-y-5 text-left">
           <div className="space-y-2">
             <p className="text-sm text-gray-700">
-              Sélectionnez le nombre de couverts souhaité pour ouvrir la table.
+              Indiquez le nombre de couverts souhaité pour ouvrir la table. Seuls les chiffres sont acceptés et aucune
+              limite n'est appliquée.
             </p>
             <label htmlFor="seat-guests-input" className="block text-sm font-medium text-gray-700">
               Nombre de couverts
@@ -563,7 +619,11 @@ const Ventes: React.FC = () => {
               className="ui-input"
               value={seatGuestsValue}
               onChange={handleSeatGuestsValueChange}
-              placeholder="Ex. 4"
+              onKeyDown={handleSeatGuestsKeyDown}
+              onPaste={handleSeatGuestsPaste}
+              placeholder={
+                seatGuestsPlaceholder ? `Ex. ${seatGuestsPlaceholder}` : 'Saisissez le nombre de couverts'
+              }
               autoComplete="off"
               disabled={isSeatingGuests}
             />
