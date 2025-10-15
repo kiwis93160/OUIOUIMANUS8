@@ -65,7 +65,9 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
                                                             <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base font-bold text-white shadow-md ${urgencyStyles.accent}`}>
                                                                 {item.quantite}
                                                             </span>
-                                                            <span className="font-semibold text-gray-900">{item.nom_produit}</span>
+                                                            <span className="font-semibold text-gray-900 text-[clamp(0.95rem,1.9vw,1.15rem)] leading-snug break-words text-balance whitespace-normal [hyphens:auto]">
+                                                                {item.nom_produit}
+                                                            </span>
                                                         </div>
                                                         <span className="whitespace-nowrap text-sm font-semibold text-gray-900 sm:text-base">{formatCurrencyCOP(item.prix_unitaire * item.quantite)}</span>
                                                     </div>

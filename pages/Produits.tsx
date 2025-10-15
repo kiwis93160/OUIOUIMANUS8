@@ -218,7 +218,9 @@ const ProductCard: React.FC<{ product: Product; category?: Category; onEdit: () 
                 <div className="flex justify-between items-start">
                     <div>
                         <p className="text-xs text-gray-500">{category?.nom || 'Sans catégorie'}</p>
-                        <h3 className="font-bold text-lg text-gray-900">{product.nom_produit}</h3>
+                        <h3 className="font-bold text-[clamp(1.05rem,2.2vw,1.35rem)] leading-snug text-gray-900 break-words text-balance whitespace-normal [hyphens:auto]">
+                            {product.nom_produit}
+                        </h3>
                     </div>
                 <p className="text-xl font-extrabold text-brand-primary">{formatCurrencyCOP(product.prix_vente)}</p>
                 </div>

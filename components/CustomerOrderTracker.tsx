@@ -363,7 +363,9 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                 
                                 return (
                                     <div key={item.id} className={`flex justify-between items-center ${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`}>
-                                        <span>{item.quantite}x {item.nom_produit}</span>
+                                        <span className="text-[clamp(0.95rem,1.8vw,1.1rem)] leading-snug break-words text-balance whitespace-normal [hyphens:auto]">
+                                            {item.quantite}x {item.nom_produit}
+                                        </span>
                                         {isFreeShipping ? (
                                             <div className="flex items-center space-x-2">
                                                 <span className={`text-sm ${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'} line-through`}>{formatCurrencyCOP(8000)}</span>

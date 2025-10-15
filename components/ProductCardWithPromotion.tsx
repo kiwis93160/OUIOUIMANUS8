@@ -40,7 +40,11 @@ const ProductCardWithPromotion: React.FC<ProductCardWithPromotionProps> = ({ pro
       />
       
       {/* Nom du produit */}
-      <p className="font-semibold text-lg flex-grow text-gray-800">{product.nom_produit}</p>
+      <p
+        className="font-semibold flex-grow text-gray-800 leading-snug text-[clamp(1.05rem,2.4vw,1.3rem)] break-words text-balance whitespace-normal [hyphens:auto]"
+      >
+        {product.nom_produit}
+      </p>
       
       {/* Description */}
       <p className="text-base text-gray-600 mt-2 px-1 max-h-20 overflow-hidden">
