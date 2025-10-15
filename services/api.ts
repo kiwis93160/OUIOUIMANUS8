@@ -1883,7 +1883,7 @@ export const api = {
     return order ?? undefined;
   },
 
-  createOrGetOrderByTableId: async (tableId: string): Promise<Order> => {
+  createOrGetOrderByTableId: async (tableId: string, options?: { couverts?: number }): Promise<Order> => {
     const tableResponse = await supabase
       .from('restaurant_tables')
       .select('id, nom, capacite, statut, commande_id, couverts')
@@ -1902,6 +1902,7 @@ export const api = {
       }
     }
 
+    const couvertsForOrder = options?.couverts ?? tableRow.couverts ?? tableRow.capacite;
     const nowIso = new Date().toISOString();
     const insertResponse = await supabase
       .from('orders')
@@ -1909,7 +1910,7 @@ export const api = {
         type: 'sur_place',
         table_id: tableRow.id,
         table_nom: tableRow.nom,
-        couverts: tableRow.couverts ?? tableRow.capacite,
+        couverts: couvertsForOrder,
         statut: 'en_cours',
         estado_cocina: 'no_enviado',
         date_creation: nowIso,
@@ -1925,7 +1926,7 @@ export const api = {
       .update({
         statut: 'en_cuisine',
         commande_id: insertedRow.id,
-        couverts: tableRow.couverts ?? tableRow.capacite,
+        couverts: couvertsForOrder,
       })
       .eq('id', tableId);
 

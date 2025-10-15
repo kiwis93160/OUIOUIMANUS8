@@ -15,6 +15,7 @@ import { Table } from '../types';
 import OrderTimer from '../components/OrderTimer';
 import TableModal, { TableFormValues } from '../components/TableModal';
 import { useAuth } from '../contexts/AuthContext';
+import Modal from '../components/Modal';
 
 type StatusDescriptor = { text: string; statusClass: string; Icon: React.ComponentType<{ size?: number }> };
 
@@ -80,7 +81,8 @@ const TableCard: React.FC<{
   onEdit?: (table: Table) => void;
   onDelete?: (table: Table) => Promise<void> | void;
   isDeleting?: boolean;
-}> = ({ table, onServe, canEdit, onEdit, onDelete, isDeleting }) => {
+  onSeatGuests?: (table: Table) => void;
+}> = ({ table, onServe, canEdit, onEdit, onDelete, isDeleting, onSeatGuests }) => {
   const navigate = useNavigate();
   const { text, statusClass, Icon } = getTableStatus(table);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -89,6 +91,8 @@ const TableCard: React.FC<{
   const handleCardClick = () => {
     if (table.commandeId) {
       navigate(`/commande/${table.id}`);
+    } else if (table.statut === 'libre' && onSeatGuests) {
+      onSeatGuests(table);
     } else if (canEdit && onEdit) {
       onEdit(table);
     }
@@ -238,6 +242,7 @@ const TableCard: React.FC<{
 const Ventes: React.FC = () => {
   const { role } = useAuth();
   const canEditTables = role?.permissions?.['/ventes'] === 'editor';
+  const navigate = useNavigate();
 
   const [tables, setTables] = useState<Table[]>([]);
   const [loading, setLoading] = useState(true);
@@ -248,7 +253,13 @@ const Ventes: React.FC = () => {
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [deletingTableId, setDeletingTableId] = useState<string | null>(null);
+  const [isSeatGuestsModalOpen, setSeatGuestsModalOpen] = useState(false);
+  const [seatGuestsTable, setSeatGuestsTable] = useState<Table | null>(null);
+  const [seatGuestsValue, setSeatGuestsValue] = useState('');
+  const [seatGuestsError, setSeatGuestsError] = useState<string | null>(null);
+  const [isSeatingGuests, setIsSeatingGuests] = useState(false);
   const fetchIdRef = useRef(0);
+  const seatGuestsInputRef = useRef<HTMLInputElement | null>(null);
 
   const fetchTables = useCallback(async () => {
     const fetchId = ++fetchIdRef.current;
@@ -301,6 +312,86 @@ const Ventes: React.FC = () => {
     setActionSuccess(null);
     setIsModalOpen(true);
   }, []);
+
+  useEffect(() => {
+    if (!isSeatGuestsModalOpen) {
+      return;
+    }
+
+    if (seatGuestsInputRef.current) {
+      seatGuestsInputRef.current.focus();
+      seatGuestsInputRef.current.select();
+    }
+  }, [isSeatGuestsModalOpen]);
+
+  const handleSeatGuests = useCallback((table: Table) => {
+    setSeatGuestsTable(table);
+    const initialValue = table.couverts ?? table.capacite;
+    setSeatGuestsValue(initialValue !== undefined && initialValue !== null ? String(initialValue) : '');
+    setSeatGuestsError(null);
+    setActionError(null);
+    setActionSuccess(null);
+    setSeatGuestsModalOpen(true);
+  }, [setActionError, setActionSuccess]);
+
+  const handleSeatGuestsClose = useCallback(() => {
+    if (isSeatingGuests) {
+      return;
+    }
+
+    setSeatGuestsModalOpen(false);
+    setSeatGuestsTable(null);
+    setSeatGuestsValue('');
+    setSeatGuestsError(null);
+  }, [isSeatingGuests]);
+
+  const handleSeatGuestsValueChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const digitsOnly = event.target.value.replace(/\D+/g, '');
+    setSeatGuestsValue(digitsOnly);
+    if (seatGuestsError) {
+      setSeatGuestsError(null);
+    }
+  }, [seatGuestsError]);
+
+  const handleSeatGuestsSubmit = useCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      if (!seatGuestsTable) {
+        return;
+      }
+
+      if (!seatGuestsValue) {
+        setSeatGuestsError('Veuillez saisir un nombre de couverts.');
+        return;
+      }
+
+      const parsedValue = Number(seatGuestsValue);
+      if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
+        setSeatGuestsError('Veuillez entrer un nombre de couverts valide.');
+        return;
+      }
+
+      setIsSeatingGuests(true);
+      setSeatGuestsError(null);
+      setActionError(null);
+
+      try {
+        await api.createOrGetOrderByTableId(seatGuestsTable.id, { couverts: parsedValue });
+        setSeatGuestsModalOpen(false);
+        setSeatGuestsTable(null);
+        setSeatGuestsValue('');
+        await fetchTables();
+        navigate(`/commande/${seatGuestsTable.id}`);
+      } catch (error) {
+        console.error('Failed to open table with couverts:', error);
+        setActionError('Impossible d\'ouvrir la table. Veuillez réessayer.');
+      } finally {
+        setIsSeatingGuests(false);
+      }
+    },
+    [fetchTables, navigate, seatGuestsTable, seatGuestsValue],
+  );
 
   const handleModalSubmit = useCallback(
     async (values: TableFormValues) => {
@@ -444,9 +535,60 @@ const Ventes: React.FC = () => {
             onEdit={handleEditTable}
             onDelete={handleDeleteTable}
             isDeleting={deletingTableId === table.id}
+            onSeatGuests={handleSeatGuests}
           />
         ))}
       </div>
+
+      <Modal
+        isOpen={isSeatGuestsModalOpen}
+        onClose={handleSeatGuestsClose}
+        title={seatGuestsTable ? `Nombre de couverts pour ${seatGuestsTable.nom}` : 'Nombre de couverts'}
+        size="sm"
+      >
+        <form onSubmit={handleSeatGuestsSubmit} className="space-y-5 text-left">
+          <div className="space-y-2">
+            <p className="text-sm text-gray-700">
+              Sélectionnez le nombre de couverts souhaité pour ouvrir la table.
+            </p>
+            <label htmlFor="seat-guests-input" className="block text-sm font-medium text-gray-700">
+              Nombre de couverts
+            </label>
+            <input
+              id="seat-guests-input"
+              ref={seatGuestsInputRef}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              className="ui-input"
+              value={seatGuestsValue}
+              onChange={handleSeatGuestsValueChange}
+              placeholder="Ex. 4"
+              autoComplete="off"
+              disabled={isSeatingGuests}
+            />
+            {seatGuestsError && <p className="text-sm text-red-600">{seatGuestsError}</p>}
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={handleSeatGuestsClose}
+              className="ui-btn ui-btn-secondary"
+              disabled={isSeatingGuests}
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              className="ui-btn ui-btn-primary"
+              disabled={isSeatingGuests}
+            >
+              {isSeatingGuests ? 'Ouverture…' : 'Ouvrir la table'}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       <TableModal
         isOpen={isModalOpen}
