@@ -486,6 +486,51 @@ const mapOrderRow = (row: SupabaseOrderRow): Order => {
   return order;
 };
 
+const computeOrderFinancialSnapshot = (order: Order) => {
+  const grossPerItem = order.items.map(item => Math.max(0, item.prix_unitaire) * Math.max(0, item.quantite));
+  const grossSubtotal = grossPerItem.reduce((sum, value) => sum + value, 0);
+  const fallbackSubtotal = Math.max(order.subtotal ?? 0, 0);
+  const subtotalBeforeDiscount = grossSubtotal > 0 ? grossSubtotal : fallbackSubtotal;
+  const normalizedDiscount = Math.max(order.total_discount ?? 0, 0);
+  const totalDiscount = subtotalBeforeDiscount > 0 ? Math.min(normalizedDiscount, subtotalBeforeDiscount) : 0;
+
+  const discountPerItem = grossPerItem.map(gross => {
+    if (subtotalBeforeDiscount <= 0 || gross <= 0 || totalDiscount <= 0) {
+      return 0;
+    }
+    const share = (gross / subtotalBeforeDiscount) * totalDiscount;
+    return Math.min(gross, share);
+  });
+
+  const allocatedDiscount = discountPerItem.reduce((sum, value) => sum + value, 0);
+  const roundingDelta = totalDiscount - allocatedDiscount;
+  if (Math.abs(roundingDelta) > 1e-6 && discountPerItem.length > 0) {
+    const lastIndex = discountPerItem.length - 1;
+    const lastGross = grossPerItem[lastIndex];
+    const adjusted = Math.min(lastGross, Math.max(0, discountPerItem[lastIndex] + roundingDelta));
+    discountPerItem[lastIndex] = adjusted;
+  }
+
+  const netPerItem = discountPerItem.map((discount, index) => {
+    const net = grossPerItem[index] - discount;
+    return net > 0 ? net : 0;
+  });
+
+  const netRevenueFromItems = netPerItem.reduce((sum, value) => sum + value, 0);
+  const shipping = typeof order.shipping_cost === 'number' ? order.shipping_cost : 0;
+  const totalRevenue = order.total ?? Math.max(netRevenueFromItems + shipping, 0);
+
+  return {
+    grossPerItem,
+    discountPerItem,
+    netPerItem,
+    subtotalBeforeDiscount,
+    totalDiscount,
+    netRevenueFromItems,
+    totalRevenue,
+  };
+};
+
 const mapSaleRow = (row: SupabaseSaleRow): Sale => ({
   id: row.id,
   orderId: row.order_id,
@@ -935,14 +980,19 @@ const createSalesEntriesForOrder = async (order: Order): Promise<number> => {
   );
 
   const saleDateIso = toIsoString(order.date_servido) ?? new Date().toISOString();
+  const snapshot = computeOrderFinancialSnapshot(order);
   const salesEntries = order.items
-    .filter(item => isUuid(item.produitRef)) // Filtrer uniquement les produits avec des UUIDs valides
-    .map(item => {
+    .map((item, index) => ({ item, index }))
+    .filter(({ item }) => isUuid(item.produitRef)) // Filtrer uniquement les produits avec des UUIDs valides
+    .map(({ item, index }) => {
       const product = productMap.get(item.produitRef);
       const cost = product ? calculateCost(product.recipe, ingredientMap) : 0;
       const categoryId = product?.categoria_id ?? 'unknown';
       const categoryName = product ? categoryMap.get(categoryId) ?? 'Sans catégorie' : 'Sans catégorie';
-      const profit = (item.prix_unitaire - cost) * item.quantite;
+      const netTotal = snapshot.netPerItem[index] ?? item.prix_unitaire * item.quantite;
+      const unitRevenue = item.quantite > 0 ? netTotal / item.quantite : 0;
+      const totalCost = cost * item.quantite;
+      const profit = netTotal - totalCost;
 
       return {
         order_id: order.id,
@@ -951,10 +1001,10 @@ const createSalesEntriesForOrder = async (order: Order): Promise<number> => {
         category_id: categoryId,
         category_name: categoryName,
         quantity: item.quantite,
-        unit_price: item.prix_unitaire,
-        total_price: item.prix_unitaire * item.quantite,
+        unit_price: unitRevenue,
+        total_price: netTotal,
         unit_cost: cost,
-        total_cost: cost * item.quantite,
+        total_cost: totalCost,
         profit,
         payment_method: order.payment_method ?? null,
         sale_date: saleDateIso,
@@ -1170,14 +1220,29 @@ export const api = {
 
     const categoryMap = new Map(categories.map(category => [category.id, category.nom]));
 
+    const financialSnapshotCache = new Map<string, ReturnType<typeof computeOrderFinancialSnapshot>>();
+    const getSnapshotForOrder = (order: Order) => {
+      const cached = financialSnapshotCache.get(order.id);
+      if (cached) {
+        return cached;
+      }
+      const snapshot = computeOrderFinancialSnapshot(order);
+      financialSnapshotCache.set(order.id, snapshot);
+      return snapshot;
+    };
+
     const saleDateIso = toIsoString(todaysOrders[0]?.date_servido) ?? new Date().toISOString();
-    const salesEntries = todaysOrders.flatMap(order =>
-      order.items.map(item => {
+    const salesEntries = todaysOrders.flatMap(order => {
+      const snapshot = getSnapshotForOrder(order);
+      return order.items.map((item, index) => {
         const product = productMap.get(item.produitRef);
         const cost = product ? calculateCost(product.recipe, ingredientMap) : 0;
         const categoryId = product?.categoria_id ?? 'unknown';
         const categoryName = product ? categoryMap.get(categoryId) ?? 'Sans catégorie' : 'Sans catégorie';
-        const profit = (item.prix_unitaire - cost) * item.quantite;
+        const netTotal = snapshot.netPerItem[index] ?? item.prix_unitaire * item.quantite;
+        const unitRevenue = item.quantite > 0 ? netTotal / item.quantite : 0;
+        const totalCost = cost * item.quantite;
+        const profit = netTotal - totalCost;
 
         return {
           order_id: order.id,
@@ -1186,31 +1251,33 @@ export const api = {
           category_id: categoryId,
           category_name: categoryName,
           quantity: item.quantite,
-          unit_price: item.prix_unitaire,
-          total_price: item.prix_unitaire * item.quantite,
+          unit_price: unitRevenue,
+          total_price: netTotal,
           unit_cost: cost,
-          total_cost: cost * item.quantite,
+          total_cost: totalCost,
           profit,
           payment_method: order.payment_method ?? null,
           sale_date: saleDateIso,
         };
-      }),
-    );
+      });
+    });
 
-    const ventesDuJour = salesEntries.reduce((sum, entry) => sum + entry.total_price, 0);
+    const ventesDuJour = todaysOrders.reduce((sum, order) => sum + getSnapshotForOrder(order).totalRevenue, 0);
     const beneficeDuJour = salesEntries.reduce((sum, entry) => sum + entry.profit, 0);
 
     const clientsDuJour = todaysOrders.reduce((sum, order) => sum + (order.couverts ?? 0), 0);
     const panierMoyenDuJour = todaysOrders.length > 0 ? ventesDuJour / todaysOrders.length : 0;
 
-    const ventesPeriode = currentPeriodOrders.reduce((sum, order) => sum + (order.total ?? 0), 0);
+    const ventesPeriode = currentPeriodOrders.reduce((sum, order) => sum + getSnapshotForOrder(order).totalRevenue, 0);
     const beneficePeriode = currentPeriodOrders.reduce((profit, order) => {
+      const snapshot = getSnapshotForOrder(order);
       return (
         profit +
-        order.items.reduce((acc, item) => {
+        order.items.reduce((acc, item, index) => {
           const product = productMap.get(item.produitRef);
           const cost = product ? calculateCost(product.recipe, ingredientMap) : 0;
-          return acc + (item.prix_unitaire - cost) * item.quantite;
+          const netTotal = snapshot.netPerItem[index] ?? item.prix_unitaire * item.quantite;
+          return acc + (netTotal - cost * item.quantite);
         }, 0)
       );
     }, 0);
@@ -1220,12 +1287,14 @@ export const api = {
 
     const ventesParCategorieMap = new Map<string, number>();
     currentPeriodOrders.forEach(order => {
-      order.items.forEach(item => {
+      const snapshot = getSnapshotForOrder(order);
+      order.items.forEach((item, index) => {
         const product = productMap.get(item.produitRef);
         const categoryName = product ? categoryMap.get(product.categoria_id) ?? 'Sans catégorie' : 'Sans catégorie';
+        const netTotal = snapshot.netPerItem[index] ?? item.prix_unitaire * item.quantite;
         ventesParCategorieMap.set(
           categoryName,
-          (ventesParCategorieMap.get(categoryName) ?? 0) + item.prix_unitaire * item.quantite,
+          (ventesParCategorieMap.get(categoryName) ?? 0) + netTotal,
         );
       });
     });
@@ -1261,7 +1330,7 @@ export const api = {
       const endTimestamp = rangeEnd.getTime();
       return orders.reduce((sum, order) => {
         if (order.date_creation >= startTimestamp && order.date_creation < endTimestamp) {
-          return sum + (order.total ?? 0);
+          return sum + getSnapshotForOrder(order).totalRevenue;
         }
         return sum;
       }, 0);
@@ -2290,7 +2359,18 @@ export const api = {
       return referenceDate >= startTime && referenceDate <= endTime;
     });
 
-    const ventesDuJour = orders.reduce((sum, order) => sum + (order.total ?? 0), 0);
+    const financialSnapshotCache = new Map<string, ReturnType<typeof computeOrderFinancialSnapshot>>();
+    const getSnapshotForOrder = (order: Order) => {
+      const cached = financialSnapshotCache.get(order.id);
+      if (cached) {
+        return cached;
+      }
+      const snapshot = computeOrderFinancialSnapshot(order);
+      financialSnapshotCache.set(order.id, snapshot);
+      return snapshot;
+    };
+
+    const ventesDuJour = orders.reduce((sum, order) => sum + getSnapshotForOrder(order).totalRevenue, 0);
     const clientsDuJour = orders.reduce((sum, order) => sum + (order.couverts ?? 0), 0);
     const panierMoyen = orders.length > 0 ? ventesDuJour / orders.length : 0;
 
@@ -2307,21 +2387,23 @@ export const api = {
 
     const soldProductsByCategory = new Map<string, { categoryName: string; products: SoldProduct[] }>();
     orders.forEach(order => {
-      order.items.forEach(item => {
+      const snapshot = getSnapshotForOrder(order);
+      order.items.forEach((item, index) => {
         const product = productMap.get(item.produitRef);
         const categoryName = product ? categoryMap.get(product.categoria_id) ?? 'Sans catégorie' : 'Sans catégorie';
         const categoryId = product ? product.categoria_id : 'unknown';
         const entry = soldProductsByCategory.get(categoryId) ?? { categoryName, products: [] };
         const existingProduct = entry.products.find(productItem => productItem.id === item.produitRef);
+        const netTotal = snapshot.netPerItem[index] ?? item.prix_unitaire * item.quantite;
         if (existingProduct) {
           existingProduct.quantity += item.quantite;
-          existingProduct.totalSales += item.prix_unitaire * item.quantite;
+          existingProduct.totalSales += netTotal;
         } else {
           entry.products.push({
             id: item.produitRef,
             name: item.nom_produit,
             quantity: item.quantite,
-            totalSales: item.prix_unitaire * item.quantite,
+            totalSales: netTotal,
           });
         }
         soldProductsByCategory.set(categoryId, entry);
