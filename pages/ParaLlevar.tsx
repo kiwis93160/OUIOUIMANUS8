@@ -131,8 +131,8 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
                                         </ul>
                                     )}
                                     {totalDiscount > 0 && (
-                                        <div className="flex items-center justify-between border-t border-emerald-200 pt-2 text-sm font-semibold text-emerald-800">
-                                            <span>Remises cumulées</span>
+                                        <div className="flex items-center justify-end gap-3 border-t border-emerald-200 pt-2 text-sm font-semibold text-emerald-800">
+                                            <span className="sr-only">Remises cumulées</span>
                                             <span>-{formatCurrencyCOP(totalDiscount)}</span>
                                         </div>
                                     )}
