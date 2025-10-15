@@ -88,7 +88,7 @@ const TableCard: React.FC<{
 
   const handleCardClick = () => {
     if (table.commandeId) {
-      navigate(`/commande/${table.commandeId}`);
+      navigate(`/commande/${table.id}`);
     } else if (canEdit && onEdit) {
       onEdit(table);
     }

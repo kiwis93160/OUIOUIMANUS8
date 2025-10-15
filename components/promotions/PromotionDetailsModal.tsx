@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, Clock, Tag, Percent, Package, Info, ExternalLink } from 'lucide-react';
 import { Promotion, PromotionUsage } from '../../types';
+import { getAccessibleTextColor } from '../../utils/color';
 import { fetchPromotionUsages } from '../../services/promotionsApi';
 
 interface PromotionDetailsModalProps {
@@ -71,6 +72,9 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
       minute: '2-digit'
     }).format(date);
   };
+
+  const badgeBackgroundColor = promotion.visuals?.badge_bg_color || '#F9A826';
+  const badgeTextColor = getAccessibleTextColor(badgeBackgroundColor);
 
   if (!isOpen) return null;
 
@@ -298,9 +302,10 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
                       <div className="flex items-center justify-between">
                         <span className="font-medium">Badge</span>
                         <span
-                          className="rounded-full px-3 py-1 text-xs font-semibold text-white"
+                          className="rounded-full px-3 py-1 text-xs font-semibold"
                           style={{
-                            backgroundColor: promotion.visuals.badge_color || '#F9A826',
+                            backgroundColor: badgeBackgroundColor,
+                            color: badgeTextColor,
                           }}
                         >
                           {promotion.visuals.badge_text}

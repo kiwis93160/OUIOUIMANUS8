@@ -180,9 +180,15 @@ const ReportModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                                             </ul>
                                         </div>
                                     ))}
-                                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700 shadow-sm">
-                                        <p className="text-xs font-semibold uppercase tracking-wide">Promotions appliquées</p>
-                                        <p className="mt-1 text-2xl font-bold">{formatCurrencyCOP(report.totalPromotionsApplied ?? 0)}</p>
+                                    <div className="space-y-3">
+                                        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-700 shadow-sm">
+                                            <p className="text-xs font-semibold uppercase tracking-wide">Total facturado</p>
+                                            <p className="mt-1 text-2xl font-bold">{formatCurrencyCOP(report.ventesDuJour)}</p>
+                                        </div>
+                                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700 shadow-sm">
+                                            <p className="text-xs font-semibold uppercase tracking-wide">Promotions appliquées</p>
+                                            <p className="mt-1 text-2xl font-bold">{formatCurrencyCOP(report.totalPromotionsApplied ?? 0)}</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Promotion } from '../../types/promotions';
+import { getAccessibleTextColor } from '../../utils/color';
 
 interface PromotionBadgeProps {
   promotion: Promotion;
@@ -39,12 +40,12 @@ const PromotionBadge: React.FC<PromotionBadgeProps> = ({ promotion, className = 
   }
   
   // Couleurs par défaut
-  const textColor = visuals.badge_color || '#FFFFFF';
   const bgColor = visuals.badge_bg_color || '#E63946';
-  
+
   // Vérifier s'il y a une image de fond
   const backgroundImage = visuals.badge_bg_image;
-  
+  const textColor = backgroundImage ? '#000000' : getAccessibleTextColor(bgColor);
+
   return (
     <div
       className={`px-2 py-0.5 rounded-full font-bold text-xs shadow-md ${className}`}
