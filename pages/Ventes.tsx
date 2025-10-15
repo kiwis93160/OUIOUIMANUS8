@@ -47,8 +47,6 @@ const formatTableName = (name: string): string => {
   return [firstWord, ...rest.slice(index)].join(' ');
 };
 
-const sanitizeNumericInput = (value: string): string => value.replace(/\D+/g, '');
-
 const getTableStatus = (table: Table): StatusDescriptor => {
   switch (table.statut) {
     case 'libre':
@@ -260,12 +258,10 @@ const Ventes: React.FC = () => {
   const [deletingTableId, setDeletingTableId] = useState<string | null>(null);
   const [isSeatGuestsModalOpen, setSeatGuestsModalOpen] = useState(false);
   const [seatGuestsTable, setSeatGuestsTable] = useState<Table | null>(null);
-  const [seatGuestsValue, setSeatGuestsValue] = useState('');
-  const [seatGuestsPlaceholder, setSeatGuestsPlaceholder] = useState('');
+  const [seatGuestsValue, setSeatGuestsValue] = useState<number | null>(null);
   const [seatGuestsError, setSeatGuestsError] = useState<string | null>(null);
   const [isSeatingGuests, setIsSeatingGuests] = useState(false);
   const fetchIdRef = useRef(0);
-  const seatGuestsInputRef = useRef<HTMLInputElement | null>(null);
 
   const fetchTables = useCallback(async () => {
     const fetchId = ++fetchIdRef.current;
@@ -319,24 +315,14 @@ const Ventes: React.FC = () => {
     setIsModalOpen(true);
   }, []);
 
-  useEffect(() => {
-    if (!isSeatGuestsModalOpen) {
-      return;
-    }
-
-    if (seatGuestsInputRef.current) {
-      seatGuestsInputRef.current.focus();
-      seatGuestsInputRef.current.select();
-    }
-  }, [isSeatGuestsModalOpen]);
-
   const handleSeatGuests = useCallback(
     (table: Table) => {
       setSeatGuestsTable(table);
       const initialValue = table.couverts ?? table.capacite;
-      setSeatGuestsValue('');
-      setSeatGuestsPlaceholder(
-        initialValue !== undefined && initialValue !== null ? String(initialValue) : '',
+      setSeatGuestsValue(
+        typeof initialValue === 'number' && initialValue >= 1 && initialValue <= 10
+          ? initialValue
+          : null,
       );
       setSeatGuestsError(null);
       setActionError(null);
@@ -353,79 +339,18 @@ const Ventes: React.FC = () => {
 
     setSeatGuestsModalOpen(false);
     setSeatGuestsTable(null);
-    setSeatGuestsValue('');
-    setSeatGuestsPlaceholder('');
+    setSeatGuestsValue(null);
     setSeatGuestsError(null);
   }, [isSeatingGuests]);
 
-  const handleSeatGuestsValueChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const digitsOnly = sanitizeNumericInput(event.target.value);
-      setSeatGuestsValue(digitsOnly);
-      if (seatGuestsError) {
-        setSeatGuestsError(null);
-      }
-    },
-    [seatGuestsError],
-  );
-
-  const handleSeatGuestsKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.ctrlKey || event.metaKey || event.altKey) {
-      return;
-    }
-
-    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'];
-
-    if (allowedKeys.includes(event.key)) {
-      return;
-    }
-
-    if (!/^\d$/.test(event.key)) {
-      event.preventDefault();
-    }
-  }, []);
-
-  const handleSeatGuestsPaste = useCallback(
-    (event: React.ClipboardEvent<HTMLInputElement>) => {
-      event.preventDefault();
-      const clipboardValue = sanitizeNumericInput(event.clipboardData.getData('text'));
-
-      if (!clipboardValue) {
-        return;
-      }
-
-      const target = event.currentTarget;
-      const selectionStart = target.selectionStart ?? target.value.length;
-      const selectionEnd = target.selectionEnd ?? target.value.length;
-
-      const nextValue = sanitizeNumericInput(
-        `${target.value.slice(0, selectionStart)}${clipboardValue}${target.value.slice(selectionEnd)}`,
-      );
-
-      setSeatGuestsValue(nextValue);
-      if (seatGuestsError) {
-        setSeatGuestsError(null);
-      }
-    },
-    [seatGuestsError],
-  );
-
   const handleSeatGuestsSubmit = useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-
+    async (couverts: number) => {
       if (!seatGuestsTable) {
         return;
       }
 
-      if (!seatGuestsValue) {
-        setSeatGuestsError('Veuillez saisir un nombre de couverts.');
-        return;
-      }
-
-      const parsedValue = Number(seatGuestsValue);
-      if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
-        setSeatGuestsError('Veuillez entrer un nombre de couverts valide.');
+      if (!Number.isInteger(couverts) || couverts <= 0) {
+        setSeatGuestsError('Veuillez sélectionner un nombre de couverts valide.');
         return;
       }
 
@@ -434,21 +359,33 @@ const Ventes: React.FC = () => {
       setActionError(null);
 
       try {
-        await api.createOrGetOrderByTableId(seatGuestsTable.id, { couverts: parsedValue });
+        await api.createOrGetOrderByTableId(seatGuestsTable.id, { couverts });
         setSeatGuestsModalOpen(false);
         setSeatGuestsTable(null);
-        setSeatGuestsValue('');
-        setSeatGuestsPlaceholder('');
+        setSeatGuestsValue(null);
         await fetchTables();
         navigate(`/commande/${seatGuestsTable.id}`);
       } catch (error) {
         console.error('Failed to open table with couverts:', error);
-        setActionError('Impossible d\'ouvrir la table. Veuillez réessayer.');
+        setActionError("Impossible d'ouvrir la table. Veuillez réessayer.");
       } finally {
         setIsSeatingGuests(false);
       }
     },
-    [fetchTables, navigate, seatGuestsTable, seatGuestsValue],
+    [fetchTables, navigate, seatGuestsTable],
+  );
+
+  const handleSeatGuestsSelect = useCallback(
+    (count: number) => {
+      if (isSeatingGuests) {
+        return;
+      }
+
+      setSeatGuestsValue(count);
+      setSeatGuestsError(null);
+      void handleSeatGuestsSubmit(count);
+    },
+    [handleSeatGuestsSubmit, isSeatingGuests],
   );
 
   const handleModalSubmit = useCallback(
@@ -601,39 +538,35 @@ const Ventes: React.FC = () => {
       <Modal
         isOpen={isSeatGuestsModalOpen}
         onClose={handleSeatGuestsClose}
-        title={seatGuestsTable ? `Nombre de couverts pour ${seatGuestsTable.nom}` : 'Nombre de couverts'}
+        title="CUBIERTOS"
         size="sm"
       >
-        <form onSubmit={handleSeatGuestsSubmit} className="space-y-5 text-left">
-          <div className="space-y-2">
-            <p className="text-sm text-gray-700">
-              Indiquez le nombre de couverts souhaité pour ouvrir la table. Seuls les chiffres sont acceptés et aucune
-              limite n'est appliquée.
-            </p>
-            <label htmlFor="seat-guests-input" className="block text-sm font-medium text-gray-700">
-              Nombre de couverts
-            </label>
-            <input
-              id="seat-guests-input"
-              ref={seatGuestsInputRef}
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              className="ui-input"
-              value={seatGuestsValue}
-              onChange={handleSeatGuestsValueChange}
-              onKeyDown={handleSeatGuestsKeyDown}
-              onPaste={handleSeatGuestsPaste}
-              placeholder={
-                seatGuestsPlaceholder ? `Ex. ${seatGuestsPlaceholder}` : 'Saisissez le nombre de couverts'
-              }
-              autoComplete="off"
-              disabled={isSeatingGuests}
-            />
-            {seatGuestsError && <p className="text-sm text-red-600">{seatGuestsError}</p>}
-          </div>
+        <div className="space-y-5 text-left">
+          <div className="grid grid-cols-5 gap-3">
+            {Array.from({ length: 10 }, (_, index) => {
+              const count = index + 1;
+              const isSelected = seatGuestsValue === count;
 
-          <div className="flex justify-end gap-3">
+              return (
+                <button
+                  key={count}
+                  type="button"
+                  onClick={() => handleSeatGuestsSelect(count)}
+                  disabled={isSeatingGuests}
+                  className={`flex h-12 w-12 items-center justify-center rounded-md border text-lg font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
+                    isSelected
+                      ? 'border-primary-500 bg-primary-50 text-primary-600'
+                      : 'border-gray-300 bg-white text-gray-900 hover:border-primary-400 hover:text-primary-600'
+                  } ${isSeatingGuests ? 'cursor-not-allowed opacity-50' : ''}`}
+                  aria-pressed={isSelected}
+                >
+                  {count}
+                </button>
+              );
+            })}
+          </div>
+          {seatGuestsError && <p className="text-sm text-red-600">{seatGuestsError}</p>}
+          <div className="flex justify-end">
             <button
               type="button"
               onClick={handleSeatGuestsClose}
@@ -642,15 +575,8 @@ const Ventes: React.FC = () => {
             >
               Annuler
             </button>
-            <button
-              type="submit"
-              className="ui-btn ui-btn-primary"
-              disabled={isSeatingGuests}
-            >
-              {isSeatingGuests ? 'Ouverture…' : 'Ouvrir la table'}
-            </button>
           </div>
-        </form>
+        </div>
       </Modal>
 
       <TableModal

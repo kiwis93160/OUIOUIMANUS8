@@ -19,15 +19,8 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
         warning: 'En seguimiento',
         critical: 'Crítico',
     };
-    const showPromotionDetails = Boolean(
-        (order.subtotal !== undefined && order.subtotal > 0) ||
-        (order.total_discount !== undefined && order.total_discount > 0) ||
-        (order.applied_promotions && order.applied_promotions.length > 0)
-    );
-    const originalSubtotal = order.subtotal ?? order.total;
-    const totalDiscount = order.total_discount ?? 0;
     const hasAppliedPromotions = (order.applied_promotions?.length ?? 0) > 0;
-    const subtotalAfterDiscounts = Math.max(originalSubtotal - totalDiscount, 0);
+    const showPromotionDetails = hasAppliedPromotions;
 
     return (
         <>
@@ -119,41 +112,22 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
                             )}
 
                             {showPromotionDetails && (
-                                <div className="space-y-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 shadow-sm">
-                                    {order.subtotal !== undefined && (
-                                        <div className="flex items-center justify-between font-medium">
-                                            <span>Sous-total</span>
-                                            <span>{formatCurrencyCOP(order.subtotal)}</span>
-                                        </div>
-                                    )}
+                                <div className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 shadow-sm">
                                     {hasAppliedPromotions && (
-                                        <div className="space-y-1">
-                                            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Promotions appliquées</p>
+                                        <ul className="space-y-1" aria-label="Promotions">
                                             {order.applied_promotions!.map(promotion => {
                                                 const promoCode = typeof promotion.config === 'object' && promotion.config !== null
                                                     ? (promotion.config as Record<string, unknown>).promo_code
                                                     : undefined;
 
                                                 return (
-                                                    <div key={`${promotion.promotion_id}-${promotion.name}`} className="flex items-center justify-between">
-                                                        <span>{promotion.name}{promoCode ? ` (Code: ${promoCode})` : ''}</span>
-                                                        <span>-{formatCurrencyCOP(promotion.discount_amount || 0)}</span>
-                                                    </div>
+                                                    <li key={`${promotion.promotion_id}-${promotion.name}`} className="flex items-center justify-between">
+                                                        <span className="font-medium">{promotion.name}{promoCode ? ` (Code: ${promoCode})` : ''}</span>
+                                                        <span className="font-semibold text-emerald-700">-{formatCurrencyCOP(promotion.discount_amount || 0)}</span>
+                                                    </li>
                                                 );
                                             })}
-                                        </div>
-                                    )}
-                                    {totalDiscount > 0 && (
-                                        <div className="flex items-center justify-between font-semibold">
-                                            <span>Réductions totales</span>
-                                            <span>-{formatCurrencyCOP(totalDiscount)}</span>
-                                        </div>
-                                    )}
-                                    {totalDiscount > 0 && order.subtotal !== undefined && (
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span>Sous-total après réductions</span>
-                                            <span>{formatCurrencyCOP(subtotalAfterDiscounts)}</span>
-                                        </div>
+                                        </ul>
                                     )}
                                 </div>
                             )}
