@@ -28,7 +28,7 @@ const OrderTimer: React.FC<OrderTimerProps> = ({
 
   const minutes = Math.floor(elapsed / 60000);
   const timerString = formatMillisecondsToMinutesSeconds(elapsed);
-  const accessibleLabel = label ? `${label.trim()} ${timerString}` : `Timer ${timerString}`;
+  const accessibleLabel = label ? `${label.trim()} ${timerString}` : `Tiempo transcurrido ${timerString}`;
 
   const getTimerColor = () => {
     if (minutes >= 20) return 'bg-red-500 text-white shadow-lg';

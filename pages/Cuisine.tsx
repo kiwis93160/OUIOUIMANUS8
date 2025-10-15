@@ -93,13 +93,12 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
                     <span className="block max-w-full break-words text-balance">{displayName}</span>
                 </h3>
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-gray-500 sm:text-sm">
-                    {sentAtFormatted}
+                    pedido a las {sentAtFormatted}
                 </p>
                 <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 sm:justify-between">
                     <OrderTimer
                         startTime={order.date_envoi_cuisine || Date.now()}
                         variant="chip"
-                        label="TIMER"
                         accentClassName={urgencyStyles.accent}
                     />
                     <span
