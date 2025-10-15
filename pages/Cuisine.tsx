@@ -92,7 +92,7 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
                 <h3 className={`font-semibold leading-tight text-gray-900 ${nameClass}`}>
                     <span className="block max-w-full break-words text-balance">{displayName}</span>
                 </h3>
-                <p className="text-xs font-medium uppercase tracking-[0.2em] text-gray-500 sm:text-sm">
+                <p className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-gray-500 sm:text-xs">
                     pedido a las {sentAtFormatted}
                 </p>
                 <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 sm:justify-between">

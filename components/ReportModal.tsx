@@ -61,7 +61,9 @@ const ReportModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
         parts.push('---');
 
         parts.push(`*Estadísticas del día*`);
+        const billedTotal = reportData.ventesDuJour + (reportData.totalPromotionsApplied ?? 0);
         parts.push(`- Ventas: *${formatCurrencyCOP(reportData.ventesDuJour)}*`);
+        parts.push(`- Total facturado: *${formatCurrencyCOP(billedTotal)}*`);
         parts.push(`- Clientes: *${reportData.clientsDuJour}* (Sala: ${reportData.clientsSurPlace ?? 0} | En línea: ${reportData.clientsEnLigne ?? 0})`);
         parts.push(`- Ticket promedio: *${formatCurrencyCOP(reportData.panierMoyen)}*`);
         parts.push(`- Total promociones aplicadas: *${formatCurrencyCOP(reportData.totalPromotionsApplied ?? 0)}*`);
@@ -114,6 +116,10 @@ const ReportModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
         window.open(whatsappUrl, '_blank');
         onClose();
     };
+
+    const billedTotalBeforePromotions = report
+        ? report.ventesDuJour + (report.totalPromotionsApplied ?? 0)
+        : 0;
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Reporte diario" size="xl">
@@ -183,7 +189,7 @@ const ReportModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                                     <div className="space-y-3">
                                         <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-700 shadow-sm">
                                             <p className="text-xs font-semibold uppercase tracking-wide">Total facturado</p>
-                                            <p className="mt-1 text-2xl font-bold">{formatCurrencyCOP(report.ventesDuJour)}</p>
+                                            <p className="mt-1 text-2xl font-bold">{formatCurrencyCOP(billedTotalBeforePromotions)}</p>
                                         </div>
                                         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700 shadow-sm">
                                             <p className="text-xs font-semibold uppercase tracking-wide">Promotions appliquées</p>

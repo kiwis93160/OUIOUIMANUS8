@@ -60,7 +60,7 @@ const OrderTimer: React.FC<OrderTimerProps> = ({
           <span className="text-lg font-semibold tracking-normal text-white">{timerString}</span>
         </>
       ) : (
-        <span>{timerString}</span>
+        <span className="text-lg font-semibold tracking-normal text-white">{timerString}</span>
       )}
     </div>
   );

@@ -30,10 +30,10 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  active: 'bg-green-100 text-green-800',
-  inactive: 'bg-gray-100 text-gray-800',
-  scheduled: 'bg-blue-100 text-blue-800',
-  expired: 'bg-red-100 text-red-800'
+  active: 'bg-green-100 text-black',
+  inactive: 'bg-gray-100 text-black',
+  scheduled: 'bg-blue-100 text-black',
+  expired: 'bg-red-100 text-black'
 };
 
 const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, onClose, promotion }) => {
@@ -80,12 +80,12 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4 py-6 backdrop-blur-sm">
-      <div className="flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-        <div className="flex flex-col gap-3 border-b border-white/20 bg-gradient-to-r from-brand-primary to-brand-primary-dark px-6 py-5 text-white sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-black shadow-2xl">
+        <div className="flex flex-col gap-3 border-b border-slate-200 bg-white px-6 py-5 text-black sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-xl font-semibold leading-snug sm:text-2xl">Détails de la promotion</h2>
           <button
             onClick={onClose}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-black transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
             aria-label="Fermer les détails de la promotion"
           >
             <X size={22} />
@@ -96,8 +96,8 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
           <button
             className={`rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary ${
               activeTab === 'details'
-                ? 'bg-brand-primary text-white shadow'
-                : 'text-slate-600 hover:bg-white hover:text-brand-primary'
+                ? 'border border-brand-primary bg-brand-primary/10 text-black shadow'
+                : 'border border-transparent text-black hover:bg-slate-100'
             }`}
             onClick={() => setActiveTab('details')}
           >
@@ -106,8 +106,8 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
           <button
             className={`rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary ${
               activeTab === 'usages'
-                ? 'bg-brand-primary text-white shadow'
-                : 'text-slate-600 hover:bg-white hover:text-brand-primary'
+                ? 'border border-brand-primary bg-brand-primary/10 text-black shadow'
+                : 'border border-transparent text-black hover:bg-slate-100'
             }`}
             onClick={() => setActiveTab('usages')}
           >
@@ -121,15 +121,15 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
               <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-900">{promotion.name}</h3>
+                    <h3 className="text-lg font-semibold text-black">{promotion.name}</h3>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusColors[promotion.status]}`}>
                         {statusLabels[promotion.status]}
                       </span>
-                      <span className="text-sm font-medium text-slate-600">{typeLabels[promotion.type]}</span>
+                      <span className="text-sm font-medium text-black">{typeLabels[promotion.type]}</span>
                     </div>
                   </div>
-                  <div className="rounded-full border border-slate-200 bg-white/80 px-4 py-1.5 text-sm font-semibold text-slate-600 shadow-sm">
+                  <div className="rounded-full border border-slate-200 bg-white/80 px-4 py-1.5 text-sm font-semibold text-black shadow-sm">
                     Priorité : {promotion.priority}
                   </div>
                 </div>
@@ -137,14 +137,14 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm">
-                  <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+                  <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-black">
                     <Info size={16} />
                     Informations générales
                   </h4>
-                  <dl className="space-y-2 text-sm text-slate-600">
+                  <dl className="space-y-2 text-sm text-black">
                     <div className="flex items-center justify-between">
                       <dt className="font-medium">ID</dt>
-                      <dd className="rounded bg-white/80 px-2 py-0.5 font-mono text-slate-700 shadow-sm">{promotion.id}</dd>
+                      <dd className="rounded bg-white/80 px-2 py-0.5 font-mono text-black shadow-sm">{promotion.id}</dd>
                     </div>
                     <div className="flex items-center justify-between">
                       <dt className="font-medium">Créée le</dt>
@@ -162,18 +162,18 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm">
-                  <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+                  <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-black">
                     <Percent size={16} />
                     Réduction
                   </h4>
-                  <dl className="space-y-2 text-sm text-slate-600">
+                  <dl className="space-y-2 text-sm text-black">
                     <div className="flex items-center justify-between">
                       <dt className="font-medium">Type</dt>
                       <dd>{promotion.discount.type === 'percentage' ? 'Pourcentage' : 'Montant fixe'}</dd>
                     </div>
                     <div className="flex items-center justify-between">
                       <dt className="font-medium">Valeur</dt>
-                      <dd className="font-semibold text-slate-800">
+                      <dd className="font-semibold text-black">
                         {promotion.discount.value}
                         {promotion.discount.type === 'percentage' ? '%' : '€'}
                       </dd>
@@ -197,15 +197,15 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm">
-                <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+                <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-black">
                   <Calendar size={16} />
                   Conditions
                 </h4>
-                <dl className="grid grid-cols-1 gap-3 text-sm text-slate-600 md:grid-cols-2">
+                <dl className="grid grid-cols-1 gap-3 text-sm text-black md:grid-cols-2">
                   {promotion.conditions.promo_code && (
                     <div className="flex items-center justify-between">
                       <dt className="font-medium">Code promo</dt>
-                      <dd className="rounded bg-white/80 px-2 py-0.5 font-mono text-slate-700 shadow-sm">
+                      <dd className="rounded bg-white/80 px-2 py-0.5 font-mono text-black shadow-sm">
                         {promotion.conditions.promo_code}
                       </dd>
                     </div>
@@ -293,11 +293,11 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
 
               {promotion.visuals && Object.keys(promotion.visuals).length > 0 && (
                 <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm">
-                  <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-600">
+                  <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-black">
                     <Tag size={16} />
                     Éléments visuels
                   </h4>
-                  <div className="grid grid-cols-1 gap-4 text-sm text-slate-600 md:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-4 text-sm text-black md:grid-cols-2">
                     {promotion.visuals.badge_text && (
                       <div className="flex items-center justify-between">
                         <span className="font-medium">Badge</span>
@@ -316,21 +316,21 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
                     {promotion.visuals.banner_text && (
                       <div className="flex items-center justify-between">
                         <span className="font-medium">Texte bannière</span>
-                        <span className="text-right text-slate-700">{promotion.visuals.banner_text}</span>
+                        <span className="text-right text-black">{promotion.visuals.banner_text}</span>
                       </div>
                     )}
 
                     {promotion.visuals.banner_cta && (
                       <div className="flex items-center justify-between">
                         <span className="font-medium">Bouton</span>
-                        <span className="text-right text-slate-700">{promotion.visuals.banner_cta}</span>
+                        <span className="text-right text-black">{promotion.visuals.banner_cta}</span>
                       </div>
                     )}
                   </div>
 
                   {promotion.visuals.banner_image && (
                     <div className="mt-4">
-                      <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-600">Image de bannière</span>
+                      <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-black">Image de bannière</span>
                       <img
                         src={promotion.visuals.banner_image}
                         alt="Bannière promotionnelle"
@@ -346,24 +346,24 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
           {activeTab === 'usages' && (
             <div className="space-y-4">
               {error && (
-                <div className="rounded-xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm font-medium text-red-700 shadow-sm">
+                <div className="rounded-xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm font-medium text-black shadow-sm">
                   {error}
                 </div>
               )}
 
               {loading ? (
-                <div className="flex items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 py-10 text-slate-600 shadow-sm">
+                <div className="flex items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 py-10 text-black shadow-sm">
                   <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-brand-primary"></div>
                   <span>Chargement…</span>
                 </div>
               ) : usages.length === 0 ? (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50/80 py-10 text-center text-sm font-medium text-slate-500 shadow-sm">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50/80 py-10 text-center text-sm font-medium text-black shadow-sm">
                   Aucune utilisation enregistrée pour cette promotion
                 </div>
               ) : (
                 <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
-                  <table className="w-full divide-y divide-slate-200 text-sm text-slate-700">
-                    <thead className="bg-slate-50/90 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <table className="w-full divide-y divide-slate-200 text-sm text-black">
+                    <thead className="bg-slate-50/90 text-xs font-semibold uppercase tracking-wide text-black">
                       <tr>
                         <th className="px-4 py-3 text-left">Date</th>
                         <th className="px-4 py-3 text-left">Commande</th>
@@ -374,11 +374,11 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
                     <tbody className="divide-y divide-slate-100">
                       {usages.map((usage) => (
                         <tr key={usage.id} className="bg-white/80 transition hover:bg-brand-accent-soft">
-                          <td className="px-4 py-3 font-medium text-slate-600">{formatDate(usage.applied_at)}</td>
+                          <td className="px-4 py-3 font-medium text-black">{formatDate(usage.applied_at)}</td>
                           <td className="px-4 py-3">
                             <a
                               href="#"
-                              className="inline-flex items-center gap-2 text-brand-primary transition hover:underline"
+                              className="inline-flex items-center gap-2 text-black transition hover:underline"
                               onClick={(e) => {
                                 e.preventDefault();
                               }}
@@ -390,7 +390,7 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
                           <td className="px-4 py-3">
                             {usage.customer_phone || '—'}
                           </td>
-                          <td className="px-4 py-3 text-right font-semibold text-slate-800">
+                          <td className="px-4 py-3 text-right font-semibold text-black">
                             {usage.discount_amount.toFixed(2)}€
                           </td>
                         </tr>
@@ -407,7 +407,7 @@ const PromotionDetailsModal: React.FC<PromotionDetailsModalProps> = ({ isOpen, o
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center justify-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary"
+            className="inline-flex items-center justify-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary"
           >
             Fermer
           </button>

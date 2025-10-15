@@ -143,14 +143,14 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4 py-6 backdrop-blur-sm">
-      <div className="flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-        <div className="flex flex-col gap-3 border-b border-white/20 bg-gradient-to-r from-brand-primary to-brand-primary-dark px-6 py-5 text-white sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-black shadow-2xl">
+        <div className="flex flex-col gap-3 border-b border-slate-200 bg-white px-6 py-5 text-black sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-xl font-semibold leading-snug sm:text-2xl">
             {promotion ? 'Modifier la promotion' : 'Nouvelle promotion'}
           </h2>
           <button
             onClick={onClose}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-black transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
             aria-label="Fermer la fenêtre de promotion"
           >
             <X size={22} />
@@ -158,7 +158,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
         </div>
 
         {error && (
-          <div className="mx-6 mt-4 rounded-xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm font-medium text-red-700 shadow-sm">
+          <div className="mx-6 mt-4 rounded-xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm font-medium text-black shadow-sm">
             {error}
           </div>
         )}
@@ -167,8 +167,8 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
           <button
             className={`rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary ${
               activeTab === 'general'
-                ? 'bg-brand-primary text-white shadow'
-                : 'text-slate-600 hover:bg-white hover:text-brand-primary'
+                ? 'border border-brand-primary bg-brand-primary/10 text-black shadow'
+                : 'border border-transparent text-black hover:bg-slate-100'
             }`}
             onClick={() => setActiveTab('general')}
           >
@@ -177,8 +177,8 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
           <button
             className={`rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary ${
               activeTab === 'conditions'
-                ? 'bg-brand-primary text-white shadow'
-                : 'text-slate-600 hover:bg-white hover:text-brand-primary'
+                ? 'border border-brand-primary bg-brand-primary/10 text-black shadow'
+                : 'border border-transparent text-black hover:bg-slate-100'
             }`}
             onClick={() => setActiveTab('conditions')}
           >
@@ -187,8 +187,8 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
           <button
             className={`rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary ${
               activeTab === 'discount'
-                ? 'bg-brand-primary text-white shadow'
-                : 'text-slate-600 hover:bg-white hover:text-brand-primary'
+                ? 'border border-brand-primary bg-brand-primary/10 text-black shadow'
+                : 'border border-transparent text-black hover:bg-slate-100'
             }`}
             onClick={() => setActiveTab('discount')}
           >
@@ -197,8 +197,8 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
           <button
             className={`rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary ${
               activeTab === 'visuals'
-                ? 'bg-brand-primary text-white shadow'
-                : 'text-slate-600 hover:bg-white hover:text-brand-primary'
+                ? 'border border-brand-primary bg-brand-primary/10 text-black shadow'
+                : 'border border-transparent text-black hover:bg-slate-100'
             }`}
             onClick={() => setActiveTab('visuals')}
           >
@@ -211,7 +211,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
             <div className="space-y-4">
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm">
                 <div>
-                  <label htmlFor="name" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  <label htmlFor="name" className="block text-xs font-semibold uppercase tracking-wide text-black">
                     Nom de la promotion
                   </label>
                   <input
@@ -226,7 +226,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label htmlFor="type" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="type" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Type de promotion
                     </label>
                     <select
@@ -245,7 +245,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                   </div>
 
                   <div>
-                    <label htmlFor="status" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="status" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Statut
                     </label>
                     <select
@@ -265,7 +265,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                 </div>
 
                 <div>
-                  <label htmlFor="priority" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  <label htmlFor="priority" className="block text-xs font-semibold uppercase tracking-wide text-black">
                     Priorité
                   </label>
                   <input
@@ -277,7 +277,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                     min="0"
                     max="100"
                   />
-                  <p className="mt-2 text-xs text-slate-500">
+                  <p className="mt-2 text-xs text-black">
                     Plus la valeur est élevée, plus la promotion est prioritaire.
                   </p>
                 </div>
@@ -290,7 +290,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
               <div className="space-y-6 rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm">
                 {type === 'promo_code' && (
                   <div>
-                    <label htmlFor="promo_code" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="promo_code" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Code promo
                     </label>
                     <input
@@ -306,7 +306,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label htmlFor="min_order_amount" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="min_order_amount" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Montant minimum de commande
                     </label>
                     <input
@@ -321,7 +321,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                   </div>
 
                   <div>
-                    <label htmlFor="max_order_amount" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="max_order_amount" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Montant maximum de commande
                     </label>
                     <input
@@ -338,7 +338,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label htmlFor="start_date" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="start_date" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Date de début
                     </label>
                     <input
@@ -351,7 +351,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                   </div>
 
                   <div>
-                    <label htmlFor="end_date" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="end_date" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Date de fin
                     </label>
                     <input
@@ -365,12 +365,12 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-black">
                     Jours de la semaine
                   </label>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'].map((day, index) => (
-                      <label key={index} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-sm text-slate-700 shadow-sm">
+                      <label key={index} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-sm text-black shadow-sm">
                         <input
                           type="checkbox"
                           checked={conditions.days_of_week?.includes(index) || false}
@@ -382,7 +382,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                               setConditions({ ...conditions, days_of_week: days.filter(d => d !== index) });
                             }
                           }}
-                          className="h-4 w-4 rounded border-slate-300 text-brand-primary focus:ring-brand-primary"
+                          className="h-4 w-4 rounded border-slate-300 text-black focus:ring-black"
                         />
                         <span>{day}</span>
                       </label>
@@ -392,7 +392,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label htmlFor="hours_start" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="hours_start" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Heure de début
                     </label>
                     <input
@@ -411,7 +411,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                   </div>
 
                   <div>
-                    <label htmlFor="hours_end" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="hours_end" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Heure de fin
                     </label>
                     <input
@@ -432,7 +432,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label htmlFor="max_uses" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="max_uses" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Nombre maximum d'utilisations
                     </label>
                     <input
@@ -446,7 +446,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                   </div>
 
                   <div>
-                    <label htmlFor="max_uses_per_customer" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="max_uses_per_customer" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Maximum par client
                     </label>
                     <input
@@ -463,7 +463,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                 {type === 'buy_x_get_y' && (
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label htmlFor="buy_quantity" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                      <label htmlFor="buy_quantity" className="block text-xs font-semibold uppercase tracking-wide text-black">
                         Quantité à acheter
                       </label>
                       <input
@@ -478,7 +478,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                     </div>
 
                     <div>
-                      <label htmlFor="get_quantity" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                      <label htmlFor="get_quantity" className="block text-xs font-semibold uppercase tracking-wide text-black">
                         Quantité offerte
                       </label>
                       <input
@@ -500,9 +500,9 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                     id="first_order_only"
                     checked={conditions.first_order_only || false}
                     onChange={(e) => setConditions({ ...conditions, first_order_only: e.target.checked })}
-                    className="h-4 w-4 rounded border-slate-300 text-brand-primary focus:ring-brand-primary"
+                    className="h-4 w-4 rounded border-slate-300 text-black focus:ring-black"
                   />
-                  <label htmlFor="first_order_only" className="text-sm font-medium text-slate-700">
+                  <label htmlFor="first_order_only" className="text-sm font-medium text-black">
                     Uniquement pour la première commande
                   </label>
                 </div>
@@ -515,7 +515,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
               <div className="space-y-6 rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label htmlFor="discount_type" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="discount_type" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Type de réduction
                     </label>
                     <select
@@ -531,7 +531,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                   </div>
 
                   <div>
-                    <label htmlFor="discount_value" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="discount_value" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Valeur de la réduction
                     </label>
                     <div className="relative mt-2">
@@ -545,7 +545,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                         step={discount.type === 'percentage' ? '0.01' : '0.01'}
                         required
                       />
-                      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-semibold text-slate-500">
+                      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-semibold text-black">
                         {discount.type === 'percentage' ? '%' : '€'}
                       </div>
                     </div>
@@ -554,7 +554,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
 
                 {discount.type === 'percentage' && (
                   <div>
-                    <label htmlFor="max_discount_amount" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="max_discount_amount" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Montant maximum de la réduction
                     </label>
                     <div className="relative mt-2">
@@ -567,7 +567,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                         min="0"
                         step="0.01"
                       />
-                      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-semibold text-slate-500">
+                      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm font-semibold text-black">
                         €
                       </div>
                     </div>
@@ -575,7 +575,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                 )}
 
                 <div>
-                  <label htmlFor="applies_to" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  <label htmlFor="applies_to" className="block text-xs font-semibold uppercase tracking-wide text-black">
                     Application de la réduction
                   </label>
                   <select
@@ -599,7 +599,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
               <div className="space-y-6 rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label htmlFor="badge_text" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="badge_text" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Texte du badge
                     </label>
                     <input
@@ -613,7 +613,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                   </div>
 
                   <div>
-                    <label htmlFor="badge_color" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <label htmlFor="badge_color" className="block text-xs font-semibold uppercase tracking-wide text-black">
                       Couleur du texte du badge
                     </label>
                     <input
@@ -627,7 +627,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                 </div>
 
                 <div>
-                  <label htmlFor="badge_bg_color" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  <label htmlFor="badge_bg_color" className="block text-xs font-semibold uppercase tracking-wide text-black">
                     Couleur de fond du badge
                   </label>
                   <input
@@ -640,14 +640,14 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                 </div>
 
                 <div>
-                  <label htmlFor="badge_bg_image" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  <label htmlFor="badge_bg_image" className="block text-xs font-semibold uppercase tracking-wide text-black">
                     Image de fond du badge (optionnel)
                   </label>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-black">
                     Si vous uploadez une image, elle remplacera la couleur de fond du badge
                   </p>
                   <div className="mt-3 flex flex-wrap items-center gap-4">
-                    <label className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100">
+                    <label className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-black shadow-sm transition hover:bg-slate-100">
                       <input
                         type="file"
                         id="badge_bg_image"
@@ -683,7 +683,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                         <button
                           type="button"
                           onClick={() => setVisuals({ ...visuals, badge_bg_image: undefined })}
-                          className="absolute -top-2 -right-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white shadow hover:bg-red-600"
+                          className="absolute -top-2 -right-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-red-500 bg-white text-black shadow hover:bg-red-100"
                         >
                           <X size={12} />
                         </button>
@@ -693,7 +693,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                 </div>
 
                 <div>
-                  <label htmlFor="banner_text" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  <label htmlFor="banner_text" className="block text-xs font-semibold uppercase tracking-wide text-black">
                     Texte de la bannière
                   </label>
                   <input
@@ -707,11 +707,11 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                 </div>
 
                 <div>
-                  <label htmlFor="banner_image" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  <label htmlFor="banner_image" className="block text-xs font-semibold uppercase tracking-wide text-black">
                     Image de la bannière
                   </label>
                   <div className="mt-3 flex flex-wrap items-center gap-4">
-                    <label className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100">
+                    <label className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-black shadow-sm transition hover:bg-slate-100">
                       <input
                         type="file"
                         id="banner_image"
@@ -731,7 +731,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                         <button
                           type="button"
                           onClick={() => setVisuals({ ...visuals, banner_image: undefined })}
-                          className="absolute -top-2 -right-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-white shadow hover:bg-red-600"
+                          className="absolute -top-2 -right-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-red-500 bg-white text-black shadow hover:bg-red-100"
                         >
                           <X size={12} />
                         </button>
@@ -741,7 +741,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
                 </div>
 
                 <div>
-                  <label htmlFor="banner_cta" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  <label htmlFor="banner_cta" className="block text-xs font-semibold uppercase tracking-wide text-black">
                     Texte du bouton d'appel à l'action
                   </label>
                   <input
@@ -762,7 +762,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center justify-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary"
+            className="inline-flex items-center justify-center rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary"
             disabled={loading}
           >
             Annuler
@@ -770,12 +770,12 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
           <button
             type="submit"
             onClick={handleSubmit}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-primary px-5 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-brand-primary-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-brand-primary bg-white px-5 py-2.5 text-sm font-semibold text-black shadow transition hover:bg-brand-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-primary"
             disabled={loading}
           >
             {loading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent"></div>
                 <span>Enregistrement...</span>
               </>
             ) : (
