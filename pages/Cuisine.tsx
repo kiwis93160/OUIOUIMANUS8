@@ -53,6 +53,11 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
         return items;
     }, [order.items]);
 
+    const totalProducts = useMemo(
+        () => order.items.reduce((total, item) => total + item.quantite, 0),
+        [order.items],
+    );
+
     const sentAt = new Date(order.date_envoi_cuisine || Date.now());
     const sentAtFormatted = sentAt.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
 
@@ -65,12 +70,17 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
                     </h3>
                     <p className="text-xs text-gray-500">Enviado {sentAtFormatted}</p>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <span className="font-semibold uppercase tracking-[0.2em] text-gray-500">Timer</span>
+                <div className="flex items-center justify-between text-sm text-gray-600">
                     <OrderTimer
                         startTime={order.date_envoi_cuisine || Date.now()}
                         className="text-lg font-semibold text-gray-900"
                     />
+                    <span
+                        className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold text-white shadow ${urgencyStyles.accent}`}
+                    >
+                        <span className="uppercase tracking-[0.2em] text-white/70">Total</span>
+                        <span className="text-lg">{totalProducts}</span>
+                    </span>
                 </div>
             </div>
             <div className="flex-1 overflow-y-auto px-5">
@@ -81,7 +91,7 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
                                 <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white shadow-md ${urgencyStyles.accent}`}>
                                     {item.quantite}
                                 </span>
-                                <p className="truncate text-base font-semibold text-gray-900">{item.nom_produit}</p>
+                                <p className="truncate text-xl font-semibold text-gray-900">{item.nom_produit}</p>
                             </div>
                             {item.commentaire && (
                                 <p className="mt-2 rounded-md border border-dashed border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium italic text-blue-800">
