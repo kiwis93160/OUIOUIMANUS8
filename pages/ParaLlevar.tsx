@@ -19,9 +19,8 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
         warning: 'En seguimiento',
         critical: 'Crítico',
     };
-    const totalDiscount = order.total_discount ?? 0;
     const hasAppliedPromotions = (order.applied_promotions?.length ?? 0) > 0;
-    const showPromotionDetails = hasAppliedPromotions || totalDiscount > 0;
+    const showPromotionDetails = hasAppliedPromotions;
 
     return (
         <>
@@ -129,12 +128,6 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
                                                 );
                                             })}
                                         </ul>
-                                    )}
-                                    {totalDiscount > 0 && (
-                                        <div className="flex items-center justify-end gap-3 border-t border-emerald-200 pt-2 text-sm font-semibold text-emerald-800">
-                                            <span className="sr-only">Remises cumulées</span>
-                                            <span>-{formatCurrencyCOP(totalDiscount)}</span>
-                                        </div>
                                     )}
                                 </div>
                             )}
