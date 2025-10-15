@@ -19,7 +19,11 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
         warning: 'En seguimiento',
         critical: 'Crítico',
     };
-    const showPromotionDetails = order.statut === 'pendiente_validacion';
+    const showPromotionDetails = Boolean(
+        (order.subtotal !== undefined && order.subtotal > 0) ||
+        (order.total_discount !== undefined && order.total_discount > 0) ||
+        (order.applied_promotions && order.applied_promotions.length > 0)
+    );
     const originalSubtotal = order.subtotal ?? order.total;
     const totalDiscount = order.total_discount ?? 0;
     const hasAppliedPromotions = (order.applied_promotions?.length ?? 0) > 0;
@@ -163,7 +167,7 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
                 </div>
 
                 <footer className="border-t border-gray-200 px-5 pb-5 pt-4">
-                    {order.statut === 'pendiente_validacion' && onValidate && (
+                    {(onValidate || onDeliver) && (
                         <div className="space-y-2">
                             <button
                                 onClick={() => setIsReceiptModalOpen(true)}
@@ -172,25 +176,27 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
                             >
                                 <Eye size={16} className={urgencyStyles.icon} /> {order.receipt_url ? 'Ver comprobante' : 'Comprobante no disponible'}
                             </button>
-                            <button
-                                onClick={() => onValidate(order.id)}
-                                disabled={isProcessing}
-                                className="w-full ui-btn ui-btn-info uppercase"
-                                type="button"
-                            >
-                                {isProcessing ? 'Validando...' : 'Validar'}
-                            </button>
+                            {onValidate && order.statut === 'pendiente_validacion' && (
+                                <button
+                                    onClick={() => onValidate(order.id)}
+                                    disabled={isProcessing}
+                                    className="w-full ui-btn ui-btn-info uppercase"
+                                    type="button"
+                                >
+                                    {isProcessing ? 'Validando...' : 'Validar'}
+                                </button>
+                            )}
+                            {onDeliver && order.estado_cocina === 'listo' && (
+                                <button
+                                    onClick={() => onDeliver(order.id)}
+                                    disabled={isProcessing}
+                                    className="w-full ui-btn ui-btn-success uppercase"
+                                    type="button"
+                                >
+                                    {isProcessing ? 'Procesando...' : 'Entregar'}
+                                </button>
+                            )}
                         </div>
-                    )}
-                    {order.estado_cocina === 'listo' && onDeliver && (
-                        <button
-                            onClick={() => onDeliver(order.id)}
-                            disabled={isProcessing}
-                            className="w-full ui-btn ui-btn-success uppercase"
-                            type="button"
-                        >
-                            {isProcessing ? 'Procesando...' : 'Entregar'}
-                        </button>
                     )}
                 </footer>
             </div>
