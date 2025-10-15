@@ -57,70 +57,51 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
     const sentAtFormatted = sentAt.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
 
     return (
-        <div className={`flex h-full flex-col overflow-hidden rounded-xl text-gray-900 shadow-lg transition-shadow duration-300
-hover:shadow-xl ${urgencyStyles.border} ${urgencyStyles.background}`}>
-            <header className="border-b border-gray-200 px-5 py-4">
-                <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                    <div className="min-w-0 space-y-1">
-                        <h3 className="truncate text-lg font-semibold text-gray-900 sm:text-xl">
-                            {order.table_nom || `Para llevar #${order.id.slice(-4)}`}
-                        </h3>
-                        <p className="text-xs text-gray-500">Enviado {sentAtFormatted}</p>
-                    </div>
-                    <div className="flex w-full justify-start sm:justify-end">
-                        <OrderTimer
-                            startTime={order.date_envoi_cuisine || Date.now()}
-                            className=" text-base sm:text-xl"
-                        />
-                    </div>
+        <div className={`flex h-full flex-col overflow-hidden rounded-xl text-gray-900 shadow-lg transition-shadow duration-300 hover:shadow-xl ${urgencyStyles.border} ${urgencyStyles.background}`}>
+            <div className="flex flex-col gap-4 px-5 py-4">
+                <div className="space-y-1">
+                    <h3 className="truncate text-lg font-semibold text-gray-900 sm:text-xl">
+                        {order.table_nom || `Para llevar #${order.id.slice(-4)}`}
+                    </h3>
+                    <p className="text-xs text-gray-500">Enviado {sentAtFormatted}</p>
                 </div>
-            </header>
-            <div className="flex-1 overflow-hidden px-5 py-4">
-                <div className="grid h-full gap-4 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-                    <section className="flex min-h-[8rem] flex-col gap-3 overflow-hidden">
-                        <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Artículos</h4>
-                        <div className="flex-1 overflow-y-auto pr-1">
-                            <ul className="space-y-2">
-                                {groupedItems.map((item) => (
-                                    <li key={item.key} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 shadow-sm">
-                                        <div className="flex items-center gap-2">
-                                            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white shadow-md ${urgencyStyles.accent}`}>
-                                                {item.quantite}
-                                            </span>
-                                            <p className="truncate text-lg font-semibold text-gray-900">{item.nom_produit}</p>
-                                        </div>
-                                        {item.commentaire && (
-                                            <p className="mt-2 rounded-md border border-dashed border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium italic text-blue-800">
-                                                {item.commentaire}
-                                            </p>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </section>
-                    <aside className="flex flex-col justify-between gap-4 rounded-lg border border-gray-200 bg-white/70 p-4 text-sm text-gray-600">
-                        <div className="space-y-2">
-                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Resumen</p>
-                            <p className="font-medium text-gray-700">{groupedItems.length} línea(s) de preparación</p>
-                            <p className="text-sm text-gray-600">Tiempo transcurrido actualizado en tiempo real.</p>
-                        </div>
-                        {canMarkReady && (
-                            <button
-                                onClick={() => onReady(order.id, order.date_envoi_cuisine)}
-                                className="group inline-flex w-full items-center justify-center gap-3 rounded-lg border-2 border-transparent bg-black px-4 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-sm transition hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/70 focus-visible:ring-offset-2"
-                            >
-                                <ChefHat size={20} className="shrink-0" />
-                                <span>Listo</span>
-                            </button>
-                        )}
-                    </aside>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <span className="font-semibold uppercase tracking-[0.2em] text-gray-500">Timer</span>
+                    <OrderTimer
+                        startTime={order.date_envoi_cuisine || Date.now()}
+                        className="text-lg font-semibold text-gray-900"
+                    />
                 </div>
             </div>
+            <div className="flex-1 overflow-y-auto px-5">
+                <ul className="space-y-2 pb-4">
+                    {groupedItems.map((item) => (
+                        <li key={item.key} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-3 shadow-sm">
+                            <div className="flex items-center gap-3">
+                                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white shadow-md ${urgencyStyles.accent}`}>
+                                    {item.quantite}
+                                </span>
+                                <p className="truncate text-base font-semibold text-gray-900">{item.nom_produit}</p>
+                            </div>
+                            {item.commentaire && (
+                                <p className="mt-2 rounded-md border border-dashed border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium italic text-blue-800">
+                                    {item.commentaire}
+                                </p>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            </div>
             {canMarkReady && (
-                <footer className="border-t border-gray-200 px-5 pb-5 pt-4">
-                    <p className="text-center text-xs text-gray-500 sm:text-right">Confirma cuando el pedido esté completo.</p>
-                </footer>
+                <div className="border-t border-gray-200 px-5 pb-5 pt-4">
+                    <button
+                        onClick={() => onReady(order.id, order.date_envoi_cuisine)}
+                        className="group inline-flex w-full items-center justify-center gap-3 rounded-lg border-2 border-transparent bg-black px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-sm transition hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/70 focus-visible:ring-offset-2"
+                    >
+                        <ChefHat size={20} className="shrink-0" />
+                        <span>LISTO</span>
+                    </button>
+                </div>
             )}
         </div>
     );
