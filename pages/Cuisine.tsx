@@ -77,20 +77,25 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
     );
 
     const sentAt = new Date(order.date_envoi_cuisine || Date.now());
-    const sentAtFormatted = sentAt.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+    const sentAtFormatted = sentAt.toLocaleString('es-CO', {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
     const displayName = order.table_nom || `Para llevar #${order.id.slice(-4)}`;
     const nameClass = computeNameSizeClass(displayName);
 
     return (
         <div className={`flex h-full flex-col overflow-hidden rounded-xl text-gray-900 shadow-lg transition-shadow duration-300 hover:shadow-xl ${urgencyStyles.border} ${urgencyStyles.background}`}>
-            <div className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-                <div className="min-w-0 flex-1 space-y-1">
-                    <h3 className={`font-semibold leading-tight text-gray-900 ${nameClass} whitespace-nowrap`}>
-                        <span className="block max-w-full">{displayName}</span>
-                    </h3>
-                    <p className="text-xs text-gray-500 sm:text-sm">Enviado {sentAtFormatted}</p>
-                </div>
-                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600 sm:w-auto sm:flex-nowrap sm:items-center sm:justify-end sm:gap-4">
+            <div className="flex flex-col gap-3 px-5 py-4">
+                <h3 className={`font-semibold leading-tight text-gray-900 ${nameClass}`}>
+                    <span className="block max-w-full break-words text-balance">{displayName}</span>
+                </h3>
+                <p className="text-xs font-medium uppercase tracking-[0.2em] text-gray-500 sm:text-sm">
+                    {sentAtFormatted}
+                </p>
+                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 sm:justify-between">
                     <OrderTimer
                         startTime={order.date_envoi_cuisine || Date.now()}
                         className="text-base font-semibold text-gray-900 sm:text-lg"

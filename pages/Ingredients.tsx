@@ -169,7 +169,7 @@ const AddEditIngredientModal: React.FC<{ isOpen: boolean; onClose: () => void; o
             if (mode === 'edit' && ingredient) {
                 await api.updateIngredient(ingredient.id, formData);
             } else {
-                await api.addIngredient(formData);
+                await api.createIngredient(formData);
             }
             onSuccess();
             onClose();
