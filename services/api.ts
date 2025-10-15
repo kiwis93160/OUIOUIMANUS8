@@ -1471,6 +1471,49 @@ export const api = {
     return fetchCategories();
   },
 
+  addProduct: async (product: Omit<Product, 'id'>): Promise<Product> => {
+    const normalizedImage = normalizeCloudinaryImageUrl(product.image);
+
+    const response = await supabase
+      .from('products')
+      .insert({
+        nom_produit: product.nom_produit,
+        description: product.description ?? null,
+        prix_vente: product.prix_vente,
+        categoria_id: product.categoria_id,
+        estado: product.estado,
+        image: normalizedImage,
+        is_best_seller: product.is_best_seller ?? false,
+        best_seller_rank: product.is_best_seller ? product.best_seller_rank : null,
+      })
+      .select(
+        'id, nom_produit, description, prix_vente, categoria_id, estado, image, is_best_seller, best_seller_rank',
+      )
+      .single();
+
+    const productRow = unwrap<SupabaseProductRow>(response as SupabaseResponse<SupabaseProductRow>);
+
+    if (product.recipe.length > 0) {
+      await supabase.from('product_recipes').insert(
+        product.recipe.map(item => ({
+          product_id: productRow.id,
+          ingredient_id: item.ingredient_id,
+          qte_utilisee: item.qte_utilisee,
+        })),
+      );
+    }
+
+    publishOrderChange();
+
+    return mapProductRow({
+      ...productRow,
+      product_recipes: product.recipe.map(item => ({
+        ingredient_id: item.ingredient_id,
+        qte_utilisee: item.qte_utilisee,
+      })),
+    });
+  },
+
   createProduct: async (product: Omit<Product, 'id' | 'image'>, imageFile?: File): Promise<Product> => {
     let imageUrl: string | undefined;
     if (imageFile) {

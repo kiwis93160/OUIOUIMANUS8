@@ -90,7 +90,7 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
                     </h3>
                     <p className="text-xs text-gray-500 sm:text-sm">Enviado {sentAtFormatted}</p>
                 </div>
-                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600 sm:w-auto sm:flex-col sm:items-end sm:justify-end">
+                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600 sm:w-auto sm:flex-nowrap sm:items-center sm:justify-end sm:gap-4">
                     <OrderTimer
                         startTime={order.date_envoi_cuisine || Date.now()}
                         className="text-base font-semibold text-gray-900 sm:text-lg"
@@ -98,7 +98,7 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
                     <span
                         className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-white shadow ${urgencyStyles.accent}`}
                     >
-                        <span className="text-white/70">PRODUITS</span>
+                        <span className="text-white/70">ITEMS</span>
                         <span className="text-lg tracking-normal">{totalProducts}</span>
                     </span>
                 </div>
