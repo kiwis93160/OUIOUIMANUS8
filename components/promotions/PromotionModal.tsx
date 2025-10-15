@@ -142,7 +142,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4 py-6 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4 py-6 text-black backdrop-blur-sm">
       <div className="flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-black shadow-2xl">
         <div className="flex flex-col gap-3 border-b border-slate-200 bg-white px-6 py-5 text-black sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-xl font-semibold leading-snug sm:text-2xl">
@@ -206,7 +206,7 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, onSave
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto bg-white px-4 py-6 sm:px-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto bg-white px-4 py-6 text-black sm:px-6">
           {activeTab === 'general' && (
             <div className="space-y-4">
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-5 shadow-sm">
