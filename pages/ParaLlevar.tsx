@@ -29,126 +29,134 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
         <>
             <div className={`relative flex h-full flex-col overflow-hidden rounded-xl border text-gray-900 shadow-md transition-shadow duration-300 hover:shadow-lg ${urgencyStyles.border} ${urgencyStyles.background}`}>
                 <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${urgencyStyles.accent}`} />
-                <header className="border-b border-gray-200 px-5 pt-5 pb-4">
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-start justify-between gap-3">
-                            <div className="space-y-1">
-                                <h4 className="text-lg sm:text-xl md:text-2xl font-semibold leading-tight text-gray-900">{displayName}</h4>
-                                <p className="text-xs text-gray-500">
-                                    Pedido enviado {new Date(timerStart).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
-                                </p>
-                            </div>
+                <header className="border-b border-gray-200 px-5 py-4">
+                    <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+                        <div className="min-w-0 space-y-1">
+                            <h4 className="truncate text-base font-semibold leading-tight text-gray-900 sm:text-lg md:text-xl">{displayName}</h4>
+                            <p className="text-xs text-gray-500">
+                                Pedido enviado {new Date(timerStart).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                        </div>
+                        <div className="flex flex-col items-start gap-2 sm:items-end">
                             <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${urgencyStyles.badge}`}>
                                 <span className={`h-2 w-2 rounded-full ${urgencyStyles.accent}`} />
                                 <span>{urgencyLabelMap[urgencyStyles.level]}</span>
                             </span>
+                            <div className="flex w-full justify-start sm:justify-end">
+                                <OrderTimer startTime={timerStart} className=" text-sm sm:text-base" />
+                            </div>
                         </div>
-                        <OrderTimer startTime={timerStart} className="text-sm sm:text-base" />
                     </div>
                 </header>
 
-                <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
-                    {order.clientInfo && (
-                        <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 p-4 shadow-sm">
-                            {order.clientInfo.nom && (
-                                <div className="space-y-1">
-                                    <div className="flex items-center gap-2 text-sm text-gray-900">
-                                        <User size={16} className={urgencyStyles.icon} />
-                                        <span className="font-medium">{order.clientInfo.nom}</span>
-                                    </div>
-                                    {order.clientInfo.telephone && (
-                                        <div className="flex items-center gap-2 text-xs text-gray-600 ml-6">
-                                            <Phone size={14} className="text-gray-500" />
-                                            <span>{order.clientInfo.telephone}</span>
+                <div className="flex-1 overflow-hidden px-5 py-4">
+                    <div className="grid h-full gap-4 md:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+                        <section className="flex min-h-[10rem] flex-col gap-3 overflow-hidden">
+                            <h5 className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Artículos</h5>
+                            <div className="flex-1 overflow-y-auto pr-1">
+                                {order.items.length > 0 ? (
+                                    <ul className="space-y-2">
+                                        {order.items.map((item: OrderItem) => {
+                                            const note = item.commentaire?.trim();
+                                            return (
+                                                <li key={item.id} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 shadow-sm">
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <div className="flex flex-1 items-center gap-3">
+                                                            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base font-bold text-white shadow-md ${urgencyStyles.accent}`}>
+                                                                {item.quantite}
+                                                            </span>
+                                                            <span className="font-semibold text-gray-900">{item.nom_produit}</span>
+                                                        </div>
+                                                        <span className="whitespace-nowrap text-sm font-semibold text-gray-900 sm:text-base">{formatCurrencyCOP(item.prix_unitaire * item.quantite)}</span>
+                                                    </div>
+                                                    {note && (
+                                                        <p className="mt-2 rounded-md border border-dashed border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium italic text-blue-800">
+                                                            {note}
+                                                        </p>
+                                                    )}
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                ) : (
+                                    <p className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-xs text-gray-500 shadow-sm">
+                                        Este pedido aún no tiene artículos registrados.
+                                    </p>
+                                )}
+                            </div>
+                        </section>
+
+                        <aside className="flex flex-col gap-4">
+                            {order.clientInfo && (
+                                <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm shadow-sm">
+                                    {order.clientInfo.nom && (
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2 text-gray-900">
+                                                <User size={16} className={urgencyStyles.icon} />
+                                                <span className="font-medium">{order.clientInfo.nom}</span>
+                                            </div>
+                                            {order.clientInfo.telephone && (
+                                                <div className="ml-6 flex items-center gap-2 text-xs text-gray-600">
+                                                    <Phone size={14} className="text-gray-500" />
+                                                    <span>{order.clientInfo.telephone}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                    {order.clientInfo.adresse && (
+                                        <div className="flex items-start gap-2 text-gray-700">
+                                            <MapPin size={16} className={`mt-0.5 text-gray-500 ${urgencyStyles.icon}`} />
+                                            <span className="text-sm text-gray-700">{order.clientInfo.adresse}</span>
                                         </div>
                                     )}
                                 </div>
                             )}
-                            {order.clientInfo.adresse && (
-                                <div className="flex items-start gap-2 text-sm text-gray-700">
-                                    <MapPin size={16} className={`mt-0.5 text-gray-500 ${urgencyStyles.icon}`} />
-                                    <span className="text-gray-700">{order.clientInfo.adresse}</span>
-                                </div>
-                            )}
-                        </div>
-                    )}
 
-                    <div className="space-y-3">
-                        <h5 className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Artículos</h5>
-                        {order.items.length > 0 ? (
-                            <ul className="space-y-2">
-                                {order.items.map((item: OrderItem) => {
-                                    const note = item.commentaire?.trim();
-                                    return (
-                                        <li key={item.id} className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 shadow-sm">
-                                            <div className="flex items-center justify-between gap-3">
-                                                <div className="flex items-center gap-3 flex-1">
-                                                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base font-bold text-white shadow-md ${urgencyStyles.accent}`}>
-                                                        {item.quantite}
-                                                    </span>
-                                                    <span className="font-semibold text-gray-900">{item.nom_produit}</span>
-                                                </div>
-                                                <span className="text-sm sm:text-base font-semibold text-gray-900 whitespace-nowrap">{formatCurrencyCOP(item.prix_unitaire * item.quantite)}</span>
-                                            </div>
-                                            {note && (
-                                                <p className="mt-2 rounded-md border border-dashed border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium italic text-blue-800">
-                                                    {note}
-                                                </p>
-                                            )}
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        ) : (
-                            <p className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-xs text-gray-500 shadow-sm">
-                                Este pedido aún no tiene artículos registrados.
-                            </p>
-                        )}
-                    </div>
+                            {showPromotionDetails && (
+                                <div className="space-y-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 shadow-sm">
+                                    {order.subtotal !== undefined && (
+                                        <div className="flex items-center justify-between font-medium">
+                                            <span>Sous-total</span>
+                                            <span>{formatCurrencyCOP(order.subtotal)}</span>
+                                        </div>
+                                    )}
+                                    {hasAppliedPromotions && (
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Promotions appliquées</p>
+                                            {order.applied_promotions!.map(promotion => {
+                                                const promoCode = typeof promotion.config === 'object' && promotion.config !== null
+                                                    ? (promotion.config as Record<string, unknown>).promo_code
+                                                    : undefined;
 
-                    {showPromotionDetails && (
-                        <div className="space-y-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 shadow-sm">
-                            {order.subtotal !== undefined && (
-                                <div className="flex items-center justify-between font-medium">
-                                    <span>Sous-total</span>
-                                    <span>{formatCurrencyCOP(order.subtotal)}</span>
+                                                return (
+                                                    <div key={`${promotion.promotion_id}-${promotion.name}`} className="flex items-center justify-between">
+                                                        <span>{promotion.name}{promoCode ? ` (Code: ${promoCode})` : ''}</span>
+                                                        <span>-{formatCurrencyCOP(promotion.discount_amount || 0)}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                    {totalDiscount > 0 && (
+                                        <div className="flex items-center justify-between font-semibold">
+                                            <span>Réductions totales</span>
+                                            <span>-{formatCurrencyCOP(totalDiscount)}</span>
+                                        </div>
+                                    )}
+                                    {totalDiscount > 0 && order.subtotal !== undefined && (
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span>Sous-total après réductions</span>
+                                            <span>{formatCurrencyCOP(subtotalAfterDiscounts)}</span>
+                                        </div>
+                                    )}
                                 </div>
                             )}
-                            {hasAppliedPromotions && (
-                                <div className="space-y-1">
-                                    <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Promotions appliquées</p>
-                                    {order.applied_promotions!.map(promotion => {
-                                        const promoCode = typeof promotion.config === 'object' && promotion.config !== null
-                                            ? (promotion.config as Record<string, unknown>).promo_code
-                                            : undefined;
 
-                                        return (
-                                            <div key={`${promotion.promotion_id}-${promotion.name}`} className="flex items-center justify-between">
-                                                <span>{promotion.name}{promoCode ? ` (Code: ${promoCode})` : ''}</span>
-                                                <span>-{formatCurrencyCOP(promotion.discount_amount || 0)}</span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                            {totalDiscount > 0 && (
-                                <div className="flex items-center justify-between font-semibold">
-                                    <span>Réductions totales</span>
-                                    <span>-{formatCurrencyCOP(totalDiscount)}</span>
-                                </div>
-                            )}
-                            {totalDiscount > 0 && order.subtotal !== undefined && (
-                                <div className="flex items-center justify-between text-sm">
-                                    <span>Sous-total après réductions</span>
-                                    <span>{formatCurrencyCOP(subtotalAfterDiscounts)}</span>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 font-semibold text-gray-900 shadow-sm">
-                        <span>Total</span>
-                        <span className="text-lg sm:text-xl text-gray-900">{formatCurrencyCOP(order.total)}</span>
+                            <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 font-semibold text-gray-900 shadow-sm">
+                                <span>Total</span>
+                                <span className="text-lg sm:text-xl text-gray-900">{formatCurrencyCOP(order.total)}</span>
+                            </div>
+                        </aside>
                     </div>
                 </div>
 
