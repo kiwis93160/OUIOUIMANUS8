@@ -340,42 +340,6 @@ const ResumeVentes: React.FC = () => {
         })).sort((a, b) => b.revenue - a.revenue);
     }, [filteredSales]);
 
-    const dailyTrend = useMemo(() => {
-        const map = new Map<number, { revenue: number; profit: number; quantity: number; orders: Set<string> }>();
-
-        filteredSales.forEach((sale) => {
-            const saleDate = new Date(sale.saleDate);
-            const dayStart = new Date(saleDate.getFullYear(), saleDate.getMonth(), saleDate.getDate());
-            const key = dayStart.getTime();
-            const existing = map.get(key);
-            if (!existing) {
-                map.set(key, {
-                    revenue: sale.totalPrice ?? 0,
-                    profit: sale.profit ?? 0,
-                    quantity: sale.quantity,
-                    orders: new Set([sale.orderId]),
-                });
-                return;
-            }
-
-            existing.revenue += sale.totalPrice ?? 0;
-            existing.profit += sale.profit ?? 0;
-            existing.quantity += sale.quantity;
-            existing.orders.add(sale.orderId);
-        });
-
-        return Array.from(map.entries())
-            .map(([timestamp, data]) => ({
-                timestamp,
-                label: new Date(timestamp).toLocaleDateString('es-CO'),
-                revenue: data.revenue,
-                profit: data.profit,
-                quantity: data.quantity,
-                orders: data.orders.size,
-            }))
-            .sort((a, b) => a.timestamp - b.timestamp);
-    }, [filteredSales]);
-
     const categoryOptions = useMemo(() => {
         return [...categories].sort((a, b) => a.nom.localeCompare(b.nom, 'es'));
     }, [categories]);
@@ -740,43 +704,6 @@ const ResumeVentes: React.FC = () => {
                             </tbody>
                         </table>
                     </div>
-                </div>
-            </section>
-
-            <section className="rounded-xl bg-white p-4 shadow-md">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-800">Tendance quotidienne</h3>
-                    <TrendingUp size={18} className="text-brand-primary" />
-                </div>
-                <div className="mt-4 overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead className="border-b text-xs uppercase text-gray-500">
-                            <tr>
-                                <th className="p-2">Jour</th>
-                                <th className="p-2 text-right">Ventes</th>
-                                <th className="p-2 text-right">Bénéfice</th>
-                                <th className="p-2 text-right">Commandes</th>
-                                <th className="p-2 text-right">Articles</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {dailyTrend.length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="p-4 text-center text-sm text-gray-500">Aucune donnée pour les filtres sélectionnés.</td>
-                                </tr>
-                            ) : (
-                                dailyTrend.map((day) => (
-                                    <tr key={day.timestamp} className="border-b last:border-b-0">
-                                        <td className="p-2 text-sm font-medium text-gray-800">{day.label}</td>
-                                        <td className="p-2 text-right text-sm text-gray-700">{formatCurrencyCOP(day.revenue)}</td>
-                                        <td className="p-2 text-right text-sm text-gray-700">{formatCurrencyCOP(day.profit)}</td>
-                                        <td className="p-2 text-right text-sm text-gray-700">{formatInteger(day.orders)}</td>
-                                        <td className="p-2 text-right text-sm text-gray-700">{formatInteger(day.quantity)}</td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
                 </div>
             </section>
 

@@ -1,28 +1,66 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { DollarSign, Users, Armchair, AlertTriangle, Soup, BarChart2, Shield } from 'lucide-react';
+import {
+    DollarSign,
+    Users,
+    Armchair,
+    AlertTriangle,
+    Soup,
+    Shield,
+    TrendingUp,
+    Percent,
+    ShoppingBag,
+    CalendarDays,
+    UserCheck,
+    Receipt,
+    ArrowUpRight,
+    ArrowDownRight,
+} from 'lucide-react';
 import { api, getBusinessDayStart } from '../services/api';
 import { DashboardStats, SalesDataPoint, DashboardPeriod } from '../types';
 import Modal from '../components/Modal';
 import RoleManager from '../components/role-manager';
-import { formatCurrencyCOP } from '../utils/formatIntegerAmount';
+import { formatCurrencyCOP, formatIntegerAmount } from '../utils/formatIntegerAmount';
 
-const MainStatCard: React.FC<{ title: string; value: string; icon: React.ReactNode }> = ({ title, value, icon }) => (
-    <div className="ui-card p-6 flex flex-col items-center justify-center text-center gap-4 min-w-0">
-        <div className="p-4 bg-brand-primary/20 text-brand-primary rounded-full">
-            {icon}
-        </div>
-        <div className="w-full space-y-2">
-            <p className="text-sm font-semibold text-gray-500 text-center">{title}</p>
-            <div className="w-full flex justify-center">
-                <p
-                    className="font-bold text-gray-800 leading-none text-center break-words"
-                    style={{ fontSize: 'clamp(1.25rem, 3vw, 2rem)', letterSpacing: '-0.01em' }}
-                >
-                    {value}
-                </p>
+const decimalFormatter = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1, minimumFractionDigits: 0 });
+const formatDecimal = (value: number): string => decimalFormatter.format(Number.isFinite(value) ? value : 0);
+
+const TrendPill: React.FC<{ value: number }> = ({ value }) => {
+    const isPositive = value >= 0;
+    const Icon = isPositive ? ArrowUpRight : ArrowDownRight;
+    return (
+        <span
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${
+                isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+            }`}
+        >
+            <Icon className="h-4 w-4" />
+            {Math.abs(value).toFixed(1)}%
+        </span>
+    );
+};
+
+const MainStatCard: React.FC<{
+    title: string;
+    value: string;
+    icon: React.ReactNode;
+    helper?: string;
+    trend?: number | null;
+}> = ({ title, value, icon, helper, trend }) => (
+    <div className="ui-card flex min-w-0 flex-col gap-4 p-5">
+        <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-brand-primary/10 p-3 text-brand-primary">
+                {icon}
+            </div>
+            <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{title}</p>
+                <div className="mt-1 flex items-baseline gap-2">
+                    <p className="text-2xl font-bold text-gray-900 sm:text-3xl">{value}</p>
+                    {typeof trend === 'number' ? <TrendPill value={trend} /> : null}
+                </div>
             </div>
         </div>
+        {helper ? <p className="text-sm text-gray-500">{helper}</p> : null}
     </div>
 );
 
@@ -91,6 +129,16 @@ const Dashboard: React.FC = () => {
     const pieData = pieChartMode === 'category' ? stats.ventesParCategorie : salesByProduct;
     const hasPieData = pieData.length > 0;
 
+    const periodConfig = PERIOD_CONFIG[period];
+    const previousRevenueTotal = stats.ventesPeriodeSeries.reduce((sum, point) => sum + (point.ventesPeriodePrecedente ?? 0), 0);
+    const revenueTrend = previousRevenueTotal > 0 ? ((stats.ventesPeriode - previousRevenueTotal) / previousRevenueTotal) * 100 : null;
+    const profitMargin = stats.ventesPeriode > 0 ? (stats.beneficePeriode / stats.ventesPeriode) * 100 : null;
+    const ordersCount = stats.panierMoyen > 0 ? Math.round(stats.ventesPeriode / stats.panierMoyen) : 0;
+    const averageDailyRevenue = periodConfig.days > 0 ? stats.ventesPeriode / periodConfig.days : 0;
+    const revenuePerClient = stats.clientsPeriode > 0 ? stats.ventesPeriode / stats.clientsPeriode : 0;
+    const averageOrdersPerDay = periodConfig.days > 0 ? ordersCount / periodConfig.days : 0;
+    const averageClientsPerDay = periodConfig.days > 0 ? stats.clientsPeriode / periodConfig.days : 0;
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -118,16 +166,77 @@ const Dashboard: React.FC = () => {
                 </button>
             </div>
 
-            {/* Block 1: Key Indicators */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <MainStatCard title={`Ventas (${stats.periodLabel})`} value={formatCurrencyCOP(stats.ventesPeriode)} icon={<DollarSign size={28}/>} />
-                <MainStatCard title={`Beneficio (${stats.periodLabel})`} value={formatCurrencyCOP(stats.beneficePeriode)} icon={<DollarSign size={28}/>} />
-                <MainStatCard title={`Clientes (${stats.periodLabel})`} value={stats.clientsPeriode.toString()} icon={<Users size={28}/>} />
-                <MainStatCard title="Ticket promedio" value={formatCurrencyCOP(stats.panierMoyen)} icon={<BarChart2 size={28}/>} />
+            {/* Bloc 1 : Indicateurs financiers */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+                <MainStatCard
+                    title={`Chiffre d'affaires (${stats.periodLabel})`}
+                    value={formatCurrencyCOP(stats.ventesPeriode)}
+                    icon={<DollarSign size={24} />}
+                    trend={revenueTrend}
+                    helper={
+                        previousRevenueTotal > 0
+                            ? `Période précédente : ${formatCurrencyCOP(previousRevenueTotal)}`
+                            : 'Pas de période de référence'
+                    }
+                />
+                <MainStatCard
+                    title="Bénéfice net"
+                    value={formatCurrencyCOP(stats.beneficePeriode)}
+                    icon={<TrendingUp size={24} />}
+                    helper={profitMargin !== null ? `Marge : ${formatDecimal(profitMargin)}%` : 'Marge indisponible'}
+                />
+                <MainStatCard
+                    title="Marge bénéficiaire"
+                    value={profitMargin !== null ? `${formatDecimal(profitMargin)}%` : '0%'}
+                    icon={<Percent size={24} />}
+                    helper={`Profit : ${formatCurrencyCOP(stats.beneficePeriode)}`}
+                />
+                <MainStatCard
+                    title="Commandes traitées"
+                    value={formatIntegerAmount(ordersCount)}
+                    icon={<ShoppingBag size={24} />}
+                    helper={`≈ ${formatDecimal(averageOrdersPerDay)} commandes / jour`}
+                />
             </div>
 
-            {/* Block 2: Operational Status */}
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Bloc 2 : Clients et panier */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+                <MainStatCard
+                    title="Ticket moyen"
+                    value={formatCurrencyCOP(stats.panierMoyen)}
+                    icon={<Receipt size={24} />}
+                    helper={
+                        ordersCount > 0
+                            ? `Basé sur ${formatIntegerAmount(ordersCount)} commandes`
+                            : 'Aucune commande sur la période'
+                    }
+                />
+                <MainStatCard
+                    title="Revenu par client"
+                    value={formatCurrencyCOP(revenuePerClient)}
+                    icon={<UserCheck size={24} />}
+                    helper={
+                        stats.clientsPeriode > 0
+                            ? `${formatIntegerAmount(stats.clientsPeriode)} clients servis`
+                            : 'Aucun client sur la période'
+                    }
+                />
+                <MainStatCard
+                    title={`Clients (${stats.periodLabel})`}
+                    value={formatIntegerAmount(stats.clientsPeriode)}
+                    icon={<Users size={24} />}
+                    helper={`≈ ${formatDecimal(averageClientsPerDay)} clients / jour`}
+                />
+                <MainStatCard
+                    title="Revenu moyen quotidien"
+                    value={formatCurrencyCOP(averageDailyRevenue)}
+                    icon={<CalendarDays size={24} />}
+                    helper={`Total période : ${formatCurrencyCOP(stats.ventesPeriode)}`}
+                />
+            </div>
+
+            {/* Bloc 3 : Statut opérationnel */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <OpStatCard title="Mesas ocupadas" value={stats.tablesOccupees} icon={<Armchair size={24}/>} />
                 <OpStatCard title="Clientes actuales" value={stats.clientsActuels} icon={<Users size={24}/>} />
                 <OpStatCard title="En cocina" value={stats.commandesEnCuisine} icon={<Soup size={24}/>} />
@@ -139,7 +248,7 @@ const Dashboard: React.FC = () => {
                 />
             </div>
 
-            {/* Block 3: Sales Chart */}
+            {/* Bloc 4 : Évolution des ventes */}
             <div className="ui-card p-6">
                 <h3 className="text-lg font-semibold mb-4 text-gray-900">Ventas durante {stats.periodLabel}</h3>
                 <ResponsiveContainer width="100%" height={300}>
@@ -155,7 +264,7 @@ const Dashboard: React.FC = () => {
                 </ResponsiveContainer>
             </div>
 
-            {/* Block 4: Sales Pie Chart */}
+            {/* Bloc 5 : Répartition des ventes */}
             <div className="ui-card p-6">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold text-gray-900">Distribución de ventas ({stats.periodLabel})</h3>
