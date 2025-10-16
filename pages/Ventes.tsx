@@ -163,7 +163,7 @@ const TableCard: React.FC<{
     <div
       onClick={handleCardClick}
       onKeyDown={handleCardKeyDown}
-      className={`ui-card status-card ${statusClass} relative`}
+      className={`ui-card status-card ${statusClass} relative h-full`}
       role="button"
       tabIndex={0}
     >
