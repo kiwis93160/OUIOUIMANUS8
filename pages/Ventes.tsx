@@ -225,15 +225,13 @@ const TableCard: React.FC<{
         <p className="status-card__state">{text}</p>
       </div>
 
-      <div className="status-card__footer">
-        <p className="status-card__meta">Capacité : {table.capacite}</p>
-
-        {(table.estado_cocina === 'listo' || table.statut === 'para_entregar') && (
+      {(table.estado_cocina === 'listo' || table.statut === 'para_entregar') && (
+        <div className="status-card__footer">
           <button type="button" onClick={handleServeClick} className="ui-btn ui-btn-accent status-card__cta">
             ENTREGADA
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -314,7 +312,7 @@ const Ventes: React.FC = () => {
   const handleSeatGuests = useCallback(
     (table: Table) => {
       setSeatGuestsTable(table);
-      const initialValue = table.couverts ?? table.capacite;
+      const initialValue = table.couverts ?? null;
       setSeatGuestsValue(
         typeof initialValue === 'number' && initialValue >= 1 && initialValue <= 10
           ? initialValue
