@@ -30,17 +30,23 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
     handleProductPointerDown,
     handleProductKeyDown,
 }) => {
+    const baseFilterButtonClasses =
+        'shrink-0 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
+    const activeFilterClasses =
+        'bg-gradient-to-r from-[#FF7A18] via-[#FF3D00] to-[#C81D11] text-white shadow-lg shadow-[#FF3D00]/30 focus-visible:ring-[#FF5B1A] focus-visible:ring-offset-white';
+    const inactiveFilterClasses =
+        'bg-gray-200 text-gray-700 hover:bg-gray-300 focus-visible:ring-gray-300 focus-visible:ring-offset-white';
+
     return (
         <div className="flex flex-1 flex-col overflow-hidden">
             <div className="border-b bg-white/80 p-4">
                 <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-2">
                     <button
                         onClick={() => onSelectCategory('all')}
-                        className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap transition ${
-                            activeCategoryId === 'all'
-                                ? 'bg-brand-primary text-brand-secondary shadow'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        className={`${baseFilterButtonClasses} ${
+                            activeCategoryId === 'all' ? activeFilterClasses : inactiveFilterClasses
                         }`}
+                        aria-pressed={activeCategoryId === 'all'}
                     >
                         Tous
                     </button>
@@ -48,11 +54,10 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                         <button
                             key={cat.id}
                             onClick={() => onSelectCategory(cat.id)}
-                            className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap transition ${
-                                activeCategoryId === cat.id
-                                    ? 'bg-brand-primary text-brand-secondary shadow'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            className={`${baseFilterButtonClasses} ${
+                                activeCategoryId === cat.id ? activeFilterClasses : inactiveFilterClasses
                             }`}
+                            aria-pressed={activeCategoryId === cat.id}
                         >
                             {cat.nom}
                         </button>

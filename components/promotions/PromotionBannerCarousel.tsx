@@ -21,9 +21,11 @@ const PromotionBannerCarousel: React.FC<PromotionBannerCarouselProps> = ({
   const { promotions = [], loading, error } = useActiveBannerPromotions();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
-  
-  // Limiter le nombre de bannières affichées
-  const displayedPromotions = promotions?.slice(0, maxBanners) || [];
+
+  // Limiter le nombre de bannières affichées et ne garder que celles avec un visuel disponible
+  const displayedPromotions = (promotions || [])
+    .filter((promotion) => promotion.visuals?.banner_image || promotion.visuals?.banner_url || promotion.visuals?.banner_text)
+    .slice(0, maxBanners);
   
   // Fonction pour passer à la bannière suivante
   const nextBanner = () => {

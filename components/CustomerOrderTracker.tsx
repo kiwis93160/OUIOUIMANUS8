@@ -155,7 +155,13 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
       ? "bg-white/95 p-6 rounded-xl shadow-2xl max-w-2xl mx-auto"
       : "max-w-4xl mx-auto";
 
-    const detailContainerClasses = `${variant === 'hero' ? 'bg-black/20 p-4 rounded-lg' : 'border-t pt-6 mt-6'} space-y-4 relative ${variant === 'page' ? 'md:w-1/2 md:mx-auto' : 'w-full'}`;
+    const detailContainerClasses =
+        variant === 'hero'
+            ? 'relative w-full space-y-4 rounded-2xl border border-white/15 bg-black/25 p-6 shadow-[0_25px_50px_-25px_rgba(0,0,0,0.65)] backdrop-blur-md'
+            : 'relative w-full space-y-4 rounded-2xl border border-gray-200 bg-white/90 p-6 shadow-xl';
+    const gaugeBaseClass = variant === 'hero' ? 'bg-white/18' : 'bg-gray-200';
+    const gaugeActiveFillClass = 'bg-gradient-to-r from-[#FF7A18] via-[#FF3D00] to-[#C81D11] shadow-[0_0_18px_rgba(255,90,40,0.45)]';
+    const gaugeCompletedFillClass = 'bg-gradient-to-r from-emerald-400 to-emerald-500 shadow-[0_0_18px_rgba(16,185,129,0.35)]';
 
     if (loading) {
         return <div className={containerClasses}>Chargement du suivi de commande...</div>;
@@ -192,123 +198,270 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                 <h2 className={`text-3xl font-bold text-center mb-2 ${variant === 'hero' ? 'text-white' : 'text-gray-800'}`}>Suivi de votre commande</h2>
                 <p className={`text-center font-semibold mb-8 ${variant === 'hero' ? 'text-gray-300' : 'text-gray-500'}`}>Commande #{order.id.slice(-6)}</p>
 
-                <div className="flex items-center mb-10 px-2">
-                    {steps.map((step, index) => {
-                        const isActive = index === currentStep;
-                        const isFinalStep = index === steps.length - 1;
-                        const isCompleted = index < currentStep || (isFinalStep && isOrderCompleted);
-                        
-                        return (
-                            <React.Fragment key={step.name}>
-                                <div className="flex flex-col items-center text-center">
-                                    <div className={`flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full border-4 transition-all duration-500 ${
-                                        isCompleted ? 'bg-green-500 border-green-300' :
-                                        isActive ? 'bg-blue-600 border-blue-400 animate-pulse' :
-                                        'bg-gray-400 border-gray-300'
-                                    }`}>
-                                        <step.icon className={`w-6 h-6 sm:w-8 sm:h-8 ${variant === 'hero' ? 'text-white' : 'text-white'}`} />
-                                    </div>
-                                    <p className={`mt-2 text-xs sm:text-sm font-semibold ${
-                                        isCompleted || isActive ? `${variant === 'hero' ? 'text-white' : 'text-gray-800'}` : `${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'}`
-                                    }`}>{step.name}</p>
-                                    <p
-                                        className={`mt-1 text-[11px] sm:text-xs leading-snug ${
-                                            isCompleted || isActive
-                                                ? `${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`
-                                                : `${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'}`
-                                        }`}
-                                    >
-                                        {step.description}
-                                    </p>
-                                </div>
-                                {index < steps.length - 1 && (
-                                    <div className="flex-1 mx-2 sm:mx-4" aria-hidden>
-                                        <div
-                                            className={`tracker-gauge-wrapper ${
-                                                variant === 'hero' ? 'tracker-gauge-hero' : 'tracker-gauge-default'
-                                            }`}
-                                        >
+                <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
+                    <div>
+                        <div className="mb-10 flex items-center px-2">
+                            {steps.map((step, index) => {
+                                const isActive = index === currentStep;
+                                const isFinalStep = index === steps.length - 1;
+                                const isCompleted = index < currentStep || (isFinalStep && isOrderCompleted);
+
+                                return (
+                                    <React.Fragment key={step.name}>
+                                        <div className="flex flex-col items-center text-center">
                                             <div
-                                                className={`tracker-gauge-fill-base ${
+                                                className={`flex h-12 w-12 items-center justify-center rounded-full border-4 transition-all duration-500 sm:h-16 sm:w-16 ${
                                                     isCompleted
-                                                        ? 'tracker-gauge-complete'
+                                                        ? 'border-emerald-300 bg-emerald-500 shadow-inner shadow-emerald-700/40'
                                                         : isActive
-                                                            ? 'tracker-gauge-active'
-                                                            : 'tracker-gauge-idle'
+                                                            ? 'border-transparent bg-gradient-to-r from-[#FF7A18] via-[#FF3D00] to-[#C81D11] shadow-lg shadow-[#FF3D00]/45'
+                                                            : variant === 'hero'
+                                                                ? 'border-white/20 bg-white/15'
+                                                                : 'border-gray-300 bg-gray-200'
                                                 }`}
-                                            />
-                                            {isActive && <div className="tracker-gauge-shine" />}
+                                            >
+                                                <step.icon
+                                                    className={`h-6 w-6 sm:h-8 sm:w-8 ${
+                                                        isCompleted || isActive
+                                                            ? 'text-white'
+                                                            : variant === 'hero'
+                                                                ? 'text-white/80'
+                                                                : 'text-gray-600'
+                                                    }`}
+                                                />
+                                            </div>
+                                            <p className={`mt-2 text-xs sm:text-sm font-semibold ${
+                                                isCompleted || isActive
+                                                    ? `${variant === 'hero' ? 'text-white' : 'text-gray-800'}`
+                                                    : `${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'}`
+                                            }`}>{step.name}</p>
+                                            <p
+                                                className={`mt-1 text-[11px] sm:text-xs leading-snug ${
+                                                    isCompleted || isActive
+                                                        ? `${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`
+                                                        : `${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'}`
+                                                }`}
+                                            >
+                                                {step.description}
+                                            </p>
+                                        </div>
+                                        {index < steps.length - 1 && (
+                                            <div className="mx-2 flex-1 sm:mx-4" aria-hidden>
+                                                <div className="relative h-2 overflow-hidden rounded-full">
+                                                    <div className={`absolute inset-0 rounded-full ${gaugeBaseClass}`} />
+                                                    <div
+                                                        className={`absolute inset-0 rounded-full origin-left transition-all duration-700 ease-out ${
+                                                            isCompleted
+                                                                ? gaugeCompletedFillClass
+                                                                : isActive
+                                                                    ? gaugeActiveFillClass
+                                                                    : 'opacity-0'
+                                                        }`}
+                                                        style={{
+                                                            transform: `scaleX(${isCompleted || isActive ? 1 : 0})`,
+                                                            opacity: isCompleted || isActive ? 1 : 0,
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </React.Fragment>
+                                );
+                            })}
+                        </div>
+                        <div className="mt-10 text-center space-y-4">
+                            {isOrderCompleted && (
+                                <div className="flex justify-center">
+                                    <span className="inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-semibold text-green-700">
+                                        <CheckCircle size={16} /> Pedido listo
+                                    </span>
+                                </div>
+                            )}
+                            <div className="flex flex-col space-y-4">
+                                <p className={`text-sm ${variant === 'hero' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                    Le statut de votre commande est mis à jour automatiquement.
+                                </p>
+                                <button
+                                    onClick={isOrderCompleted ? onNewOrderClick : undefined}
+                                    disabled={!isOrderCompleted}
+                                    className={`rounded-lg py-3 px-6 font-bold transition ${
+                                        isOrderCompleted
+                                            ? `${
+                                                  variant === 'hero'
+                                                      ? 'bg-white/90 text-gray-900 hover:bg-white'
+                                                      : 'bg-gradient-to-r from-[#FF7A18] via-[#FF3D00] to-[#C81D11] text-white shadow-lg shadow-[#FF3D00]/35 hover:from-[#FF7A18]/90 hover:via-[#FF3D00]/90 hover:to-[#C81D11]/90'
+                                              }`
+                                            : 'cursor-not-allowed bg-gray-300 text-gray-500 opacity-50'
+                                    }`}
+                                >
+                                    Volver
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div className={detailContainerClasses}>
+                        {/* Tampon PEDIDO LISTO */}
+                        {isOrderCompleted && (
+                            <div className="absolute top-4 right-4 z-10 pointer-events-none">
+                                <div className="relative" style={{ transform: 'rotate(15deg)' }}>
+                                    <div className="stamp-container">
+                                        <div className="stamp-border">
+                                            <div className="stamp-inner">
+                                                <span className="stamp-text">PEDIDO</span>
+                                                <span className="stamp-text stamp-text-large">LISTO</span>
+                                            </div>
                                         </div>
                                     </div>
-                                )}
-                            </React.Fragment>
-                        );
-                    })}
+                                </div>
+                            </div>
+                        )}
+                        <h3 className={`text-xl font-bold ${variant === 'hero' ? 'text-white' : 'text-gray-800'}`}>Résumé de la commande</h3>
+                        <div className="space-y-2">
+                            {order.items && order.items.length > 0 ? (
+                                order.items.map(item => {
+                                    const isDomicilio = item.nom_produit === 'Domicilio';
+                                    const isFreeShipping = isDomicilio && item.prix_unitaire === 0;
+                                    
+                                    return (
+                                        <div key={item.id} className={`flex justify-between items-center ${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`}>
+                                            <span className="text-[clamp(0.95rem,1.8vw,1.1rem)] leading-snug break-words text-balance whitespace-normal [hyphens:auto]">
+                                                {item.quantite}x {item.nom_produit}
+                                            </span>
+                                            {isFreeShipping ? (
+                                                <div className="flex items-center space-x-2">
+                                                    <span className={`text-sm ${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'} line-through`}>{formatCurrencyCOP(8000)}</span>
+                                                    <span className="text-sm font-bold text-green-600">GRATIS</span>
+                                                </div>
+                                            ) : (
+                                                <span>{formatCurrencyCOP(item.prix_unitaire * item.quantite)}</span>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <p className={`${variant === 'hero' ? 'text-gray-300' : 'text-gray-600'}`}>Aucun article enregistré pour cette commande.</p>
+                            )}
+                        </div>
+                        
+                        {/* Affichage du subtotal, des promotions et des codes promo */}
+                        {(order.subtotal !== undefined && order.subtotal !== null) && (
+                            <div className={`flex justify-between ${variant === 'hero' ? 'text-gray-300' : 'text-gray-600'}`}>
+                                <span>Subtotal</span>
+                                <span>{formatCurrencyCOP(order.subtotal)}</span>
+                            </div>
+                        )}
+
+                        {hasAppliedPromotions && (
+                            <div className="space-y-2">
+                                <p className={`text-sm font-semibold ${variant === 'hero' ? 'text-green-300' : 'text-green-700'}`}>
+                                    Promotions appliquées
+                                </p>
+                                <div className="space-y-3">
+                                    {order.applied_promotions!.map(promotion => {
+                                        const promoConfig = typeof promotion.config === 'object' && promotion.config !== null
+                                            ? (promotion.config as Record<string, unknown>)
+                                            : undefined;
+                                        const promoCode = promoConfig?.promo_code as string | undefined;
+                                        const visuals = promotion.visuals || null;
+                                        const bannerImage = visuals?.banner_image || visuals?.banner_url;
+                                        const bannerText = visuals?.banner_text || undefined;
+                                        const discountAmount = promotion.discount_amount || 0;
+
+                                        return (
+                                            <div
+                                                key={`${promotion.promotion_id}-${promotion.name}`}
+                                                className={`flex items-center gap-3 overflow-hidden rounded-xl border ${
+                                                    variant === 'hero'
+                                                        ? 'border-white/20 bg-white/10 backdrop-blur-sm'
+                                                        : 'border-green-200 bg-green-50'
+                                                } p-2 sm:p-3`}
+                                                aria-label={`Promotion ${promotion.name}`}
+                                            >
+                                                <div className="relative h-16 w-28 flex-shrink-0 overflow-hidden rounded-lg">
+                                                    {bannerImage ? (
+                                                        <>
+                                                            <img
+                                                                src={bannerImage}
+                                                                alt={bannerText || promotion.name}
+                                                                className="h-full w-full object-cover"
+                                                            />
+                                                            {bannerText && (
+                                                                <div className="absolute bottom-1 left-1 right-1 rounded bg-black/60 px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                                                                    {bannerText}
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    ) : (
+                                                        <div
+                                                            className={`flex h-full w-full items-center justify-center px-2 text-center text-[11px] font-semibold leading-tight ${
+                                                                variant === 'hero' ? 'bg-white/20 text-white' : 'bg-green-100 text-green-800'
+                                                            }`}
+                                                        >
+                                                            {promotion.name}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex flex-1 flex-col text-left">
+                                                    {(!bannerImage || !bannerText) && (
+                                                        <span className={`text-sm font-semibold ${variant === 'hero' ? 'text-white' : 'text-gray-800'}`}>
+                                                            {promotion.name}
+                                                        </span>
+                                                    )}
+                                                    {promoCode && (
+                                                        <span className={`text-[11px] font-medium uppercase tracking-wide ${variant === 'hero' ? 'text-green-200' : 'text-green-600'}`}>
+                                                            Code: {promoCode}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className={`block text-sm font-bold ${variant === 'hero' ? 'text-green-200' : 'text-green-700'}`}>
+                                                        -{formatCurrencyCOP(discountAmount)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {totalDiscount > 0 && (
+                            <div className={`flex justify-between ${variant === 'hero' ? 'text-green-200' : 'text-green-700'}`}>
+                                <span className="text-sm font-semibold">Réductions totales</span>
+                                <span className="text-sm font-semibold">-{formatCurrencyCOP(totalDiscount)}</span>
+                            </div>
+                        )}
+
+                        {totalDiscount > 0 && order.subtotal !== undefined && order.subtotal !== null && (
+                            <div className={`flex justify-between ${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`}>
+                                <span>Sous-total après réductions</span>
+                                <span>{formatCurrencyCOP(subtotalAfterDiscounts)}</span>
+                            </div>
+                        )}
+
+
+                        
+                        <div className={`flex justify-between font-bold text-lg border-t pt-2 ${variant === 'hero' ? 'text-white border-gray-500' : 'text-gray-800'}`}>
+                            <span>Total</span>
+                            <span>{formatCurrencyCOP(order.total)}</span>
+                        </div>
+
+                        <div className={`border-t pt-4 space-y-2 ${variant === 'hero' ? 'border-gray-500' : ''}`}>
+                            <h3 className={`text-xl font-bold ${variant === 'hero' ? 'text-white' : 'text-gray-800'} mb-2`}>Informations Client</h3>
+                            <div className={`flex items-center ${variant === 'hero' ? 'text-gray-200' : 'text-gray-700'}`}><User size={16} className="mr-2"/>{order.clientInfo?.nom}</div>
+                            <div className={`flex items-center ${variant === 'hero' ? 'text-gray-200' : 'text-gray-700'}`}><Phone size={16} className="mr-2"/>{order.clientInfo?.telephone}</div>
+                            {order.clientInfo?.adresse && (
+                                <div className={`flex items-center ${variant === 'hero' ? 'text-gray-200' : 'text-gray-700'}`}><MapPin size={16} className="mr-2"/>{order.clientInfo?.adresse}</div>
+                            )}
+                            {order.receipt_url && (
+                                <button onClick={() => setReceiptModalOpen(true)} className="flex items-center text-blue-400 hover:underline"><Receipt size={16} className="mr-2"/>Voir le justificatif</button>
+                            )}
+                        </div>
+                    </div>
+
+
                 </div>
                 <style>{`
-                    .tracker-gauge-wrapper {
-                        position: relative;
-                        height: 8px;
-                        border-radius: 9999px;
-                        overflow: hidden;
-                    }
-
-                    .tracker-gauge-default {
-                        background: rgba(209, 213, 219, 0.6);
-                    }
-
-                    .tracker-gauge-hero {
-                        background: rgba(255, 255, 255, 0.25);
-                    }
-
-                    .tracker-gauge-fill-base {
-                        position: absolute;
-                        inset: 0;
-                        transform-origin: left;
-                        transform: scaleX(0);
-                        transition: transform 0.8s ease, background-color 0.3s ease;
-                    }
-
-                    .tracker-gauge-idle {
-                        background: transparent;
-                    }
-
-                    .tracker-gauge-active {
-                        background: linear-gradient(90deg, rgba(59, 130, 246, 0.45), rgba(37, 99, 235, 0.85));
-                        animation: tracker-gauge-fill 2s ease-in-out forwards;
-                    }
-
-                    .tracker-gauge-complete {
-                        background: linear-gradient(90deg, rgba(34, 197, 94, 0.8), rgba(22, 163, 74, 0.95));
-                        transform: scaleX(1);
-                    }
-
-                    .tracker-gauge-shine {
-                        position: absolute;
-                        inset: 0;
-                        pointer-events: none;
-                    }
-
-                    .tracker-gauge-shine::before {
-                        content: '';
-                        position: absolute;
-                        inset: 0;
-                        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
-                        transform: translateX(-100%);
-                        animation: tracker-gauge-shimmer 1.8s linear infinite;
-                    }
-
-                    @keyframes tracker-gauge-fill {
-                        0% { transform: scaleX(0); }
-                        100% { transform: scaleX(1); }
-                    }
-
-                    @keyframes tracker-gauge-shimmer {
-                        0% { transform: translateX(-100%); opacity: 0.1; }
-                        50% { opacity: 0.45; }
-                        100% { transform: translateX(100%); opacity: 0; }
-                    }
-
                     .stamp-container {
                         position: relative;
                         width: 180px;
@@ -407,193 +560,9 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                             radial-gradient(circle at 60% 20%, transparent 0%, transparent 1%, rgba(220, 38, 38, 0.1) 1%, transparent 2%);
                         opacity: 0.8;
                     }
+
                 `}</style>
-                
-                <div className={detailContainerClasses}>
-                    {/* Tampon PEDIDO LISTO */}
-                    {isOrderCompleted && (
-                        <div className="absolute top-4 right-4 z-10 pointer-events-none">
-                            <div className="relative" style={{ transform: 'rotate(15deg)' }}>
-                                <div className="stamp-container">
-                                    <div className="stamp-border">
-                                        <div className="stamp-inner">
-                                            <span className="stamp-text">PEDIDO</span>
-                                            <span className="stamp-text stamp-text-large">LISTO</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    <h3 className={`text-xl font-bold ${variant === 'hero' ? 'text-white' : 'text-gray-800'}`}>Résumé de la commande</h3>
-                    <div className="space-y-2">
-                        {order.items && order.items.length > 0 ? (
-                            order.items.map(item => {
-                                const isDomicilio = item.nom_produit === 'Domicilio';
-                                const isFreeShipping = isDomicilio && item.prix_unitaire === 0;
-                                
-                                return (
-                                    <div key={item.id} className={`flex justify-between items-center ${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`}>
-                                        <span className="text-[clamp(0.95rem,1.8vw,1.1rem)] leading-snug break-words text-balance whitespace-normal [hyphens:auto]">
-                                            {item.quantite}x {item.nom_produit}
-                                        </span>
-                                        {isFreeShipping ? (
-                                            <div className="flex items-center space-x-2">
-                                                <span className={`text-sm ${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'} line-through`}>{formatCurrencyCOP(8000)}</span>
-                                                <span className="text-sm font-bold text-green-600">GRATIS</span>
-                                            </div>
-                                        ) : (
-                                            <span>{formatCurrencyCOP(item.prix_unitaire * item.quantite)}</span>
-                                        )}
-                                    </div>
-                                );
-                            })
-                        ) : (
-                            <p className={`${variant === 'hero' ? 'text-gray-300' : 'text-gray-600'}`}>Aucun article enregistré pour cette commande.</p>
-                        )}
-                    </div>
-                    
-                    {/* Affichage du subtotal, des promotions et des codes promo */}
-                    {(order.subtotal !== undefined && order.subtotal !== null) && (
-                        <div className={`flex justify-between ${variant === 'hero' ? 'text-gray-300' : 'text-gray-600'}`}>
-                            <span>Subtotal</span>
-                            <span>{formatCurrencyCOP(order.subtotal)}</span>
-                        </div>
-                    )}
 
-                    {hasAppliedPromotions && (
-                        <div className="space-y-2">
-                            <p className={`text-sm font-semibold ${variant === 'hero' ? 'text-green-300' : 'text-green-700'}`}>
-                                Promotions appliquées
-                            </p>
-                            <div className="space-y-3">
-                                {order.applied_promotions!.map(promotion => {
-                                    const promoConfig = typeof promotion.config === 'object' && promotion.config !== null
-                                        ? (promotion.config as Record<string, unknown>)
-                                        : undefined;
-                                    const promoCode = promoConfig?.promo_code as string | undefined;
-                                    const visuals = promotion.visuals || null;
-                                    const bannerImage = visuals?.banner_image || visuals?.banner_url;
-                                    const bannerText = visuals?.banner_text || undefined;
-                                    const discountAmount = promotion.discount_amount || 0;
-
-                                    return (
-                                        <div
-                                            key={`${promotion.promotion_id}-${promotion.name}`}
-                                            className={`flex items-center gap-3 overflow-hidden rounded-xl border ${
-                                                variant === 'hero'
-                                                    ? 'border-white/20 bg-white/10 backdrop-blur-sm'
-                                                    : 'border-green-200 bg-green-50'
-                                            } p-2 sm:p-3`}
-                                            aria-label={`Promotion ${promotion.name}`}
-                                        >
-                                            <div className="relative h-16 w-28 flex-shrink-0 overflow-hidden rounded-lg">
-                                                {bannerImage ? (
-                                                    <>
-                                                        <img
-                                                            src={bannerImage}
-                                                            alt={bannerText || promotion.name}
-                                                            className="h-full w-full object-cover"
-                                                        />
-                                                        {bannerText && (
-                                                            <div className="absolute bottom-1 left-1 right-1 rounded bg-black/60 px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-                                                                {bannerText}
-                                                            </div>
-                                                        )}
-                                                    </>
-                                                ) : (
-                                                    <div
-                                                        className={`flex h-full w-full items-center justify-center px-2 text-center text-[11px] font-semibold leading-tight ${
-                                                            variant === 'hero' ? 'bg-white/20 text-white' : 'bg-green-100 text-green-800'
-                                                        }`}
-                                                    >
-                                                        {promotion.name}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="flex flex-1 flex-col text-left">
-                                                {(!bannerImage || !bannerText) && (
-                                                    <span className={`text-sm font-semibold ${variant === 'hero' ? 'text-white' : 'text-gray-800'}`}>
-                                                        {promotion.name}
-                                                    </span>
-                                                )}
-                                                {promoCode && (
-                                                    <span className={`text-[11px] font-medium uppercase tracking-wide ${variant === 'hero' ? 'text-green-200' : 'text-green-600'}`}>
-                                                        Code: {promoCode}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className="text-right">
-                                                <span className={`block text-sm font-bold ${variant === 'hero' ? 'text-green-200' : 'text-green-700'}`}>
-                                                    -{formatCurrencyCOP(discountAmount)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
-
-                    {totalDiscount > 0 && (
-                        <div className={`flex justify-between ${variant === 'hero' ? 'text-green-200' : 'text-green-700'}`}>
-                            <span className="text-sm font-semibold">Réductions totales</span>
-                            <span className="text-sm font-semibold">-{formatCurrencyCOP(totalDiscount)}</span>
-                        </div>
-                    )}
-
-                    {totalDiscount > 0 && order.subtotal !== undefined && order.subtotal !== null && (
-                        <div className={`flex justify-between ${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`}>
-                            <span>Sous-total après réductions</span>
-                            <span>{formatCurrencyCOP(subtotalAfterDiscounts)}</span>
-                        </div>
-                    )}
-
-
-                    
-                    <div className={`flex justify-between font-bold text-lg border-t pt-2 ${variant === 'hero' ? 'text-white border-gray-500' : 'text-gray-800'}`}>
-                        <span>Total</span>
-                        <span>{formatCurrencyCOP(order.total)}</span>
-                    </div>
-
-                    <div className={`border-t pt-4 space-y-2 ${variant === 'hero' ? 'border-gray-500' : ''}`}>
-                        <h3 className={`text-xl font-bold ${variant === 'hero' ? 'text-white' : 'text-gray-800'} mb-2`}>Informations Client</h3>
-                        <div className={`flex items-center ${variant === 'hero' ? 'text-gray-200' : 'text-gray-700'}`}><User size={16} className="mr-2"/>{order.clientInfo?.nom}</div>
-                        <div className={`flex items-center ${variant === 'hero' ? 'text-gray-200' : 'text-gray-700'}`}><Phone size={16} className="mr-2"/>{order.clientInfo?.telephone}</div>
-                        {order.clientInfo?.adresse && (
-                            <div className={`flex items-center ${variant === 'hero' ? 'text-gray-200' : 'text-gray-700'}`}><MapPin size={16} className="mr-2"/>{order.clientInfo?.adresse}</div>
-                        )}
-                        {order.receipt_url && (
-                            <button onClick={() => setReceiptModalOpen(true)} className="flex items-center text-blue-400 hover:underline"><Receipt size={16} className="mr-2"/>Voir le justificatif</button>
-                        )}
-                    </div>
-                </div>
-
-                <div className="mt-8 text-center space-y-4">
-                    {isOrderCompleted && (
-                        <div className="flex justify-center">
-                            <span className="inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-semibold text-green-700">
-                                <CheckCircle size={16} /> Pedido listo
-                            </span>
-                        </div>
-                    )}
-                    <div className="flex flex-col space-y-4">
-                        <p className={`text-sm ${variant === 'hero' ? 'text-gray-300' : 'text-gray-600'}`}>
-                            Le statut de votre commande est mis à jour automatiquement.
-                        </p>
-                        <button 
-                            onClick={isOrderCompleted ? onNewOrderClick : undefined} 
-                            disabled={!isOrderCompleted}
-                            className={`font-bold py-3 px-6 rounded-lg transition ${
-                                isOrderCompleted 
-                                    ? `${variant === 'hero' ? 'bg-gray-200 text-gray-800 hover:bg-gray-300' : 'bg-brand-primary text-brand-secondary hover:bg-brand-primary-dark'} cursor-pointer` 
-                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
-                            }`}
-                        >
-                            Volver
-                        </button>
-                    </div>
-                </div>
             </div>
         </div>
         <Modal isOpen={isReceiptModalOpen} onClose={() => setReceiptModalOpen(false)} title="Justificatif de Paiement">
