@@ -1343,11 +1343,11 @@ body {
 .status-card {
   position: relative;
   cursor: pointer;
-  padding: clamp(1.5rem, 3vw, 2rem);
+  padding: clamp(1.25rem, 3vw, 2rem);
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  min-height: 280px;
+  min-height: clamp(240px, 35vh, 320px);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   border-width: 2px;
   border-style: solid;
@@ -1426,7 +1426,32 @@ body {
 .status-grid {
   display: grid;
   gap: clamp(1.25rem, 3vw, 2rem);
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  align-items: stretch;
+}
+
+@media (max-width: 768px) {
+  .status-card {
+    gap: 1rem;
+    min-height: 220px;
+    padding: 1.25rem;
+  }
+
+  .status-card__header {
+    gap: 0.5rem;
+  }
+
+  .status-card__body {
+    margin-block: 0.75rem;
+  }
+
+  .status-card__title {
+    font-size: clamp(1.5rem, 8vw, 2.25rem);
+  }
+
+  .status-card__footer {
+    gap: 0.5rem;
+  }
 }
 
 

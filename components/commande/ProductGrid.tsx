@@ -31,15 +31,15 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
     handleProductKeyDown,
 }) => {
     return (
-        <>
-            <div className="p-4 border-b">
-                <div className="flex space-x-2 mt-4 overflow-x-auto pb-2">
+        <div className="flex flex-1 flex-col overflow-hidden">
+            <div className="border-b bg-white/80 p-4">
+                <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-2">
                     <button
                         onClick={() => onSelectCategory('all')}
-                        className={`px-4 py-2 rounded-full font-semibold whitespace-nowrap ${
+                        className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap transition ${
                             activeCategoryId === 'all'
-                                ? 'bg-brand-primary text-brand-secondary'
-                                : 'bg-gray-200 text-gray-700'
+                                ? 'bg-brand-primary text-brand-secondary shadow'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                     >
                         Tous
@@ -48,10 +48,10 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                         <button
                             key={cat.id}
                             onClick={() => onSelectCategory(cat.id)}
-                            className={`px-4 py-2 rounded-full font-semibold whitespace-nowrap ${
+                            className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap transition ${
                                 activeCategoryId === cat.id
-                                    ? 'bg-brand-primary text-brand-secondary'
-                                    : 'bg-gray-200 text-gray-700'
+                                    ? 'bg-brand-primary text-brand-secondary shadow'
+                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                             }`}
                         >
                             {cat.nom}
@@ -59,57 +59,65 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                     ))}
                 </div>
             </div>
-            <div className="p-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 overflow-y-auto">
-                {filteredProducts.map((product) => {
-                    const isLowStock = !isProductAvailable(product);
-                    const quantityInCart = quantities[product.id] || 0;
-                    const handleProductClick = () => onAdd(product);
-                    const handlePointerDown = handleProductPointerDown(product);
-                    const handleKeyDown = handleProductKeyDown(product);
+            <div className="flex-1 overflow-y-auto p-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                    {filteredProducts.map((product) => {
+                        const isLowStock = !isProductAvailable(product);
+                        const quantityInCart = quantities[product.id] || 0;
+                        const handleProductClick = () => onAdd(product);
+                        const handlePointerDown = handleProductPointerDown(product);
+                        const handleKeyDown = handleProductKeyDown(product);
 
-                    return (
-                        <button
-                            key={product.id}
-                            type="button"
-                            onClick={handleProductClick}
-                            onPointerDown={handlePointerDown}
-                            onKeyDown={handleKeyDown}
-                            className={`border rounded-lg p-2 flex flex-col items-center justify-between text-center cursor-pointer hover:shadow-lg transition-all relative focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 focus:ring-offset-gray-900 ${
-                                isLowStock ? 'border-yellow-500 border-2' : ''
-                            }`}
-                        >
-                            {quantityInCart > 0 && (
-                                <div className="absolute top-1 left-1 bg-brand-accent text-white rounded-full h-5 w-5 flex items-center justify-center text-xs font-bold">
-                                    {quantityInCart}
-                                </div>
-                            )}
-                            {isLowStock && (
-                                <div
-                                    className="absolute top-1 right-1 bg-yellow-500 text-white rounded-full p-1"
-                                    title="Stock bas"
+                        return (
+                            <button
+                                key={product.id}
+                                type="button"
+                                onClick={handleProductClick}
+                                onPointerDown={handlePointerDown}
+                                onKeyDown={handleKeyDown}
+                                className={`relative flex h-full flex-col items-center justify-between rounded-lg border bg-white p-3 text-center transition-all focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 focus:ring-offset-gray-900 hover:shadow-lg ${
+                                    isLowStock ? 'border-2 border-yellow-500' : ''
+                                }`}
+                            >
+                                {quantityInCart > 0 && (
+                                    <div className="absolute left-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-accent text-xs font-bold text-white">
+                                        {quantityInCart}
+                                    </div>
+                                )}
+                                {isLowStock && (
+                                    <div
+                                        className="absolute right-1 top-1 rounded-full bg-yellow-500 p-1 text-white"
+                                        title="Stock bas"
+                                    >
+                                        <AlertTriangle size={16} />
+                                    </div>
+                                )}
+                                <img
+                                    src={product.image}
+                                    alt={product.nom_produit}
+                                    className="mb-3 aspect-square w-full max-w-[6rem] rounded-md object-cover"
+                                />
+                                <p
+                                    className="text-[clamp(0.9rem,1.8vw,1.05rem)] font-semibold leading-snug text-gray-800 text-balance text-center break-words whitespace-normal [hyphens:auto]"
+                                    style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
                                 >
-                                    <AlertTriangle size={16} />
-                                </div>
-                            )}
-                            <img
-                                src={product.image}
-                                alt={product.nom_produit}
-                                className="w-24 h-24 object-cover rounded-md mb-2"
-                            />
-                            <p className="font-semibold text-[clamp(0.9rem,1.8vw,1.05rem)] leading-snug text-gray-800 break-words text-balance whitespace-normal [hyphens:auto]">
-                                {product.nom_produit}
-                            </p>
-                            <p className="text-xs text-gray-600 px-1 h-10 overflow-hidden flex-grow">
-                                {product.description}
-                            </p>
-                            <p className="font-bold text-brand-primary mt-1">
-                                {formatCurrencyCOP(product.prix_vente)}
-                            </p>
-                        </button>
-                    );
-                })}
+                                    {product.nom_produit}
+                                </p>
+                                <p
+                                    className="mt-1 w-full flex-1 text-xs text-gray-600 text-center leading-snug"
+                                    style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                                >
+                                    {product.description}
+                                </p>
+                                <p className="mt-3 font-bold text-brand-primary">
+                                    {formatCurrencyCOP(product.prix_vente)}
+                                </p>
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
-        </>
+        </div>
     );
 };
 
