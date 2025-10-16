@@ -7,7 +7,7 @@ import { Product, Category, OrderItem, Order } from '../types';
 import { api } from '../services/api';
 import { formatCurrencyCOP } from '../utils/formatIntegerAmount';
 import { uploadPaymentReceipt } from '../services/cloudinary';
-import { ShoppingCart, Plus, Minus, History, ArrowLeft } from 'lucide-react';
+import { ShoppingCart, History, ArrowLeft, Trash2 } from 'lucide-react';
 import { storeActiveCustomerOrder, ONE_DAY_IN_MS } from '../services/customerOrderStorage';
 import ProductCardWithPromotion from '../components/ProductCardWithPromotion';
 import ActivePromotionsDisplay from '../components/ActivePromotionsDisplay';
@@ -346,17 +346,8 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
         setModalOpen(false);
     };
 
-    const handleQuantityChange = (itemId: string, delta: number) => {
-        setCart(cart.map(item => {
-            if (item.id === itemId) {
-                const newQuantity = item.quantite + delta;
-                if (newQuantity <= 0) {
-                    return null; // Sera filtré plus tard
-                }
-                return { ...item, quantite: newQuantity };
-            }
-            return item;
-        }).filter(Boolean) as OrderItem[]);
+    const handleRemoveCartItem = (itemId: string) => {
+        setCart(prevCart => prevCart.filter(item => item.id !== itemId));
     };
 
     const handleReorder = (order: Order) => {
@@ -592,42 +583,38 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
                 ) : (
                     <div className="flex-1 overflow-y-auto pr-2 -mr-2">
                         {cart.map((item) => (
-                            <div key={item.id} className="flex items-start justify-between py-4 border-b border-gray-200 last:border-b-0 bg-white rounded-lg px-3 mb-2 shadow-sm">
-                                <div className="flex-1">
-                                    <p className="font-bold text-[clamp(1rem,2vw,1.3rem)] leading-snug text-gray-900 mb-1 break-words text-balance whitespace-normal [hyphens:auto]">
-                                        {item?.nom_produit || 'Article inconnu'}
-                                    </p>
-                                    {item.commentaire && (
-                                        <p className="text-sm text-gray-600 italic mb-1 bg-yellow-50 p-2 rounded border-l-2 border-yellow-400">
-                                            💬 {item.commentaire}
+                            <div
+                                key={item.id}
+                                className="group relative mb-3 rounded-lg bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 px-4 py-4 text-white shadow-lg transition-transform hover:-translate-y-0.5"
+                            >
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex-1 space-y-2">
+                                        <p className="font-bold text-[clamp(1rem,2vw,1.3rem)] leading-snug text-white break-words text-balance whitespace-normal [hyphens:auto]">
+                                            {item?.nom_produit || 'Article inconnu'}
                                         </p>
-                                    )}
-                                    {item.excluded_ingredients && item.excluded_ingredients.length > 0 && (
-                                        <p className="text-sm text-red-600 mb-1 bg-red-50 p-2 rounded border-l-2 border-red-400">
-                                            🚫 Sin: {item.excluded_ingredients.join(', ')}
-                                        </p>
-                                    )}
-                                    <p className="text-base font-semibold text-brand-primary mt-2">{formatCurrencyCOP(item.prix_unitaire)}</p>
-                                </div>
-                                <div className="flex flex-col items-center ml-4">
-                                    <div className="flex items-center bg-gray-100 rounded-full p-1">
-                                        <button
-                                            onClick={() => handleQuantityChange(item.id, -1)}
-                                            className="text-brand-primary hover:text-brand-primary-dark p-2 hover:bg-gray-200 rounded-full transition"
-                                        >
-                                            <Minus size={18} />
-                                        </button>
-                                        <span className="mx-3 text-gray-900 font-bold text-lg min-w-[24px] text-center">{item.quantite}</span>
-                                        <button
-                                            onClick={() => handleQuantityChange(item.id, 1)}
-                                            className="text-brand-primary hover:text-brand-primary-dark p-2 hover:bg-gray-200 rounded-full transition"
-                                        >
-                                            <Plus size={18} />
-                                        </button>
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/90">
+                                            <span className="font-semibold">Cantidad: {item.quantite}</span>
+                                            <span className="font-semibold">Precio unitario: {formatCurrencyCOP(item.prix_unitaire)}</span>
+                                            <span className="font-semibold">Total: {formatCurrencyCOP(item.prix_unitaire * item.quantite)}</span>
+                                        </div>
+                                        {item.commentaire && (
+                                            <p className="text-sm text-white/90 italic bg-white/15 border-l-2 border-white/60 p-2 rounded">
+                                                💬 {item.commentaire}
+                                            </p>
+                                        )}
+                                        {item.excluded_ingredients && item.excluded_ingredients.length > 0 && (
+                                            <p className="text-sm text-white font-semibold bg-black/20 border-l-2 border-white/60 p-2 rounded">
+                                                🚫 Sin: {item.excluded_ingredients.join(', ')}
+                                            </p>
+                                        )}
                                     </div>
-                                    <p className="text-sm font-semibold text-gray-700 mt-2">
-                                        {formatCurrencyCOP(item.prix_unitaire * item.quantite)}
-                                    </p>
+                                    <button
+                                        onClick={() => handleRemoveCartItem(item.id)}
+                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+                                        aria-label="Eliminar artículo"
+                                    >
+                                        <Trash2 size={20} />
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -670,7 +657,7 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
                                 aria-busy={validatingPromoCode}
                                 className="rounded-md bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 px-4 py-2 font-bold text-white shadow-sm transition-all duration-300 hover:from-orange-600 hover:via-orange-700 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                {validatingPromoCode ? 'Validando…' : 'Confirmar código'}
+                                {validatingPromoCode ? 'Validando…' : 'Confirmar'}
                             </button>
                         </div>
                         {promoCodeError && (
