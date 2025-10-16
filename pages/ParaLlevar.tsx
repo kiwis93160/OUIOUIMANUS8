@@ -47,7 +47,32 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
                 </header>
 
                 <div className="flex-1 overflow-hidden px-5 py-4">
-                    <div className="grid h-full gap-4 md:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+                    <div className="flex h-full flex-col gap-4">
+                        {order.clientInfo && (
+                            <section className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-900 shadow-sm">
+                                {order.clientInfo.nom && (
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-2 text-gray-900">
+                                            <User size={16} className={urgencyStyles.icon} />
+                                            <span className="font-medium">{order.clientInfo.nom}</span>
+                                        </div>
+                                        {order.clientInfo.telephone && (
+                                            <div className="ml-6 flex items-center gap-2 text-xs text-gray-600">
+                                                <Phone size={14} className="text-gray-500" />
+                                                <span>{order.clientInfo.telephone}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                {order.clientInfo.adresse && (
+                                    <div className="flex items-start gap-2 text-gray-700">
+                                        <MapPin size={16} className={`mt-0.5 text-gray-500 ${urgencyStyles.icon}`} />
+                                        <span className="text-sm text-gray-700">{order.clientInfo.adresse}</span>
+                                    </div>
+                                )}
+                            </section>
+                        )}
+
                         <section className="flex min-h-[10rem] flex-col gap-3 overflow-hidden">
                             <h5 className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Artículos</h5>
                             <div className="flex-1 overflow-y-auto pr-1">
@@ -85,65 +110,38 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
                             </div>
                         </section>
 
-                        <aside className="flex flex-col gap-4">
-                            {order.clientInfo && (
-                                <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm shadow-sm">
-                                    {order.clientInfo.nom && (
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-2 text-gray-900">
-                                                <User size={16} className={urgencyStyles.icon} />
-                                                <span className="font-medium">{order.clientInfo.nom}</span>
-                                            </div>
-                                            {order.clientInfo.telephone && (
-                                                <div className="ml-6 flex items-center gap-2 text-xs text-gray-600">
-                                                    <Phone size={14} className="text-gray-500" />
-                                                    <span>{order.clientInfo.telephone}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                    {order.clientInfo.adresse && (
-                                        <div className="flex items-start gap-2 text-gray-700">
-                                            <MapPin size={16} className={`mt-0.5 text-gray-500 ${urgencyStyles.icon}`} />
-                                            <span className="text-sm text-gray-700">{order.clientInfo.adresse}</span>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                        {showPromotionDetails && (
+                            <section className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 shadow-sm">
+                                {hasAppliedPromotions && (
+                                    <ul className="space-y-1" aria-label="Promotions">
+                                        {order.applied_promotions!.map(promotion => {
+                                            const promoCode = typeof promotion.config === 'object' && promotion.config !== null
+                                                ? (promotion.config as Record<string, unknown>).promo_code
+                                                : undefined;
 
-                            {showPromotionDetails && (
-                                <div className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 shadow-sm">
-                                    {hasAppliedPromotions && (
-                                        <ul className="space-y-1" aria-label="Promotions">
-                                            {order.applied_promotions!.map(promotion => {
-                                                const promoCode = typeof promotion.config === 'object' && promotion.config !== null
-                                                    ? (promotion.config as Record<string, unknown>).promo_code
-                                                    : undefined;
+                                            return (
+                                                <li
+                                                    key={`${promotion.promotion_id}-${promotion.name}`}
+                                                    className="rounded-md border border-emerald-200 bg-white/70 px-3 py-2 text-emerald-900 shadow-sm"
+                                                >
+                                                    <p className="font-medium leading-tight">
+                                                        {promotion.name}{promoCode ? ` (Code: ${promoCode})` : ''}
+                                                    </p>
+                                                    <p className="mt-1 text-sm font-semibold text-emerald-700">
+                                                        -{formatCurrencyCOP(promotion.discount_amount || 0)}
+                                                    </p>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                )}
+                            </section>
+                        )}
 
-                                                return (
-                                                    <li
-                                                        key={`${promotion.promotion_id}-${promotion.name}`}
-                                                        className="rounded-md border border-emerald-200 bg-white/70 px-3 py-2 text-emerald-900 shadow-sm"
-                                                    >
-                                                        <p className="font-medium leading-tight">
-                                                            {promotion.name}{promoCode ? ` (Code: ${promoCode})` : ''}
-                                                        </p>
-                                                        <p className="mt-1 text-sm font-semibold text-emerald-700">
-                                                            -{formatCurrencyCOP(promotion.discount_amount || 0)}
-                                                        </p>
-                                                    </li>
-                                                );
-                                            })}
-                                        </ul>
-                                    )}
-                                </div>
-                            )}
-
-                            <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 font-semibold text-gray-900 shadow-sm">
-                                <span>Total</span>
-                                <span className="text-lg sm:text-xl text-gray-900">{formatCurrencyCOP(order.total)}</span>
-                            </div>
-                        </aside>
+                        <div className="mt-auto flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 font-semibold text-gray-900 shadow-sm">
+                            <span>Total</span>
+                            <span className="text-lg sm:text-xl text-gray-900">{formatCurrencyCOP(order.total)}</span>
+                        </div>
                     </div>
                 </div>
 
