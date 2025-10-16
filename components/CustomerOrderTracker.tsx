@@ -155,6 +155,8 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
       ? "bg-white/95 p-6 rounded-xl shadow-2xl max-w-2xl mx-auto"
       : "max-w-4xl mx-auto";
 
+    const detailContainerClasses = `${variant === 'hero' ? 'bg-black/20 p-4 rounded-lg' : 'border-t pt-6 mt-6'} space-y-4 relative ${variant === 'page' ? 'md:w-1/2 md:mx-auto' : 'w-full'}`;
+
     if (loading) {
         return <div className={containerClasses}>Chargement du suivi de commande...</div>;
     }
@@ -220,24 +222,22 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                     </p>
                                 </div>
                                 {index < steps.length - 1 && (
-                                    <div className="flex-1 mx-2 sm:mx-4">
+                                    <div className="flex-1 mx-2 sm:mx-4" aria-hidden>
                                         <div
-                                            className={`relative h-1.5 rounded-full overflow-hidden ${variant === 'hero' ? 'bg-white/20' : 'bg-gray-200'}`}
-                                            aria-hidden
+                                            className={`tracker-gauge-wrapper ${
+                                                variant === 'hero' ? 'tracker-gauge-hero' : 'tracker-gauge-default'
+                                            }`}
                                         >
                                             <div
-                                                className={`absolute inset-y-0 left-0 transition-all duration-700 ${
-                                                    isCompleted ? 'bg-green-500' : isActive ? 'bg-blue-500/40' : 'bg-transparent'
+                                                className={`tracker-gauge-fill-base ${
+                                                    isCompleted
+                                                        ? 'tracker-gauge-complete'
+                                                        : isActive
+                                                            ? 'tracker-gauge-active'
+                                                            : 'tracker-gauge-idle'
                                                 }`}
-                                                style={{ width: isCompleted ? '100%' : isActive ? '100%' : '0%' }}
                                             />
-                                            {(isActive || isCompleted) && (
-                                                <div
-                                                    className={`absolute inset-0 ${
-                                                        isCompleted ? 'tracker-line-complete' : 'tracker-line-active'
-                                                    }`}
-                                                />
-                                            )}
+                                            {isActive && <div className="tracker-gauge-shine" />}
                                         </div>
                                     </div>
                                 )}
@@ -246,21 +246,67 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                     })}
                 </div>
                 <style>{`
-                    @keyframes tracker-line-flow {
-                        0% { transform: translateX(-100%); }
-                        50% { transform: translateX(-20%); }
-                        100% { transform: translateX(100%); }
+                    .tracker-gauge-wrapper {
+                        position: relative;
+                        height: 8px;
+                        border-radius: 9999px;
+                        overflow: hidden;
                     }
 
-                    .tracker-line-active {
-                        background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.65), transparent);
-                        opacity: 0.85;
-                        animation: tracker-line-flow 1.8s linear infinite;
+                    .tracker-gauge-default {
+                        background: rgba(209, 213, 219, 0.6);
                     }
 
-                    .tracker-line-complete {
-                        background: linear-gradient(90deg, rgba(34, 197, 94, 0.8), rgba(34, 197, 94, 0.4));
-                        opacity: 0.75;
+                    .tracker-gauge-hero {
+                        background: rgba(255, 255, 255, 0.25);
+                    }
+
+                    .tracker-gauge-fill-base {
+                        position: absolute;
+                        inset: 0;
+                        transform-origin: left;
+                        transform: scaleX(0);
+                        transition: transform 0.8s ease, background-color 0.3s ease;
+                    }
+
+                    .tracker-gauge-idle {
+                        background: transparent;
+                    }
+
+                    .tracker-gauge-active {
+                        background: linear-gradient(90deg, rgba(59, 130, 246, 0.45), rgba(37, 99, 235, 0.85));
+                        animation: tracker-gauge-fill 2s ease-in-out forwards;
+                    }
+
+                    .tracker-gauge-complete {
+                        background: linear-gradient(90deg, rgba(34, 197, 94, 0.8), rgba(22, 163, 74, 0.95));
+                        transform: scaleX(1);
+                    }
+
+                    .tracker-gauge-shine {
+                        position: absolute;
+                        inset: 0;
+                        pointer-events: none;
+                    }
+
+                    .tracker-gauge-shine::before {
+                        content: '';
+                        position: absolute;
+                        inset: 0;
+                        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+                        transform: translateX(-100%);
+                        animation: tracker-gauge-shimmer 1.8s linear infinite;
+                    }
+
+                    @keyframes tracker-gauge-fill {
+                        0% { transform: scaleX(0); }
+                        100% { transform: scaleX(1); }
+                    }
+
+                    @keyframes tracker-gauge-shimmer {
+                        0% { transform: translateX(-100%); opacity: 0.1; }
+                        50% { opacity: 0.45; }
+                        100% { transform: translateX(100%); opacity: 0; }
                     }
 
                     .stamp-container {
@@ -363,7 +409,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                     }
                 `}</style>
                 
-                <div className={`${variant === 'hero' ? 'bg-black/20 p-4 rounded-lg' : 'border-t pt-6 mt-6'} space-y-4 relative`}>
+                <div className={detailContainerClasses}>
                     {/* Tampon PEDIDO LISTO */}
                     {isOrderCompleted && (
                         <div className="absolute top-4 right-4 z-10 pointer-events-none">
@@ -416,28 +462,76 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                     )}
 
                     {hasAppliedPromotions && (
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                             <p className={`text-sm font-semibold ${variant === 'hero' ? 'text-green-300' : 'text-green-700'}`}>
                                 Promotions appliquées
                             </p>
-                            {order.applied_promotions!.map(promotion => {
-                                const promoCode = typeof promotion.config === 'object' && promotion.config !== null
-                                    ? (promotion.config as Record<string, unknown>).promo_code
-                                    : undefined;
+                            <div className="space-y-3">
+                                {order.applied_promotions!.map(promotion => {
+                                    const promoConfig = typeof promotion.config === 'object' && promotion.config !== null
+                                        ? (promotion.config as Record<string, unknown>)
+                                        : undefined;
+                                    const promoCode = promoConfig?.promo_code as string | undefined;
+                                    const visuals = promotion.visuals || null;
+                                    const bannerImage = visuals?.banner_image || visuals?.banner_url;
+                                    const bannerText = visuals?.banner_text || undefined;
+                                    const discountAmount = promotion.discount_amount || 0;
 
-                                return (
-                                    <div
-                                        key={`${promotion.promotion_id}-${promotion.name}`}
-                                        className={`flex justify-between text-sm ${variant === 'hero' ? 'text-green-200' : 'text-green-600'}`}
-                                    >
-                                        <span>
-                                            {promotion.name}
-                                            {promoCode ? ` (Code: ${promoCode})` : ''}
-                                        </span>
-                                        <span>-{formatCurrencyCOP(promotion.discount_amount || 0)}</span>
-                                    </div>
-                                );
-                            })}
+                                    return (
+                                        <div
+                                            key={`${promotion.promotion_id}-${promotion.name}`}
+                                            className={`flex items-center gap-3 overflow-hidden rounded-xl border ${
+                                                variant === 'hero'
+                                                    ? 'border-white/20 bg-white/10 backdrop-blur-sm'
+                                                    : 'border-green-200 bg-green-50'
+                                            } p-2 sm:p-3`}
+                                            aria-label={`Promotion ${promotion.name}`}
+                                        >
+                                            <div className="relative h-16 w-28 flex-shrink-0 overflow-hidden rounded-lg">
+                                                {bannerImage ? (
+                                                    <>
+                                                        <img
+                                                            src={bannerImage}
+                                                            alt={bannerText || promotion.name}
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                        {bannerText && (
+                                                            <div className="absolute bottom-1 left-1 right-1 rounded bg-black/60 px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                                                                {bannerText}
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <div
+                                                        className={`flex h-full w-full items-center justify-center px-2 text-center text-[11px] font-semibold leading-tight ${
+                                                            variant === 'hero' ? 'bg-white/20 text-white' : 'bg-green-100 text-green-800'
+                                                        }`}
+                                                    >
+                                                        {promotion.name}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-1 flex-col text-left">
+                                                {(!bannerImage || !bannerText) && (
+                                                    <span className={`text-sm font-semibold ${variant === 'hero' ? 'text-white' : 'text-gray-800'}`}>
+                                                        {promotion.name}
+                                                    </span>
+                                                )}
+                                                {promoCode && (
+                                                    <span className={`text-[11px] font-medium uppercase tracking-wide ${variant === 'hero' ? 'text-green-200' : 'text-green-600'}`}>
+                                                        Code: {promoCode}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="text-right">
+                                                <span className={`block text-sm font-bold ${variant === 'hero' ? 'text-green-200' : 'text-green-700'}`}>
+                                                    -{formatCurrencyCOP(discountAmount)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     )}
 

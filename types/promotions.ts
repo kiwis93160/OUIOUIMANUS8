@@ -63,6 +63,7 @@ export interface PromotionConditions {
 // Informations visuelles (champ `visuals` JSONB dans la base de données)
 export interface PromotionVisuals {
   banner_url?: string;
+  banner_image?: string;
   banner_text?: string;
   banner_cta?: string;
   icon_url?: string;

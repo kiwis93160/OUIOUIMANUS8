@@ -7,10 +7,22 @@ import {
   PromotionDiscount,
   PromotionConditions,
   BuyXGetYConfig,
+  PromotionVisuals,
 } from '../types/promotions';
 import { Order, CartItem } from '../types';
 
 // Fonctions utilitaires pour la validation des promotions
+
+const getPromotionVisuals = (promotion: Promotion): PromotionVisuals | null => {
+  if (!promotion.visuals) {
+    return null;
+  }
+
+  return {
+    ...promotion.visuals,
+    banner_image: promotion.visuals.banner_image ?? promotion.visuals.banner_url,
+  };
+};
 
 const isPromotionActive = (promotion: Promotion): boolean => {
   if (promotion.status !== 'active') return false;
@@ -231,6 +243,7 @@ export const applyPromotionsToOrder = async (order: Order): Promise<Order> => {
         name: promo.name,
         discount_amount: cappedDiscount,
         config: promo.discount.buy_x_get_y_config, // Ajouter la config pour le suivi
+        visuals: getPromotionVisuals(promo),
       });
     }
   }
@@ -250,6 +263,7 @@ export const applyPromotionsToOrder = async (order: Order): Promise<Order> => {
           name: promoCodePromotion.name,
           discount_amount: cappedDiscount,
           config: { promo_code: promoCodePromotion.discount.promo_code }, // Ajouter le code promo pour le suivi
+          visuals: getPromotionVisuals(promoCodePromotion),
         });
       }
     }
@@ -273,6 +287,7 @@ export const applyPromotionsToOrder = async (order: Order): Promise<Order> => {
         promotion_id: promo.id,
         name: promo.name,
         discount_amount: cappedDiscount,
+        visuals: getPromotionVisuals(promo),
       });
     }
   }
@@ -291,6 +306,7 @@ export const applyPromotionsToOrder = async (order: Order): Promise<Order> => {
         name: freeShippingPromotion.name,
         discount_amount: discount,
         type: 'FREE_SHIPPING', // Ajouter le type pour une meilleure identification
+        visuals: getPromotionVisuals(freeShippingPromotion),
       });
     }
   }
