@@ -190,12 +190,12 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
         order?.estado_cocina === 'listo';
 
     const containerClasses = variant === 'page'
-      ? "container mx-auto p-4 lg:p-8"
-      : "flex-1 flex flex-col justify-center items-center text-center text-white p-4 bg-black bg-opacity-60 w-full";
-      
+        ? "container mx-auto p-4 lg:p-8"
+        : "flex-1 flex flex-col justify-center items-center text-center text-white p-4 bg-black bg-opacity-60 w-full";
+
     const contentClasses = variant === 'page'
-      ? "bg-white/95 p-6 rounded-xl shadow-2xl max-w-2xl mx-auto"
-      : "max-w-4xl mx-auto";
+        ? "bg-white/95 p-6 rounded-xl shadow-2xl max-w-2xl mx-auto"
+        : "max-w-4xl mx-auto";
 
     const detailContainerClasses = `${variant === 'hero' ? 'bg-black/20 p-4 rounded-lg' : 'border-t pt-6 mt-6'} space-y-4 relative ${variant === 'page' ? 'md:w-1/2 md:mx-auto' : 'w-full'}`;
 
@@ -302,14 +302,17 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
     ) : null;
 
     return (
-        <>
         <div className={containerClasses}>
             <div className={contentClasses}>
                 <h2 className={`text-3xl font-bold text-center mb-2 ${variant === 'hero' ? 'text-white' : 'text-gray-800'}`}>Suivi de votre commande</h2>
                 <p className={`text-center font-semibold mb-8 ${variant === 'hero' ? 'text-gray-300' : 'text-gray-500'}`}>Commande #{order.id.slice(-6)}</p>
 
                 <div className="mb-8">
-                    <div className={`flex items-start sm:items-center justify-between gap-3 sm:gap-4 px-2 ${steps.length > 3 ? 'flex-wrap sm:flex-nowrap' : ''}`}>
+                    <div
+                        className={`flex items-start sm:items-center justify-between gap-3 sm:gap-4 px-2 ${
+                            steps.length > 3 ? 'flex-wrap sm:flex-nowrap' : ''
+                        }`}
+                    >
                         {steps.map((step, index) => {
                             const isActive = index === currentStep;
                             const isFinalStep = index === steps.length - 1;
@@ -318,26 +321,36 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                             return (
                                 <React.Fragment key={step.name}>
                                     <div className="flex flex-col items-center text-center">
-                                        <div className={`flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full border-4 transition-all duration-500 ${
-                                            isCompleted ? 'bg-green-500 border-green-300' :
-                                            isActive ? 'bg-blue-600 border-blue-400 animate-pulse' :
-                                            'bg-gray-400 border-gray-300'
-                                        }`}>
+                                        <div
+                                            className={`flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full border-4 transition-all duration-500 ${
+                                                isCompleted
+                                                    ? 'bg-green-500 border-green-300'
+                                                    : isActive
+                                                        ? 'bg-blue-600 border-blue-400 animate-pulse'
+                                                        : 'bg-gray-400 border-gray-300'
+                                            }`}
+                                        >
                                             <step.icon className={`w-6 h-6 sm:w-8 sm:h-8 ${variant === 'hero' ? 'text-white' : 'text-white'}`} />
                                         </div>
-                                    <p className={`mt-2 text-xs sm:text-sm font-semibold ${
-                                        isCompleted || isActive ? `${variant === 'hero' ? 'text-white' : 'text-gray-800'}` : `${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'}`
-                                    }`}>{step.name}</p>
-                                    <p
-                                        className={`mt-1 text-[11px] sm:text-xs leading-snug ${
-                                            isCompleted || isActive
-                                                ? `${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`
-                                                : `${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'}`
-                                        }`}
-                                    >
-                                        {step.description}
-                                    </p>
-                                </div>
+                                        <p
+                                            className={`mt-2 text-xs sm:text-sm font-semibold ${
+                                                isCompleted || isActive
+                                                    ? `${variant === 'hero' ? 'text-white' : 'text-gray-800'}`
+                                                    : `${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'}`
+                                            }`}
+                                        >
+                                            {step.name}
+                                        </p>
+                                        <p
+                                            className={`mt-1 text-[11px] sm:text-xs leading-snug ${
+                                                isCompleted || isActive
+                                                    ? `${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`
+                                                    : `${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'}`
+                                            }`}
+                                        >
+                                            {step.description}
+                                        </p>
+                                    </div>
                                 {index < steps.length - 1 && (
                                     <div className="flex-1 flex items-center mx-2 sm:mx-4" aria-hidden>
                                         <div
@@ -361,6 +374,15 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                             </React.Fragment>
                         );
                     })}
+                    </div>
+                </div>
+                <div
+                    className={`flex items-center justify-between text-xs sm:text-sm font-semibold px-2 ${
+                        variant === 'hero' ? 'text-gray-200' : 'text-gray-600'
+                    }`}
+                >
+                    <span>{currentStep < 0 ? 'En attente de traitement' : `Étape actuelle : ${steps[currentStep]?.name}`}</span>
+                    <span>{currentStep >= steps.length - 1 ? 'Commande finalisée' : `Prochaine étape : ${nextStepLabel}`}</span>
                 </div>
                 <div className={`flex items-center justify-between text-xs sm:text-sm font-semibold px-2 ${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`}>
                     <span>{currentStep < 0 ? 'En attente de traitement' : `Étape actuelle : ${steps[currentStep]?.name}`}</span>
@@ -528,37 +550,6 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                             transform: translateY(0) scale(0.99);
                             filter: brightness(0.92);
                             opacity: 0.55;
-                        }
-                    }
-
-                    .promo-banner {
-                        position: relative;
-                        isolation: isolate;
-                        animation: promo-banner-blink 2.8s ease-in-out infinite;
-                    }
-
-                    .promo-banner::before {
-                        content: '';
-                        position: absolute;
-                        inset: 0;
-                        background: linear-gradient(120deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
-                        opacity: 0.45;
-                        pointer-events: none;
-                    }
-
-                    .promo-banner > * {
-                        position: relative;
-                        z-index: 1;
-                    }
-
-                    @keyframes promo-banner-blink {
-                        0%, 100% {
-                            transform: translateY(0) scale(1);
-                            filter: brightness(1);
-                        }
-                        50% {
-                            transform: translateY(-2px) scale(1.01);
-                            filter: brightness(1.12);
                         }
                     }
 
@@ -775,8 +766,6 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                         </div>
                     )}
 
-
-                    
                     <div className={`flex justify-between font-bold text-lg border-t pt-2 ${variant === 'hero' ? 'text-white border-gray-500' : 'text-gray-800'}`}>
                         <span>Total</span>
                         <span>{formatCurrencyCOP(order.total)}</span>
@@ -836,14 +825,18 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                     </div>
                 </div>
             </div>
+            <Modal
+                isOpen={isReceiptModalOpen}
+                onClose={() => setReceiptModalOpen(false)}
+                title="Justificatif de Paiement"
+            >
+                {order.receipt_url ? (
+                    <img src={order.receipt_url} alt="Justificatif" className="w-full h-auto rounded-md" />
+                ) : (
+                    <p>Aucun justificatif fourni.</p>
+                )}
+            </Modal>
         </div>
-        <Modal isOpen={isReceiptModalOpen} onClose={() => setReceiptModalOpen(false)} title="Justificatif de Paiement">
-            {order.receipt_url ? 
-                <img src={order.receipt_url} alt="Justificatif" className="w-full h-auto rounded-md" /> :
-                <p>Aucun justificatif fourni.</p>
-            }
-        </Modal>
-        </>
     );
 };
 
