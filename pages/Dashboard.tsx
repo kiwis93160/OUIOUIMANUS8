@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import {
     DollarSign,
@@ -100,27 +100,38 @@ const Dashboard: React.FC = () => {
     const [isRoleManagerOpen, setRoleManagerOpen] = useState(false);
     const [period, setPeriod] = useState<DashboardPeriod>('week');
 
-    useEffect(() => {
-        const fetchAllStats = async () => {
-            const { start, end } = resolvePeriodBounds(period);
-            const startIso = start.toISOString();
-            const endIso = end.toISOString();
-            setLoading(true);
-            try {
-                const [statsData, productSalesData] = await Promise.all([
-                    api.getDashboardStats(period),
-                    api.getSalesByProduct({ start: startIso, end: endIso })
-                ]);
-                setStats(statsData);
-                setSalesByProduct(productSalesData);
-            } catch (error) {
-                console.error("Failed to fetch dashboard stats", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchAllStats();
+    const fetchAllStats = useCallback(async () => {
+        const { start, end } = resolvePeriodBounds(period);
+        const startIso = start.toISOString();
+        const endIso = end.toISOString();
+        setLoading(true);
+        try {
+            const [statsData, productSalesData] = await Promise.all([
+                api.getDashboardStats(period),
+                api.getSalesByProduct({ start: startIso, end: endIso })
+            ]);
+            setStats(statsData);
+            setSalesByProduct(productSalesData);
+        } catch (error) {
+            console.error("Failed to fetch dashboard stats", error);
+        } finally {
+            setLoading(false);
+        }
     }, [period]);
+
+    useEffect(() => {
+        fetchAllStats();
+    }, [fetchAllStats]);
+
+    useEffect(() => {
+        const unsubscribe = api.notifications.subscribe('orders_updated', () => {
+            fetchAllStats();
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, [fetchAllStats]);
 
     if (loading) return <div className="text-gray-800">Cargando datos del panel...</div>;
     if (!stats) return <div className="text-red-500">No fue posible cargar los datos.</div>;

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../services/api';
 import { Category, Order, Product, Sale } from '../types';
 import {
@@ -77,32 +77,42 @@ const ResumeVentes: React.FC = () => {
         productId: '',
     });
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const [ordersData, salesData, productsData, categoriesData] = await Promise.all([
-                    api.getFinalizedOrders(),
-                    api.getSalesHistory(),
-                    api.getProducts(),
-                    api.getCategories(),
-                ]);
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const [ordersData, salesData, productsData, categoriesData] = await Promise.all([
+                api.getFinalizedOrders(),
+                api.getSalesHistory(),
+                api.getProducts(),
+                api.getCategories(),
+            ]);
 
-                setOrders([...ordersData].sort((a, b) => b.date_creation - a.date_creation));
-                setSales(salesData);
-                setProducts(productsData);
-                setCategories(categoriesData);
-                setError(null);
-            } catch (err) {
-                console.error('Failed to fetch sales summary', err);
-                setError('Impossible de charger les données de ventes. Veuillez réessayer.');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
+            setOrders([...ordersData].sort((a, b) => b.date_creation - a.date_creation));
+            setSales(salesData);
+            setProducts(productsData);
+            setCategories(categoriesData);
+            setError(null);
+        } catch (err) {
+            console.error('Failed to fetch sales summary', err);
+            setError('Impossible de charger les données de ventes. Veuillez réessayer.');
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    useEffect(() => {
+        const unsubscribe = api.notifications.subscribe('orders_updated', () => {
+            fetchData();
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, [fetchData]);
 
     const orderMap = useMemo(() => new Map(orders.map(order => [order.id, order])), [orders]);
 
