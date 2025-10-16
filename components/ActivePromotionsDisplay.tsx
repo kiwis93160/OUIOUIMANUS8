@@ -70,7 +70,7 @@ const ActivePromotionsDisplay: React.FC = () => {
       <div className="space-y-2">
         {visiblePromotions.map((promo) => {
           const bgColor = promo.visuals?.badge_bg_color || '#4CAF50';
-          const bannerImage = promo.visuals?.banner_image;
+          const bannerImage = promo.visuals?.banner_image || promo.visuals?.banner_url;
           const bannerText = promo.visuals?.banner_text;
           
           // Si une bannière d'image est disponible, l'afficher en grand
