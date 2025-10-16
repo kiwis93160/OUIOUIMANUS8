@@ -95,7 +95,7 @@ const PromoCodeInput: React.FC<PromoCodeInputProps> = ({
         </div>
         <button
           type="submit"
-          className="bg-orange-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-gradient-to-r from-[#FF7A18] via-[#FF3D00] to-[#C81D11] text-white py-2 px-5 rounded-lg font-semibold shadow-lg shadow-[#FF3D00]/35 transition hover:from-[#FF7A18]/90 hover:via-[#FF3D00]/90 hover:to-[#C81D11]/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5B1A] focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={disabled || loading || !code.trim()}
         >
           {loading ? <Loader2 size={16} className="animate-spin" /> : 'Appliquer'}
