@@ -21,7 +21,11 @@ const useActiveBannerPromotions = () => {
         // Filtrer les promotions qui ont des bannières définies
         const bannerPromotions = allActivePromotions.filter(promotion => {
           // Vérifier si la promotion a des éléments visuels de bannière définis
-          return promotion.visuals?.banner_text || promotion.visuals?.banner_image;
+          return (
+            promotion.visuals?.banner_text ||
+            promotion.visuals?.banner_image ||
+            promotion.visuals?.banner_url
+          );
         });
         
         // Trier par priorité (du plus élevé au plus bas)

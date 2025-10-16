@@ -21,7 +21,7 @@ const PromotionBanner: React.FC<PromotionBannerProps> = ({
   // Si la promotion n'a pas d'éléments visuels définis, utiliser des valeurs par défaut
   const bannerText = visuals?.banner_text || promotion.name;
   const bannerCta = visuals?.banner_cta || 'En profiter';
-  const bannerImage = visuals?.banner_image;
+  const bannerImage = visuals?.banner_image || visuals?.banner_url;
   
   // Déterminer le texte du badge en fonction du type de promotion
   let badgeText = visuals?.badge_text || '';

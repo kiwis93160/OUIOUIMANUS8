@@ -155,7 +155,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
       ? "bg-white/95 p-6 rounded-xl shadow-2xl max-w-2xl mx-auto"
       : "max-w-4xl mx-auto";
 
-    const detailContainerClasses = `${variant === 'hero' ? 'bg-black/20 p-4 rounded-lg' : 'border-t pt-6 mt-6'} space-y-4 relative ${variant === 'page' ? 'md:w-1/2 md:mx-auto' : 'w-full'}`;
+    const detailContainerClasses = `${variant === 'hero' ? 'bg-black/20 p-4 rounded-lg' : 'border-t pt-6 mt-6'} space-y-4 relative ${variant === 'page' ? 'w-full md:max-w-[50%] md:mx-auto' : 'w-full'}`;
 
     if (loading) {
         return <div className={containerClasses}>Chargement du suivi de commande...</div>;
@@ -228,6 +228,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                                 variant === 'hero' ? 'tracker-gauge-hero' : 'tracker-gauge-default'
                                             }`}
                                         >
+                                            <div className="tracker-gauge-base" />
                                             <div
                                                 className={`tracker-gauge-fill-base ${
                                                     isCompleted
@@ -251,14 +252,24 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                         height: 8px;
                         border-radius: 9999px;
                         overflow: hidden;
+                        width: 100%;
+                        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
                     }
 
-                    .tracker-gauge-default {
-                        background: rgba(209, 213, 219, 0.6);
+                    .tracker-gauge-base {
+                        position: absolute;
+                        inset: 0;
+                        z-index: 0;
+                        opacity: 0.9;
+                        transition: opacity 0.3s ease;
                     }
 
-                    .tracker-gauge-hero {
-                        background: rgba(255, 255, 255, 0.25);
+                    .tracker-gauge-default .tracker-gauge-base {
+                        background: linear-gradient(90deg, rgba(209, 213, 219, 0.7), rgba(229, 231, 235, 0.7));
+                    }
+
+                    .tracker-gauge-hero .tracker-gauge-base {
+                        background: linear-gradient(90deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.55));
                     }
 
                     .tracker-gauge-fill-base {
@@ -267,10 +278,11 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                         transform-origin: left;
                         transform: scaleX(0);
                         transition: transform 0.8s ease, background-color 0.3s ease;
+                        z-index: 1;
                     }
 
                     .tracker-gauge-idle {
-                        background: transparent;
+                        background: linear-gradient(90deg, rgba(156, 163, 175, 0.1), rgba(156, 163, 175, 0.25));
                     }
 
                     .tracker-gauge-active {
@@ -287,6 +299,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                         position: absolute;
                         inset: 0;
                         pointer-events: none;
+                        z-index: 2;
                     }
 
                     .tracker-gauge-shine::before {
