@@ -254,7 +254,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                             className={`promo-banner flex w-full items-center gap-4 overflow-hidden rounded-2xl border bg-gradient-to-r p-3 sm:p-4 text-white shadow-lg ${scheme.gradient} ${scheme.border} ${scheme.glow}`}
                             aria-label={`Promotion ${promotion.name}`}
                         >
-                            <div className="relative h-16 w-28 flex-shrink-0 overflow-hidden rounded-xl bg-white/15">
+                            <div className="relative h-8 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-white/15">
                                 {bannerImage ? (
                                     <>
                                         <img
@@ -376,18 +376,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                     })}
                     </div>
                 </div>
-                <div
-                    className={`flex items-center justify-between text-xs sm:text-sm font-semibold px-2 ${
-                        variant === 'hero' ? 'text-gray-200' : 'text-gray-600'
-                    }`}
-                >
-                    <span>{currentStep < 0 ? 'En attente de traitement' : `Étape actuelle : ${steps[currentStep]?.name}`}</span>
-                    <span>{currentStep >= steps.length - 1 ? 'Commande finalisée' : `Prochaine étape : ${nextStepLabel}`}</span>
-                </div>
-                <div className={`flex items-center justify-between text-xs sm:text-sm font-semibold px-2 ${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`}>
-                    <span>{currentStep < 0 ? 'En attente de traitement' : `Étape actuelle : ${steps[currentStep]?.name}`}</span>
-                    <span>{currentStep >= steps.length - 1 ? 'Commande finalisée' : `Prochaine étape : ${nextStepLabel}`}</span>
-                </div>
+                
                 <style>{`
                     .tracker-progress-container {
                         position: relative;
