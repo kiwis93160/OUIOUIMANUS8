@@ -226,11 +226,7 @@ const TableCard: React.FC<{
       </div>
 
       <div className="status-card__footer">
-        {table.statut !== 'libre' ? (
-          <p className="status-card__meta">Couverts : {table.couverts}</p>
-        ) : (
-          <p className="status-card__meta">Capacité : {table.capacite}</p>
-        )}
+        <p className="status-card__meta">Capacité : {table.capacite}</p>
 
         {(table.estado_cocina === 'listo' || table.statut === 'para_entregar') && (
           <button type="button" onClick={handleServeClick} className="ui-btn ui-btn-accent status-card__cta">
