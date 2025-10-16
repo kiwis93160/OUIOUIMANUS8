@@ -677,9 +677,9 @@ const Commande: React.FC = () => {
 
     return (
         <>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[calc(100vh-12rem)] lg:h-[calc(100vh-10rem)]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)] lg:items-start lg:min-h-[calc(100vh-10rem)]">
             {/* Menu Section */}
-            <div className="lg:col-span-2 ui-card flex flex-col">
+            <div className="ui-card flex h-full flex-col overflow-hidden">
                 <div className="p-4">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <button onClick={handleExitAttempt} className="ui-btn-dark" title="Retour au plan de salle">
@@ -703,22 +703,27 @@ const Commande: React.FC = () => {
             </div>
 
             {/* Order Summary Section */}
-            <OrderSummary
-                categorizedItems={categorizedItems}
-                order={order}
-                total={order.total}
-                onQuantityChange={handleQuantityChange}
-                onCommentChange={handleCommentChange}
-                onPersistComment={persistCommentChange}
-                onStartEditingComment={startEditingComment}
-                onSendToKitchen={handleSendToKitchen}
-                onServeOrder={handleServeOrder}
-                onOpenPayment={handleOpenPaymentModal}
-                isSending={isSendingToKitchen}
-                hasPending={hasPendingItems}
-                orderStatus={order.estado_cocina}
-                editingCommentId={editingCommentId}
-            />
+            <div className="flex flex-col lg:h-full">
+                <div className="lg:sticky lg:top-24">
+                    <OrderSummary
+                        className="mt-6 lg:mt-0 lg:h-full"
+                        categorizedItems={categorizedItems}
+                        order={order}
+                        total={order.total}
+                        onQuantityChange={handleQuantityChange}
+                        onCommentChange={handleCommentChange}
+                        onPersistComment={persistCommentChange}
+                        onStartEditingComment={startEditingComment}
+                        onSendToKitchen={handleSendToKitchen}
+                        onServeOrder={handleServeOrder}
+                        onOpenPayment={handleOpenPaymentModal}
+                        isSending={isSendingToKitchen}
+                        hasPending={hasPendingItems}
+                        orderStatus={order.estado_cocina}
+                        editingCommentId={editingCommentId}
+                    />
+                </div>
+            </div>
         </div>
         <ItemCustomizationModal
             isOpen={selectedProductForCustomization !== null}

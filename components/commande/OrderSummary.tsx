@@ -23,6 +23,7 @@ export interface OrderSummaryProps {
     hasPending: boolean;
     orderStatus: Order["estado_cocina"];
     editingCommentId: string | null;
+    className?: string;
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
@@ -40,21 +41,22 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
     hasPending,
     orderStatus,
     editingCommentId,
+    className,
 }) => {
     const totalItemsCount = categorizedItems.pending.length + categorizedItems.sent.length;
 
     return (
-        <div className="ui-card flex flex-col">
+        <div className={`ui-card flex flex-col ${className ?? ''}`}>
             <div className="p-4 border-b">
                 <h2 className="text-2xl font-semibold text-brand-secondary">Commande</h2>
             </div>
-            <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+            <div className="flex-1 space-y-3 overflow-y-auto p-4">
                 {totalItemsCount === 0 ? (
                     <p className="text-gray-500">La commande est vide.</p>
                 ) : (
                     <>
                         <div className="space-y-3">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
                                 <h3 className="text-lg font-semibold text-brand-secondary">Articles à envoyer</h3>
                                 <span className="text-sm text-gray-500">{categorizedItems.pending.length}</span>
                             </div>
@@ -63,8 +65,8 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                             ) : (
                                 categorizedItems.pending.map(({ item, index }) => (
                                     <div key={item.id} className="p-3 rounded-lg bg-yellow-100">
-                                        <div className="flex justify-between items-center gap-3">
-                                            <div className="flex items-center gap-3 flex-1">
+                                        <div className="flex flex-wrap items-center justify-between gap-3">
+                                            <div className="flex flex-1 items-center gap-3">
                                                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-yellow-500 text-base font-bold text-white shadow-md">
                                                     {item.quantite}
                                                 </span>
@@ -76,16 +78,16 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                                                 {formatCurrencyCOP(item.quantite * item.prix_unitaire)}
                                             </p>
                                         </div>
-                                        <div className="flex justify-between items-center mt-2">
+                                        <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
                                             <p className="text-sm text-gray-700">
                                                 {formatCurrencyCOP(item.prix_unitaire)} /u
                                             </p>
-                                            <div className="flex items-center space-x-2 text-gray-800">
-                                                <button onClick={() => onQuantityChange(index, -1)} className="p-1">
+                                            <div className="flex items-center gap-2 text-gray-800">
+                                                <button onClick={() => onQuantityChange(index, -1)} className="rounded-full p-1 transition hover:bg-yellow-200">
                                                     <MinusCircle size={20} />
                                                 </button>
                                                 <span className="font-bold w-6 text-center">{item.quantite}</span>
-                                                <button onClick={() => onQuantityChange(index, 1)} className="p-1">
+                                                <button onClick={() => onQuantityChange(index, 1)} className="rounded-full p-1 transition hover:bg-yellow-200">
                                                     <PlusCircle size={20} />
                                                 </button>
                                             </div>
@@ -114,15 +116,15 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                         </div>
 
                         {categorizedItems.sent.length > 0 && (
-                            <div className="space-y-3 pt-6 border-t border-gray-700">
-                                <div className="flex items-center justify-between">
+                            <div className="space-y-3 border-t border-gray-700 pt-6">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
                                     <h3 className="text-lg font-semibold text-brand-secondary">Envoyés en cuisine</h3>
                                     <span className="text-sm text-gray-500">{categorizedItems.sent.length}</span>
                                 </div>
                                 {categorizedItems.sent.map(({ item }) => (
                                     <div key={item.id} className="p-3 rounded-lg bg-green-100">
-                                        <div className="flex justify-between items-center gap-3">
-                                            <div className="flex items-center gap-3 flex-1">
+                                        <div className="flex flex-wrap items-center justify-between gap-3">
+                                            <div className="flex flex-1 items-center gap-3">
                                                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-600 text-base font-bold text-white shadow-md">
                                                     {item.quantite}
                                                 </span>
@@ -147,31 +149,31 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                     </>
                 )}
             </div>
-            <div className="p-4 border-t space-y-4">
+            <div className="space-y-4 border-t p-4">
                 <div className="space-y-2">
-                    <div className="flex justify-between text-gray-700">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-gray-700">
                         <span>Sous-total</span>
                         <span>{formatCurrencyCOP(order.subtotal ?? 0)}</span>
                     </div>
                     {order.total_discount && order.total_discount > 0 && (
-                        <div className="flex justify-between text-green-600">
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-green-600">
                             <span>Réduction totale</span>
                             <span>- {formatCurrencyCOP(order.total_discount)}</span>
                         </div>
                     )}
                     {order.shipping_cost !== undefined && order.shipping_cost > 0 && (
-                        <div className="flex justify-between text-gray-700">
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-gray-700">
                             <span>Frais de livraison</span>
                             <span>{formatCurrencyCOP(order.shipping_cost)}</span>
                         </div>
                     )}
                     {order.shipping_cost === 0 && order.applied_promotions?.some(p => p.type === 'FREE_SHIPPING') && (
-                        <div className="flex justify-between text-green-600">
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-green-600">
                             <span>Livraison gratuite</span>
                             <span>{formatCurrencyCOP(0)}</span>
                         </div>
                     )}
-                    <div className="flex justify-between text-2xl font-semibold text-brand-secondary border-t pt-2 mt-2">
+                    <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t pt-2 text-2xl font-semibold text-brand-secondary">
                         <span>Total</span>
                         <span>{formatCurrencyCOP(total)}</span>
                     </div>
@@ -184,11 +186,11 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                     </button>
                 )}
 
-                <div className="flex space-x-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <button
                         onClick={onSendToKitchen}
                         disabled={isSending || !hasPending}
-                        className="flex-1 ui-btn-accent justify-center py-3 disabled:opacity-60"
+                        className="ui-btn-accent flex-1 justify-center py-3 disabled:opacity-60"
                     >
                         <Send size={20} />
                         <span>{isSending ? 'Synchronisation…' : 'Envoyer en Cuisine'}</span>
@@ -196,10 +198,10 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                     <button
                         onClick={onOpenPayment}
                         disabled={orderStatus !== 'servido'}
-                        className="flex-1 ui-btn-success justify-center py-3 disabled:opacity-60"
+                        className="ui-btn-success flex-1 justify-center py-3 disabled:opacity-60"
                     >
                         <DollarSign size={20} />
-                        <span>Finaliser</span>
+                        <span>Payer</span>
                     </button>
                 </div>
             </div>
