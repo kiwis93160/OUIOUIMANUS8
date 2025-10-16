@@ -121,9 +121,16 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
                                                     : undefined;
 
                                                 return (
-                                                    <li key={`${promotion.promotion_id}-${promotion.name}`} className="flex items-center justify-between">
-                                                        <span className="font-medium">{promotion.name}{promoCode ? ` (Code: ${promoCode})` : ''}</span>
-                                                        <span className="font-semibold text-emerald-700">-{formatCurrencyCOP(promotion.discount_amount || 0)}</span>
+                                                    <li
+                                                        key={`${promotion.promotion_id}-${promotion.name}`}
+                                                        className="rounded-md border border-emerald-200 bg-white/70 px-3 py-2 text-emerald-900 shadow-sm"
+                                                    >
+                                                        <p className="font-medium leading-tight">
+                                                            {promotion.name}{promoCode ? ` (Code: ${promoCode})` : ''}
+                                                        </p>
+                                                        <p className="mt-1 text-sm font-semibold text-emerald-700">
+                                                            -{formatCurrencyCOP(promotion.discount_amount || 0)}
+                                                        </p>
                                                     </li>
                                                 );
                                             })}

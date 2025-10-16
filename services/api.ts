@@ -1902,7 +1902,11 @@ export const api = {
       }
     }
 
-    const couvertsForOrder = options?.couverts ?? tableRow.couverts ?? tableRow.capacite;
+    const couvertsCandidate = options?.couverts ?? tableRow.couverts ?? null;
+    if (!Number.isInteger(couvertsCandidate) || couvertsCandidate <= 0) {
+      throw new Error('Le nombre de couverts sélectionné est requis pour ouvrir la table.');
+    }
+    const couvertsForOrder = couvertsCandidate;
     const nowIso = new Date().toISOString();
     const insertResponse = await supabase
       .from('orders')

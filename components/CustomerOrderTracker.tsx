@@ -42,10 +42,10 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
     const [isReceiptModalOpen, setReceiptModalOpen] = useState(false);
 
     const steps = [
-        { name: 'Enviado', icon: FileText },
-        { name: 'Validado', icon: CheckCircle },
-        { name: 'En preparacion', icon: ChefHat },
-        { name: 'Listo', icon: PackageCheck }
+        { name: 'Enviado', icon: FileText, description: 'Commande transmise et en attente de validation.' },
+        { name: 'Validado', icon: CheckCircle, description: 'La commande est validée par l’équipe.' },
+        { name: 'En preparacion', icon: ChefHat, description: 'La cuisine prépare activement votre commande.' },
+        { name: 'Listo', icon: PackageCheck, description: 'La commande est prête pour la remise ou la livraison.' }
     ];
 
     const getCurrentStepIndex = useCallback((order: Order | null): number => {
@@ -198,7 +198,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                         
                         return (
                             <React.Fragment key={step.name}>
-                                <div className="flex flex-col items-center">
+                                <div className="flex flex-col items-center text-center">
                                     <div className={`flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full border-4 transition-all duration-500 ${
                                         isCompleted ? 'bg-green-500 border-green-300' :
                                         isActive ? 'bg-blue-600 border-blue-400 animate-pulse' :
@@ -206,25 +206,39 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                     }`}>
                                         <step.icon className={`w-6 h-6 sm:w-8 sm:h-8 ${variant === 'hero' ? 'text-white' : 'text-white'}`} />
                                     </div>
-                                    <p className={`mt-2 text-xs sm:text-sm font-semibold text-center ${
+                                    <p className={`mt-2 text-xs sm:text-sm font-semibold ${
                                         isCompleted || isActive ? `${variant === 'hero' ? 'text-white' : 'text-gray-800'}` : `${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'}`
                                     }`}>{step.name}</p>
+                                    <p
+                                        className={`mt-1 text-[11px] sm:text-xs leading-snug ${
+                                            isCompleted || isActive
+                                                ? `${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`
+                                                : `${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'}`
+                                        }`}
+                                    >
+                                        {step.description}
+                                    </p>
                                 </div>
                                 {index < steps.length - 1 && (
-                                    <div className={`flex-1 h-1.5 ${variant === 'hero' ? 'bg-gray-600' : 'bg-gray-300'} rounded-full mx-2 sm:mx-4 relative overflow-hidden`}>
+                                    <div className="flex-1 mx-2 sm:mx-4">
                                         <div
-                                            className="absolute top-0 left-0 h-full bg-green-500 transition-all duration-1000"
-                                            style={{ width: isCompleted ? '100%' : '0%' }}
-                                        ></div>
-                                        {isActive && (
+                                            className={`relative h-1.5 rounded-full overflow-hidden ${variant === 'hero' ? 'bg-white/20' : 'bg-gray-200'}`}
+                                            aria-hidden
+                                        >
                                             <div
-                                                className="absolute top-0 left-0 h-full bg-blue-500"
-                                                style={{ 
-                                                    width: '50%',
-                                                    animation: 'progress-bar-pulse 2s ease-in-out infinite'
-                                                }}
-                                            ></div>
-                                        )}
+                                                className={`absolute inset-y-0 left-0 transition-all duration-700 ${
+                                                    isCompleted ? 'bg-green-500' : isActive ? 'bg-blue-500/40' : 'bg-transparent'
+                                                }`}
+                                                style={{ width: isCompleted ? '100%' : isActive ? '100%' : '0%' }}
+                                            />
+                                            {(isActive || isCompleted) && (
+                                                <div
+                                                    className={`absolute inset-0 ${
+                                                        isCompleted ? 'tracker-line-complete' : 'tracker-line-active'
+                                                    }`}
+                                                />
+                                            )}
+                                        </div>
                                     </div>
                                 )}
                             </React.Fragment>
@@ -232,12 +246,23 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                     })}
                 </div>
                 <style>{`
-                    @keyframes progress-bar-pulse {
-                        0% { transform: translateX(-100%); opacity: 0.8; }
-                        50% { opacity: 1; }
-                        100% { transform: translateX(200%); opacity: 0.8; }
+                    @keyframes tracker-line-flow {
+                        0% { transform: translateX(-100%); }
+                        50% { transform: translateX(-20%); }
+                        100% { transform: translateX(100%); }
                     }
-                    
+
+                    .tracker-line-active {
+                        background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.65), transparent);
+                        opacity: 0.85;
+                        animation: tracker-line-flow 1.8s linear infinite;
+                    }
+
+                    .tracker-line-complete {
+                        background: linear-gradient(90deg, rgba(34, 197, 94, 0.8), rgba(34, 197, 94, 0.4));
+                        opacity: 0.75;
+                    }
+
                     .stamp-container {
                         position: relative;
                         width: 180px;
