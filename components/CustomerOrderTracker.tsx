@@ -40,6 +40,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
     const [isReceiptModalOpen, setReceiptModalOpen] = useState(false);
+    const [progressAnimationKey, setProgressAnimationKey] = useState(0);
 
     const steps = [
         { name: 'Enviado', icon: FileText, description: 'Commande transmise et en attente de validation.' },
@@ -366,6 +367,63 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                     <span>{currentStep >= steps.length - 1 ? 'Commande finalisée' : `Prochaine étape : ${nextStepLabel}`}</span>
                 </div>
                 <style>{`
+                    .tracker-progress-container {
+                        position: relative;
+                        height: 12px;
+                        border-radius: 9999px;
+                        overflow: hidden;
+                        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.12);
+                    }
+
+                    .tracker-progress-default {
+                        background: linear-gradient(90deg, rgba(229, 231, 235, 0.55), rgba(209, 213, 219, 0.35));
+                    }
+
+                    .tracker-progress-hero {
+                        background: linear-gradient(90deg, rgba(255, 255, 255, 0.25), rgba(148, 163, 184, 0.15));
+                        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.25);
+                    }
+
+                    .tracker-progress-fill {
+                        position: absolute;
+                        inset: 0;
+                        width: 0;
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-end;
+                        background: linear-gradient(90deg, rgba(249, 168, 38, 0.65), rgba(239, 68, 68, 0.95));
+                        border-radius: inherit;
+                        animation: tracker-progress-advance 1.2s ease forwards;
+                    }
+
+                    .tracker-progress-fill::after {
+                        content: '';
+                        position: absolute;
+                        inset: 0;
+                        background: linear-gradient(90deg, rgba(255, 255, 255, 0.15), transparent 55%);
+                        mix-blend-mode: screen;
+                    }
+
+                    .tracker-progress-glow {
+                        position: absolute;
+                        right: -14px;
+                        top: 50%;
+                        width: 28px;
+                        height: 28px;
+                        transform: translateY(-50%);
+                        background: radial-gradient(circle at center, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+                        pointer-events: none;
+                    }
+
+                    @keyframes tracker-progress-advance {
+                        0% {
+                            width: 0;
+                        }
+                        100% {
+                            width: var(--tracker-progress-target);
+                        }
+                    }
+
                     .tracker-gauge-wrapper {
                         position: relative;
                         height: 10px;
@@ -470,6 +528,37 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                             transform: translateY(0) scale(0.99);
                             filter: brightness(0.92);
                             opacity: 0.55;
+                        }
+                    }
+
+                    .promo-banner {
+                        position: relative;
+                        isolation: isolate;
+                        animation: promo-banner-blink 2.8s ease-in-out infinite;
+                    }
+
+                    .promo-banner::before {
+                        content: '';
+                        position: absolute;
+                        inset: 0;
+                        background: linear-gradient(120deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
+                        opacity: 0.45;
+                        pointer-events: none;
+                    }
+
+                    .promo-banner > * {
+                        position: relative;
+                        z-index: 1;
+                    }
+
+                    @keyframes promo-banner-blink {
+                        0%, 100% {
+                            transform: translateY(0) scale(1);
+                            filter: brightness(1);
+                        }
+                        50% {
+                            transform: translateY(-2px) scale(1.01);
+                            filter: brightness(1.12);
                         }
                     }
 
