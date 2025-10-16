@@ -664,12 +664,25 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
                     {orderTotals.appliedPromotions && orderTotals.appliedPromotions.length > 0 && (
                         <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                             <p className="text-sm font-bold text-green-800 mb-2">🎉 Promociones aplicadas:</p>
-                            {orderTotals.appliedPromotions.map((promo, index) => (
-                                <div key={index} className="flex justify-between items-center mb-1 text-sm">
-                                    <span className="text-green-700">{promo.name}</span>
-                                    <span className="font-semibold text-green-700">- {formatCurrencyCOP(promo.discount_amount)}</span>
-                                </div>
-                            ))}
+                            {orderTotals.appliedPromotions.map((promo, index) => {
+                                const formattedDiscount = `- ${formatCurrencyCOP(promo.discount_amount)}`;
+
+                                if (orderType === 'a_emporter') {
+                                    return (
+                                        <div key={index} className="mb-2 text-sm text-green-700">
+                                            <p className="font-semibold">{promo.name}</p>
+                                            <p className="font-semibold">{formattedDiscount}</p>
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                    <div key={index} className="flex justify-between items-center mb-1 text-sm">
+                                        <span className="text-green-700">{promo.name}</span>
+                                        <span className="font-semibold text-green-700">{formattedDiscount}</span>
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
 
