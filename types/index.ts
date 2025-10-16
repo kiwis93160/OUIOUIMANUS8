@@ -1,3 +1,5 @@
+import type { PromotionVisuals } from './promotions';
+
 export interface Role {
   id: string;
   name: string;
@@ -337,6 +339,7 @@ export interface Order {
     discount_amount: number;
     type?: string;
     config?: Record<string, unknown>;
+    visuals?: PromotionVisuals | null;
   }[];
   shipping_cost?: number; // Coût de la livraison, utilisé pour les promotions de livraison gratuite
 }

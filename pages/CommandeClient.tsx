@@ -158,7 +158,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, selectedPr
                     
                     <button
                         onClick={handleAddToCart}
-                        className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 px-4 rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg transform hover:scale-105"
+                        className="w-full rounded-lg bg-brand-primary py-3 px-4 font-bold text-brand-secondary shadow-lg transition-transform duration-200 hover:scale-[1.02] hover:bg-brand-primary-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:ring-offset-2"
                     >
                         Agregar al carrito - {formatCurrencyCOP(selectedProduct.product.prix_vente * quantity)}
                     </button>
@@ -199,7 +199,13 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
     const [isFreeShipping, setIsFreeShipping] = useState<boolean>(false);
     const [freeShippingMinAmount, setFreeShippingMinAmount] = useState<number>(80000);
     const [orderType, setOrderType] = useState<'pedir_en_linea' | 'a_emporter'>('pedir_en_linea');
-    
+
+    useEffect(() => {
+        if (paymentMethod === 'efectivo') {
+            setPaymentMethod('transferencia');
+        }
+    }, [paymentMethod]);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -636,7 +642,7 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
                                 type="button"
                                 onClick={handleApplyPromoCode}
                                 disabled={!promoCode.trim() || appliedPromoCode === promoCode}
-                                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-md hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                className="rounded-md bg-brand-primary px-4 py-2 font-bold text-brand-secondary transition-colors hover:bg-brand-primary-dark disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Aplicar
                             </button>
@@ -785,16 +791,25 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
                                     />
                                     <span className="ml-3 font-medium">💰 Transferencia Bancaria</span>
                                 </label>
-                                <label className={`flex items-center p-3 border-2 rounded-lg cursor-pointer transition ${paymentMethod === 'efectivo' ? 'border-brand-primary bg-brand-primary/5' : 'border-gray-300 hover:border-brand-primary/50'}`}>
+                                <label
+                                    className="flex items-center rounded-lg border-2 border-gray-200 bg-gray-100 p-3 opacity-70 cursor-not-allowed"
+                                    aria-disabled="true"
+                                >
                                     <input
                                         type="radio"
                                         name="paymentMethod"
                                         value="efectivo"
                                         checked={paymentMethod === 'efectivo'}
-                                        onChange={() => setPaymentMethod('efectivo')}
-                                        className="form-radio text-brand-primary" 
+                                        onChange={() => {}}
+                                        disabled
+                                        className="form-radio text-gray-400"
                                     />
-                                    <span className="ml-3 font-medium">💵 Efectivo</span>
+                                    <span className="ml-3 font-medium text-gray-500">
+                                        <span>💵 Efectivo</span>
+                                        <span className="block text-xs font-normal uppercase tracking-wide text-gray-500/80">
+                                            No disponible por el momento
+                                        </span>
+                                    </span>
                                 </label>
                             </div>
                         </div>
