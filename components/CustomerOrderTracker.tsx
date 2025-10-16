@@ -40,6 +40,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
     const [isReceiptModalOpen, setReceiptModalOpen] = useState(false);
+    const [progressAnimationKey, setProgressAnimationKey] = useState(0);
 
     const steps = [
         { name: 'Enviado', icon: FileText, description: 'Commande transmise et en attente de validation.' },
@@ -383,7 +384,68 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                     <span>{currentStep < 0 ? 'En attente de traitement' : `Étape actuelle : ${steps[currentStep]?.name}`}</span>
                     <span>{currentStep >= steps.length - 1 ? 'Commande finalisée' : `Prochaine étape : ${nextStepLabel}`}</span>
                 </div>
+                <div className={`flex items-center justify-between text-xs sm:text-sm font-semibold px-2 ${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`}>
+                    <span>{currentStep < 0 ? 'En attente de traitement' : `Étape actuelle : ${steps[currentStep]?.name}`}</span>
+                    <span>{currentStep >= steps.length - 1 ? 'Commande finalisée' : `Prochaine étape : ${nextStepLabel}`}</span>
+                </div>
                 <style>{`
+                    .tracker-progress-container {
+                        position: relative;
+                        height: 12px;
+                        border-radius: 9999px;
+                        overflow: hidden;
+                        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.12);
+                    }
+
+                    .tracker-progress-default {
+                        background: linear-gradient(90deg, rgba(229, 231, 235, 0.55), rgba(209, 213, 219, 0.35));
+                    }
+
+                    .tracker-progress-hero {
+                        background: linear-gradient(90deg, rgba(255, 255, 255, 0.25), rgba(148, 163, 184, 0.15));
+                        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.25);
+                    }
+
+                    .tracker-progress-fill {
+                        position: absolute;
+                        inset: 0;
+                        width: 0;
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-end;
+                        background: linear-gradient(90deg, rgba(249, 168, 38, 0.65), rgba(239, 68, 68, 0.95));
+                        border-radius: inherit;
+                        animation: tracker-progress-advance 1.2s ease forwards;
+                    }
+
+                    .tracker-progress-fill::after {
+                        content: '';
+                        position: absolute;
+                        inset: 0;
+                        background: linear-gradient(90deg, rgba(255, 255, 255, 0.15), transparent 55%);
+                        mix-blend-mode: screen;
+                    }
+
+                    .tracker-progress-glow {
+                        position: absolute;
+                        right: -14px;
+                        top: 50%;
+                        width: 28px;
+                        height: 28px;
+                        transform: translateY(-50%);
+                        background: radial-gradient(circle at center, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+                        pointer-events: none;
+                    }
+
+                    @keyframes tracker-progress-advance {
+                        0% {
+                            width: 0;
+                        }
+                        100% {
+                            width: var(--tracker-progress-target);
+                        }
+                    }
+
                     .tracker-gauge-wrapper {
                         position: relative;
                         height: 10px;
