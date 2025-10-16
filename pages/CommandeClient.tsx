@@ -11,7 +11,7 @@ import { ShoppingCart, Plus, Minus, History, ArrowLeft } from 'lucide-react';
 import { storeActiveCustomerOrder, ONE_DAY_IN_MS } from '../services/customerOrderStorage';
 import ProductCardWithPromotion from '../components/ProductCardWithPromotion';
 import ActivePromotionsDisplay from '../components/ActivePromotionsDisplay';
-import { fetchActivePromotions, applyPromotionsToOrder } from '../services/promotionsApi';
+import { fetchActivePromotions, applyPromotionsToOrder, fetchPromotionByCode } from '../services/promotionsApi';
 import useSiteContent from '../hooks/useSiteContent';
 import { createHeroBackgroundStyle } from '../utils/siteStyleHelpers';
 import OrderConfirmationModal from '../components/OrderConfirmationModal';
@@ -158,7 +158,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, selectedPr
                     
                     <button
                         onClick={handleAddToCart}
-                        className="w-full rounded-lg bg-brand-primary py-3 px-4 font-bold text-brand-secondary shadow-lg transition-transform duration-200 hover:scale-[1.02] hover:bg-brand-primary-dark focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:ring-offset-2"
+                        className="w-full rounded-lg bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 py-3 px-4 font-bold text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:from-orange-600 hover:via-orange-700 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-orange-400/70 focus:ring-offset-2"
                     >
                         Agregar al carrito - {formatCurrencyCOP(selectedProduct.product.prix_vente * quantity)}
                     </button>
@@ -196,6 +196,7 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
     const [appliedPromoCode, setAppliedPromoCode] = useState<string>('');
     const [promoCodeError, setPromoCodeError] = useState<string>('');
     const [promoCodeDiscount, setPromoCodeDiscount] = useState<number>(0);
+    const [validatingPromoCode, setValidatingPromoCode] = useState<boolean>(false);
     const [isFreeShipping, setIsFreeShipping] = useState<boolean>(false);
     const [freeShippingMinAmount, setFreeShippingMinAmount] = useState<number>(80000);
     const [orderType, setOrderType] = useState<'pedir_en_linea' | 'a_emporter'>('pedir_en_linea');
@@ -364,9 +365,33 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
     };
 
     const handleApplyPromoCode = async () => {
-        if (!promoCode.trim()) return;
+        const trimmedCode = promoCode.trim().toUpperCase();
+        if (!trimmedCode) return;
+
+        if (appliedPromoCode && appliedPromoCode === trimmedCode) {
+            setPromoCodeError('Este código ya está aplicado.');
+            return;
+        }
+
+        setPromoCode(trimmedCode);
         setPromoCodeError('');
-        setAppliedPromoCode(promoCode);
+        setValidatingPromoCode(true);
+
+        try {
+            const promotion = await fetchPromotionByCode(trimmedCode);
+
+            if (!promotion) {
+                setPromoCodeError('Código promocional inválido o expirado.');
+                return;
+            }
+
+            setAppliedPromoCode(trimmedCode);
+        } catch (error) {
+            console.error('Error validating promo code:', error);
+            setPromoCodeError('No se pudo validar el código. Intenta nuevamente.');
+        } finally {
+            setValidatingPromoCode(false);
+        }
     };
 
     const handleRemovePromoCode = () => {
@@ -641,10 +666,11 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
                             <button
                                 type="button"
                                 onClick={handleApplyPromoCode}
-                                disabled={!promoCode.trim() || appliedPromoCode === promoCode}
-                                className="rounded-md bg-brand-primary px-4 py-2 font-bold text-brand-secondary transition-colors hover:bg-brand-primary-dark disabled:cursor-not-allowed disabled:opacity-50"
+                                disabled={validatingPromoCode || !promoCode.trim() || appliedPromoCode === promoCode}
+                                aria-busy={validatingPromoCode}
+                                className="rounded-md bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 px-4 py-2 font-bold text-white shadow-sm transition-all duration-300 hover:from-orange-600 hover:via-orange-700 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                Aplicar
+                                {validatingPromoCode ? 'Validando…' : 'Confirmar código'}
                             </button>
                         </div>
                         {promoCodeError && (
