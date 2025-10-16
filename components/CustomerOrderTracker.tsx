@@ -40,6 +40,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
     const [isReceiptModalOpen, setReceiptModalOpen] = useState(false);
+    const [progressAnimationKey, setProgressAnimationKey] = useState(0);
 
     const steps = [
         { name: 'Enviado', icon: FileText, description: 'Commande transmise et en attente de validation.' },
@@ -47,6 +48,37 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
         { name: 'En preparacion', icon: ChefHat, description: 'La cuisine prépare activement votre commande.' },
         { name: 'Listo', icon: PackageCheck, description: 'La commande est prête pour la remise ou la livraison.' }
     ];
+
+    const promotionColorSchemes = useMemo(
+        () => [
+            {
+                gradient: 'from-brand-primary to-brand-primary-dark',
+                border: 'border-brand-primary/40',
+                glow: 'shadow-[0_10px_25px_rgba(249,168,38,0.35)]',
+            },
+            {
+                gradient: 'from-emerald-500 to-emerald-600',
+                border: 'border-emerald-200/70',
+                glow: 'shadow-[0_10px_25px_rgba(16,185,129,0.35)]',
+            },
+            {
+                gradient: 'from-sky-500 to-indigo-600',
+                border: 'border-sky-200/70',
+                glow: 'shadow-[0_10px_25px_rgba(56,189,248,0.35)]',
+            },
+            {
+                gradient: 'from-rose-500 to-red-600',
+                border: 'border-rose-200/70',
+                glow: 'shadow-[0_10px_25px_rgba(244,114,182,0.35)]',
+            },
+            {
+                gradient: 'from-amber-500 to-orange-600',
+                border: 'border-amber-200/70',
+                glow: 'shadow-[0_10px_25px_rgba(251,191,36,0.35)]',
+            },
+        ],
+        []
+    );
 
     const getCurrentStepIndex = useCallback((order: Order | null): number => {
         if (!order) return -1;
@@ -76,6 +108,29 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
     }, []);
 
     const currentStep = useMemo(() => getCurrentStepIndex(order), [order, getCurrentStepIndex]);
+
+    const progressTarget = useMemo(() => {
+        if (currentStep < 0) {
+            return 0;
+        }
+
+        const normalizedStep = Math.min(currentStep + 1, steps.length);
+        return steps.length === 0 ? 0 : (normalizedStep / steps.length) * 100;
+    }, [currentStep, steps.length]);
+
+    const nextStepLabel = useMemo(() => {
+        if (currentStep < 0) {
+            return steps[0]?.name ?? '';
+        }
+        if (currentStep >= steps.length - 1) {
+            return steps[steps.length - 1]?.name ?? '';
+        }
+        return steps[currentStep + 1]?.name ?? '';
+    }, [currentStep, steps]);
+
+    useEffect(() => {
+        setProgressAnimationKey(prev => prev + 1);
+    }, [progressTarget]);
 
     useEffect(() => {
         let isMounted = true;
@@ -192,6 +247,22 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                 <h2 className={`text-3xl font-bold text-center mb-2 ${variant === 'hero' ? 'text-white' : 'text-gray-800'}`}>Suivi de votre commande</h2>
                 <p className={`text-center font-semibold mb-8 ${variant === 'hero' ? 'text-gray-300' : 'text-gray-500'}`}>Commande #{order.id.slice(-6)}</p>
 
+                <div className="mb-10">
+                    <div className={`tracker-progress-container ${variant === 'hero' ? 'tracker-progress-hero' : 'tracker-progress-default'}`}>
+                        <div
+                            key={progressAnimationKey}
+                            className="tracker-progress-fill"
+                            style={{ ['--tracker-progress-target' as string]: `${progressTarget}%` }}
+                        >
+                            <span className="tracker-progress-glow" />
+                        </div>
+                    </div>
+                    <div className={`mt-3 flex items-center justify-between text-xs sm:text-sm font-semibold ${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`}>
+                        <span>{currentStep < 0 ? 'En attente de traitement' : `Étape actuelle : ${steps[currentStep]?.name}`}</span>
+                        <span>{currentStep >= steps.length - 1 ? 'Commande finalisée' : `Prochaine étape : ${nextStepLabel}`}</span>
+                    </div>
+                </div>
+
                 <div className="flex items-center mb-10 px-2">
                     {steps.map((step, index) => {
                         const isActive = index === currentStep;
@@ -246,6 +317,63 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                     })}
                 </div>
                 <style>{`
+                    .tracker-progress-container {
+                        position: relative;
+                        height: 12px;
+                        border-radius: 9999px;
+                        overflow: hidden;
+                        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.12);
+                    }
+
+                    .tracker-progress-default {
+                        background: linear-gradient(90deg, rgba(229, 231, 235, 0.55), rgba(209, 213, 219, 0.35));
+                    }
+
+                    .tracker-progress-hero {
+                        background: linear-gradient(90deg, rgba(255, 255, 255, 0.25), rgba(148, 163, 184, 0.15));
+                        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.25);
+                    }
+
+                    .tracker-progress-fill {
+                        position: absolute;
+                        inset: 0;
+                        width: 0;
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-end;
+                        background: linear-gradient(90deg, rgba(249, 168, 38, 0.65), rgba(239, 68, 68, 0.95));
+                        border-radius: inherit;
+                        animation: tracker-progress-advance 1.2s ease forwards;
+                    }
+
+                    .tracker-progress-fill::after {
+                        content: '';
+                        position: absolute;
+                        inset: 0;
+                        background: linear-gradient(90deg, rgba(255, 255, 255, 0.15), transparent 55%);
+                        mix-blend-mode: screen;
+                    }
+
+                    .tracker-progress-glow {
+                        position: absolute;
+                        right: -14px;
+                        top: 50%;
+                        width: 28px;
+                        height: 28px;
+                        transform: translateY(-50%);
+                        background: radial-gradient(circle at center, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+                        pointer-events: none;
+                    }
+
+                    @keyframes tracker-progress-advance {
+                        0% {
+                            width: 0;
+                        }
+                        100% {
+                            width: var(--tracker-progress-target);
+                        }
+                    }
+
                     .tracker-gauge-wrapper {
                         position: relative;
                         height: 8px;
@@ -307,6 +435,37 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                         0% { transform: translateX(-100%); opacity: 0.1; }
                         50% { opacity: 0.45; }
                         100% { transform: translateX(100%); opacity: 0; }
+                    }
+
+                    .promo-banner {
+                        position: relative;
+                        isolation: isolate;
+                        animation: promo-banner-blink 2.8s ease-in-out infinite;
+                    }
+
+                    .promo-banner::before {
+                        content: '';
+                        position: absolute;
+                        inset: 0;
+                        background: linear-gradient(120deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
+                        opacity: 0.45;
+                        pointer-events: none;
+                    }
+
+                    .promo-banner > * {
+                        position: relative;
+                        z-index: 1;
+                    }
+
+                    @keyframes promo-banner-blink {
+                        0%, 100% {
+                            transform: translateY(0) scale(1);
+                            filter: brightness(1);
+                        }
+                        50% {
+                            transform: translateY(-2px) scale(1.01);
+                            filter: brightness(1.12);
+                        }
                     }
 
                     .stamp-container {
@@ -466,8 +625,8 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                             <p className={`text-sm font-semibold ${variant === 'hero' ? 'text-green-300' : 'text-green-700'}`}>
                                 Promotions appliquées
                             </p>
-                            <div className="space-y-3">
-                                {order.applied_promotions!.map(promotion => {
+                            <div className="flex flex-nowrap gap-4 overflow-x-auto pb-2 pt-1">
+                                {order.applied_promotions!.map((promotion, index) => {
                                     const promoConfig = typeof promotion.config === 'object' && promotion.config !== null
                                         ? (promotion.config as Record<string, unknown>)
                                         : undefined;
@@ -476,55 +635,48 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                     const bannerImage = visuals?.banner_image || visuals?.banner_url;
                                     const bannerText = visuals?.banner_text || undefined;
                                     const discountAmount = promotion.discount_amount || 0;
+                                    const scheme = promotionColorSchemes[index % promotionColorSchemes.length];
 
                                     return (
                                         <div
                                             key={`${promotion.promotion_id}-${promotion.name}`}
-                                            className={`flex items-center gap-3 overflow-hidden rounded-xl border ${
-                                                variant === 'hero'
-                                                    ? 'border-white/20 bg-white/10 backdrop-blur-sm'
-                                                    : 'border-green-200 bg-green-50'
-                                            } p-2 sm:p-3`}
+                                            className={`promo-banner flex min-w-[260px] flex-shrink-0 items-center gap-4 overflow-hidden rounded-2xl border bg-gradient-to-r p-3 sm:p-4 text-white shadow-lg ${scheme.gradient} ${scheme.border} ${scheme.glow}`}
                                             aria-label={`Promotion ${promotion.name}`}
                                         >
-                                            <div className="relative h-16 w-28 flex-shrink-0 overflow-hidden rounded-lg">
+                                            <div className="relative h-16 w-28 flex-shrink-0 overflow-hidden rounded-xl bg-white/15">
                                                 {bannerImage ? (
                                                     <>
                                                         <img
                                                             src={bannerImage}
                                                             alt={bannerText || promotion.name}
-                                                            className="h-full w-full object-cover"
+                                                            className="h-full w-full object-cover opacity-95"
                                                         />
                                                         {bannerText && (
-                                                            <div className="absolute bottom-1 left-1 right-1 rounded bg-black/60 px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                                                            <div className="absolute bottom-1 left-1 right-1 rounded bg-black/60 px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
                                                                 {bannerText}
                                                             </div>
                                                         )}
                                                     </>
                                                 ) : (
-                                                    <div
-                                                        className={`flex h-full w-full items-center justify-center px-2 text-center text-[11px] font-semibold leading-tight ${
-                                                            variant === 'hero' ? 'bg-white/20 text-white' : 'bg-green-100 text-green-800'
-                                                        }`}
-                                                    >
+                                                    <div className="flex h-full w-full items-center justify-center px-2 text-center text-[11px] font-semibold leading-tight text-white">
                                                         {promotion.name}
                                                     </div>
                                                 )}
                                             </div>
                                             <div className="flex flex-1 flex-col text-left">
                                                 {(!bannerImage || !bannerText) && (
-                                                    <span className={`text-sm font-semibold ${variant === 'hero' ? 'text-white' : 'text-gray-800'}`}>
+                                                    <span className="text-sm font-semibold tracking-wide text-white">
                                                         {promotion.name}
                                                     </span>
                                                 )}
                                                 {promoCode && (
-                                                    <span className={`text-[11px] font-medium uppercase tracking-wide ${variant === 'hero' ? 'text-green-200' : 'text-green-600'}`}>
+                                                    <span className="text-[11px] font-medium uppercase tracking-wide text-white/80">
                                                         Code: {promoCode}
                                                     </span>
                                                 )}
                                             </div>
                                             <div className="text-right">
-                                                <span className={`block text-sm font-bold ${variant === 'hero' ? 'text-green-200' : 'text-green-700'}`}>
+                                                <span className="block text-sm font-bold text-white">
                                                     -{formatCurrencyCOP(discountAmount)}
                                                 </span>
                                             </div>

@@ -97,7 +97,7 @@ const ItemCustomizationModal: React.FC<ItemCustomizationModalProps> = ({
                     <button
                         type="button"
                         onClick={handleSave}
-                        className="rounded-lg bg-brand-primary py-2 px-6 font-semibold text-brand-secondary transition hover:bg-yellow-400"
+                        className="rounded-lg bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 py-2 px-6 font-semibold text-white shadow-md transition-all duration-300 hover:from-orange-600 hover:via-orange-700 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-orange-400/70 focus:ring-offset-2"
                     >
                         Ajouter ({formatCurrencyCOP(product.prix_vente * quantity)})
                     </button>
