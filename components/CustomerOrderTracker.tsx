@@ -341,6 +341,12 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
         : null;
 
     const progressAnimationKey = `${clampedProgressPercent}-${isOrderCompleted ? 'complete' : 'active'}`;
+    const progressStyle = useMemo<TrackerProgressStyle>(
+        () => ({
+            '--tracker-progress-target': `${clampedProgressPercent}%`,
+        }),
+        [clampedProgressPercent]
+    );
     const itemsCount = order.items?.length ?? 0;
 
     if (variant === 'hero') {
@@ -562,6 +568,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                 key={`hero-progress-${progressAnimationKey}`}
                                 className={`tracker-progress-fill tracker-progress-fill-hero ${isOrderCompleted ? 'tracker-progress-fill-complete' : ''}`}
                                 ref={heroProgressRef}
+                                style={progressStyle}
                             >
                                 <span className="tracker-progress-glow" />
                             </div>
@@ -629,7 +636,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                 <span>Résumé</span>
                                 <span>Articles : {itemsCount}</span>
                             </div>
-                            <div className="mt-4 max-h-56 space-y-3 overflow-y-auto pr-1 text-sm">
+                            <div className="mt-4 space-y-3 pr-1 text-sm">
                                 {order.items && order.items.length > 0 ? (
                                     order.items.map(item => {
                                         const isDomicilio = item.nom_produit === 'Domicilio';
@@ -645,8 +652,8 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                             <div key={item.id} className="rounded-xl border border-white/10 bg-black/25 p-3 sm:p-4">
                                                 <div className="flex items-start justify-between gap-3">
                                                     <div className="flex flex-1 items-start gap-3">
-                                                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/90 to-red-500/90 text-sm font-bold text-white shadow-md">
-                                                            {item.quantite}
+                                                        <span className="shrink-0 text-base font-semibold leading-tight text-white sm:text-lg">
+                                                            {item.quantite}x
                                                         </span>
                                                         <div className="flex-1">
                                                             <p className="font-semibold text-white">{item.nom_produit}</p>
@@ -739,6 +746,15 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                 <p className={`text-center font-semibold mb-8 ${variant === 'hero' ? 'text-gray-300' : 'text-gray-500'}`}>Commande #{order.id.slice(-6)}</p>
 
                 <div className="mb-8">
+                    <div className="mb-6 tracker-progress-container tracker-progress-default">
+                        <div
+                            key={`page-progress-${progressAnimationKey}`}
+                            className={`tracker-progress-fill ${isOrderCompleted ? 'tracker-progress-fill-complete' : ''}`}
+                            style={progressStyle}
+                        >
+                            <span className="tracker-progress-glow" />
+                        </div>
+                    </div>
                     <div
                         className={`flex items-start sm:items-center justify-between gap-3 sm:gap-4 px-2 ${
                             steps.length > 3 ? 'flex-wrap sm:flex-nowrap' : ''
@@ -835,6 +851,10 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                         background: linear-gradient(90deg, rgba(249, 168, 38, 0.65), rgba(239, 68, 68, 0.95));
                         border-radius: inherit;
                         animation: tracker-progress-advance 1.2s ease forwards;
+                    }
+
+                    .tracker-progress-fill-complete {
+                        background: linear-gradient(90deg, rgba(34, 197, 94, 0.75), rgba(56, 189, 248, 0.9));
                     }
 
                     .tracker-progress-fill::after {
@@ -1156,6 +1176,9 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                             <div className="flex-1">
                                                 <p className="text-[clamp(0.95rem,1.8vw,1.1rem)] font-semibold leading-snug text-balance">
                                                     {item.quantite}x {item.nom_produit}
+                                                </p>
+                                                <p className={`mt-1 text-sm ${variant === 'hero' ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                    {isFreeShipping ? 'Livraison offerte' : `${formatCurrencyCOP(item.prix_unitaire)} /u`}
                                                 </p>
                                                 {itemDescription && (
                                                     <p className="mt-1 text-sm text-gray-500">
