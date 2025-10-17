@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { api } from '../services/api';
 import { Order } from '../types';
 import { CheckCircle, ChefHat, FileText, PackageCheck, User, MapPin, Receipt, Phone } from 'lucide-react';
@@ -324,9 +324,20 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
     const clampedProgressPercent = Math.max(0, Math.min(100, progressPercent));
     const progressAnimationKey = `${clampedProgressPercent}-${isOrderCompleted ? 'complete' : 'active'}`;
     const itemsCount = order.items?.length ?? 0;
-    const heroProgressStyle: TrackerProgressStyle = {
-        '--tracker-progress-target': `${clampedProgressPercent}%`,
-    };
+    const heroProgressRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (variant !== 'hero') {
+            return;
+        }
+
+        const node = heroProgressRef.current;
+        if (!node) {
+            return;
+        }
+
+        node.style.setProperty('--tracker-progress-target', `${clampedProgressPercent}%`);
+    }, [variant, clampedProgressPercent]);
 
     if (variant === 'hero') {
         return (
@@ -546,7 +557,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                             <div
                                 key={`hero-progress-${progressAnimationKey}`}
                                 className={`tracker-progress-fill tracker-progress-fill-hero ${isOrderCompleted ? 'tracker-progress-fill-complete' : ''}`}
-                                style={heroProgressStyle}
+                                ref={heroProgressRef}
                             >
                                 <span className="tracker-progress-glow" />
                             </div>
