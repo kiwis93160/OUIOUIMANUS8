@@ -738,7 +738,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                             const isCompleted = index < currentStep || (isFinalStep && isOrderCompleted);
 
                             return (
-                                <React.Fragment key={step.name}>
+                                <div key={step.name} className="flex flex-1 items-center gap-2 sm:gap-4">
                                     <div className="flex flex-col items-center text-center gap-2 sm:gap-3">
                                         <p
                                             className={`text-xs sm:text-sm font-semibold ${
@@ -769,29 +769,29 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                             {step.description}
                                         </p>
                                     </div>
-                                {index < steps.length - 1 && (
-                                    <div className="flex-1 flex items-center mx-2 sm:mx-4" aria-hidden>
-                                        <div
-                                            className={`tracker-gauge-wrapper ${
-                                                variant === 'hero' ? 'tracker-gauge-hero' : 'tracker-gauge-default'
-                                            } ${isCompleted ? 'tracker-gauge-wrapper-complete' : ''}`}
-                                        >
-                                            <span
-                                                className={`tracker-gauge-fill ${
-                                                    isCompleted
-                                                        ? 'tracker-gauge-fill-complete'
-                                                        : isActive
-                                                            ? 'tracker-gauge-fill-active'
-                                                            : 'tracker-gauge-fill-idle'
-                                                }`}
-                                            />
-                                            {(isActive || isCompleted) && <span className="tracker-gauge-glow" />}
+                                    {index < steps.length - 1 && (
+                                        <div className="flex flex-1 items-center" aria-hidden>
+                                            <div
+                                                className={`tracker-gauge-wrapper ${
+                                                    variant === 'hero' ? 'tracker-gauge-hero' : 'tracker-gauge-default'
+                                                } ${isCompleted ? 'tracker-gauge-wrapper-complete' : ''}`}
+                                            >
+                                                <span
+                                                    className={`tracker-gauge-fill ${
+                                                        isCompleted
+                                                            ? 'tracker-gauge-fill-complete'
+                                                            : isActive
+                                                                ? 'tracker-gauge-fill-active'
+                                                                : 'tracker-gauge-fill-idle'
+                                                    }`}
+                                                />
+                                                {(isActive || isCompleted) && <span className="tracker-gauge-glow" />}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
-                            </React.Fragment>
-                        );
-                    })}
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
                 
