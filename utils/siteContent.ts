@@ -155,9 +155,6 @@ const resolveString = (value: string | null | undefined, fallback: string): stri
   return trimmed.length > 0 ? trimmed : fallback;
 };
 
-const resolveBoolean = (value: unknown, fallback: boolean): boolean =>
-  typeof value === 'boolean' ? value : fallback;
-
 const resolveImage = (value: string | null | undefined, fallback: string | null): string | null => {
   if (value === undefined) {
     return fallback ?? null;
@@ -608,13 +605,6 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     text: 'Tous droits réservés.',
     style: DEFAULT_FOOTER_STYLE,
   },
-  ordering: {
-    onlineEnabled: true,
-    activeHoursLabel: 'Pedidos en línea disponibles todos los días · 11h00 - 23h00',
-    onlineHighlight: 'Pedidos en línea activos',
-    offlineTitle: 'Volvemos en breve',
-    offlineSubtitle: 'Nuestro servicio en línea está fuera de horario. Consulta el menú y prepara tu próximo pedido.',
-  },
   elementStyles: DEFAULT_ELEMENT_STYLES,
   elementRichText: DEFAULT_ELEMENT_RICH_TEXT,
   assets: DEFAULT_SITE_ASSETS,
@@ -684,13 +674,6 @@ export const resolveSiteContent = (content?: Partial<SiteContent> | null): SiteC
       text: resolveString(content?.footer?.text, base.footer.text),
       style: resolveSectionStyle(content?.footer?.style, base.footer.style),
     },
-    ordering: {
-      onlineEnabled: resolveBoolean(content?.ordering?.onlineEnabled, base.ordering.onlineEnabled),
-      activeHoursLabel: resolveString(content?.ordering?.activeHoursLabel, base.ordering.activeHoursLabel),
-      onlineHighlight: resolveString(content?.ordering?.onlineHighlight, base.ordering.onlineHighlight),
-      offlineTitle: resolveString(content?.ordering?.offlineTitle, base.ordering.offlineTitle),
-      offlineSubtitle: resolveString(content?.ordering?.offlineSubtitle, base.ordering.offlineSubtitle),
-    },
     elementStyles: resolveElementStyles(content?.elementStyles ?? null, base.elementStyles),
     elementRichText: resolveElementRichText(content?.elementRichText ?? null, base.elementRichText),
     assets: resolveSiteAssets(content?.assets ?? null, DEFAULT_SITE_ASSETS),
@@ -755,13 +738,6 @@ export const sanitizeSiteContentInput = (content: SiteContent): SiteContent => (
   footer: {
     text: trimOrEmpty(content.footer.text),
     style: sanitizeSectionStyle(content.footer.style, DEFAULT_FOOTER_STYLE),
-  },
-  ordering: {
-    onlineEnabled: Boolean(content.ordering.onlineEnabled),
-    activeHoursLabel: trimOrEmpty(content.ordering.activeHoursLabel),
-    onlineHighlight: trimOrEmpty(content.ordering.onlineHighlight),
-    offlineTitle: trimOrEmpty(content.ordering.offlineTitle),
-    offlineSubtitle: trimOrEmpty(content.ordering.offlineSubtitle),
   },
   elementStyles: sanitizeElementStyles(content.elementStyles, DEFAULT_ELEMENT_STYLES),
   elementRichText: sanitizeElementRichText(content.elementRichText, DEFAULT_ELEMENT_RICH_TEXT),
