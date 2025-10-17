@@ -167,6 +167,17 @@ export interface SiteAssets {
   library: CustomizationAsset[];
 }
 
+export interface OnlineOrderingSchedule {
+  startTime: string;
+  endTime: string;
+}
+
+export interface OnlineOrderingSettings {
+  schedule: OnlineOrderingSchedule;
+  closedTitle: string;
+  closedSubtitle: string;
+}
+
 export interface SiteContent {
   navigation: {
     brand: string;
@@ -226,6 +237,7 @@ export interface SiteContent {
     text: string;
     style: SectionStyle;
   };
+  onlineOrdering: OnlineOrderingSettings;
   whatsappNumber?: string;
   elementStyles: ElementStyles;
   elementRichText: ElementRichText;

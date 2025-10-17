@@ -95,19 +95,15 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
             return 3;
         }
 
-        if (order.estado_cocina === 'recibido') {
+        if (order.estado_cocina === 'recibido' || order.statut === 'en_cours') {
             return 2;
         }
 
-        if (order.statut === 'en_cours') {
+        if (order.statut === 'pendiente_validacion' || order.estado_cocina === 'no_enviado') {
             return 1;
         }
 
-        if (order.statut === 'pendiente_validacion' || order.estado_cocina === 'no_enviado') {
-            return 0;
-        }
-
-        return -1;
+        return 0;
     }, []);
 
     const currentStep = useMemo(() => getCurrentStepIndex(order), [order, getCurrentStepIndex]);
@@ -603,30 +599,31 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                         <p className="text-white/70">Aucune information client requise.</p>
                                     )}
                                 </div>
-                                <div className="flex flex-col items-start gap-2 text-sm sm:min-w-[12rem] sm:items-end sm:text-right">
+                                <div className="flex flex-col items-start gap-3 text-sm sm:min-w-[12rem] sm:items-end sm:text-right">
                                     {order.receipt_url && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setReceiptModalOpen(true)}
-                                            className="group relative inline-flex flex-col items-end gap-2 focus:outline-none"
-                                            aria-label="Agrandir le justificatif"
-                                        >
-                                            <div className="relative overflow-hidden rounded-xl border border-white/20 bg-black/40 shadow-lg">
-                                                <img
-                                                    src={order.receipt_url}
-                                                    alt="Aperçu du justificatif"
-                                                    className="h-20 w-28 object-cover transition duration-500 ease-out group-hover:scale-105 sm:h-24 sm:w-32"
-                                                />
-                                                <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition duration-300 group-hover:opacity-100">
-                                                    <Receipt size={20} className="text-white" />
-                                                </div>
-                                            </div>
-                                            <span className="text-[11px] font-medium uppercase tracking-wide text-white/70">
-                                                Cliquer pour agrandir
+                                        <div className="flex flex-col items-start gap-2 sm:items-end">
+                                            <span className="text-xs font-semibold uppercase tracking-wide text-white/70">
+                                                Comprobante de pago
                                             </span>
-                                        </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setReceiptModalOpen(true)}
+                                                className="group relative inline-flex focus:outline-none"
+                                                aria-label="Ouvrir le justificatif de paiement"
+                                            >
+                                                <div className="relative overflow-hidden rounded-xl border border-white/20 bg-black/40 shadow-lg">
+                                                    <img
+                                                        src={order.receipt_url}
+                                                        alt="Aperçu du justificatif"
+                                                        className="h-20 w-28 object-cover transition duration-500 ease-out group-hover:scale-105 sm:h-24 sm:w-32"
+                                                    />
+                                                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition duration-300 group-hover:opacity-100">
+                                                        <Receipt size={20} className="text-white" />
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        </div>
                                     )}
-                                    <span className="text-xs font-medium text-white/60">Mise à jour automatique toutes les 5 secondes.</span>
                                 </div>
                             </div>
                         </div>
@@ -649,29 +646,32 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                         })();
 
                                         return (
-                                            <div key={item.id} className="rounded-xl border border-white/10 bg-black/25 p-3 sm:p-4">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="flex flex-1 items-start gap-3">
-                                                        <span className="shrink-0 text-base font-semibold leading-tight text-white sm:text-lg">
-                                                            {item.quantite}x
-                                                        </span>
-                                                        <div className="flex-1">
-                                                            <p className="font-semibold text-white">{item.nom_produit}</p>
-                                                            <p className="text-xs text-white/60">{formatCurrencyCOP(item.prix_unitaire)} /u</p>
-                                                            {itemDescription && (
-                                                                <p className="mt-1 text-xs text-white/65">{itemDescription}</p>
-                                                            )}
-                                                            {item.commentaire && (
-                                                                <p className="mt-2 text-xs italic text-amber-200/80">“{item.commentaire}”</p>
+                                            <div key={item.id} className="rounded-xl border border-white/10 bg-black/25 p-4 sm:p-5">
+                                                <div className="flex flex-col gap-4">
+                                                    <div className="flex flex-wrap items-start justify-between gap-4">
+                                                        <div className="flex min-w-0 flex-1 items-start gap-4">
+                                                            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-xl font-semibold text-white shadow-inner shadow-black/40 sm:h-14 sm:w-14 sm:text-2xl">
+                                                                {item.quantite}
+                                                            </span>
+                                                            <div className="min-w-0 flex-1 space-y-2">
+                                                                <p className="text-lg font-semibold leading-tight text-white sm:text-xl">
+                                                                    {item.nom_produit}
+                                                                </p>
+                                                                {itemDescription && (
+                                                                    <p className="text-sm text-white/70">{itemDescription}</p>
+                                                                )}
+                                                                {item.commentaire && (
+                                                                    <p className="text-sm italic text-amber-200/80">“{item.commentaire}”</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center rounded-full bg-white/10 px-4 py-2 text-base font-semibold text-white shadow-inner shadow-black/30">
+                                                            {isFreeShipping ? (
+                                                                <span className="text-emerald-200">GRATUIT</span>
+                                                            ) : (
+                                                                formatCurrencyCOP(item.prix_unitaire * item.quantite)
                                                             )}
                                                         </div>
-                                                    </div>
-                                                    <div className="text-right text-sm font-semibold text-white">
-                                                        {isFreeShipping ? (
-                                                            <span className="text-emerald-200">GRATUIT</span>
-                                                        ) : (
-                                                            formatCurrencyCOP(item.prix_unitaire * item.quantite)
-                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
