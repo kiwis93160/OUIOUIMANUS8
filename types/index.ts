@@ -376,9 +376,14 @@ export interface DashboardStats {
     periodStart: string;
     periodEnd: string;
     ventesPeriode: number;
+    ventesPeriodePrecedente: number;
     beneficePeriode: number;
+    beneficePeriodePrecedente: number;
     clientsPeriode: number;
+    clientsPeriodePrecedente: number;
     panierMoyen: number;
+    commandesPeriode: number;
+    commandesPeriodePrecedente: number;
     tablesOccupees: number;
     clientsActuels: number;
     commandesEnCuisine: number;

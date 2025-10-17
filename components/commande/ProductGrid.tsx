@@ -60,10 +60,11 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                 </div>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredProducts.map((product) => {
                         const isLowStock = !isProductAvailable(product);
                         const quantityInCart = quantities[product.id] || 0;
+                        const isSelected = quantityInCart > 0;
                         const handleProductClick = () => onAdd(product);
                         const handlePointerDown = handleProductPointerDown(product);
                         const handleKeyDown = handleProductKeyDown(product);
@@ -75,9 +76,11 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                                 onClick={handleProductClick}
                                 onPointerDown={handlePointerDown}
                                 onKeyDown={handleKeyDown}
-                                className={`relative flex h-full flex-col items-center justify-between rounded-lg border bg-white p-3 text-center transition-all focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 focus:ring-offset-gray-900 hover:shadow-lg ${
-                                    isLowStock ? 'border-2 border-yellow-500' : ''
-                                }`}
+                                className={`relative flex h-full flex-col items-center justify-between rounded-xl p-3 text-center transition-all focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 focus:ring-offset-gray-900 ${
+                                    isSelected
+                                        ? 'bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-black shadow-xl shadow-orange-500/30'
+                                        : 'border border-gray-200 bg-white text-black hover:shadow-lg'
+                                } ${isLowStock && !isSelected ? 'border-2 border-yellow-500' : ''}`}
                             >
                                 {quantityInCart > 0 && (
                                     <div className="absolute left-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-accent text-xs font-bold text-white">
@@ -86,7 +89,7 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                                 )}
                                 {isLowStock && (
                                     <div
-                                        className="absolute right-1 top-1 rounded-full bg-yellow-500 p-1 text-white"
+                                        className={`absolute right-1 top-1 rounded-full p-1 text-white ${isSelected ? 'bg-black/30' : 'bg-yellow-500'}`}
                                         title="Stock bas"
                                     >
                                         <AlertTriangle size={16} />
@@ -98,18 +101,18 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                                     className="mb-3 aspect-square w-full max-w-[6rem] rounded-md object-cover"
                                 />
                                 <p
-                                    className="text-[clamp(0.9rem,1.8vw,1.05rem)] font-semibold leading-snug text-gray-800 text-balance text-center break-words whitespace-normal [hyphens:auto]"
+                                    className="text-[clamp(0.9rem,1.8vw,1.05rem)] font-semibold leading-snug text-black text-balance text-center break-words whitespace-normal [hyphens:auto]"
                                     style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
                                 >
                                     {product.nom_produit}
                                 </p>
                                 <p
-                                    className="mt-1 w-full flex-1 text-xs text-gray-600 text-center leading-snug"
+                                    className="mt-1 w-full flex-1 text-xs text-black text-center leading-snug"
                                     style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
                                 >
                                     {product.description}
                                 </p>
-                                <p className="mt-3 font-bold text-brand-primary">
+                                <p className="mt-3 font-bold text-black">
                                     {formatCurrencyCOP(product.prix_vente)}
                                 </p>
                             </button>
