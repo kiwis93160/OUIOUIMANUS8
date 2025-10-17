@@ -11,6 +11,14 @@ import {
 } from '../services/customerOrderStorage';
 import Modal from './Modal';
 
+type TrackerProgressStyle = React.CSSProperties & {
+    '--tracker-progress-target': string;
+};
+
+const getTrackerProgressStyle = (percent: number): TrackerProgressStyle => ({
+    '--tracker-progress-target': `${percent}%`,
+});
+
 const saveOrderToHistory = (order: Order) => {
     try {
         const historyJSON = localStorage.getItem('customer-order-history');
@@ -320,6 +328,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
     const clampedProgressPercent = Math.max(0, Math.min(100, progressPercent));
     const progressAnimationKey = `${clampedProgressPercent}-${isOrderCompleted ? 'complete' : 'active'}`;
     const itemsCount = order.items?.length ?? 0;
+    const heroProgressStyle = useMemo(() => getTrackerProgressStyle(clampedProgressPercent), [clampedProgressPercent]);
 
     if (variant === 'hero') {
         return (
@@ -539,9 +548,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                             <div
                                 key={`hero-progress-${progressAnimationKey}`}
                                 className={`tracker-progress-fill tracker-progress-fill-hero ${isOrderCompleted ? 'tracker-progress-fill-complete' : ''}`}
-                                style={{
-                                    '--tracker-progress-target': `${clampedProgressPercent}%`,
-                                } as React.CSSProperties}
+                                style={heroProgressStyle}
                             >
                                 <span className="tracker-progress-glow" />
                             </div>
@@ -704,6 +711,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                             </button>
                         </div>
                     </div>
+                </div>
                 </div>
                 <Modal
                     isOpen={isReceiptModalOpen}
