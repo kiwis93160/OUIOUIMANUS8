@@ -183,7 +183,9 @@ const Login: React.FC = () => {
   const safeContent = content ?? DEFAULT_SITE_CONTENT;
   useCustomFonts(safeContent.assets.library);
 
-  const { navigation, hero, about, menu: menuContent, findUs, footer } = safeContent;
+  const { navigation, hero, about, menu: menuContent, findUs, footer, ordering } = safeContent;
+  const orderingContent = ordering;
+  const isOnlineOrderingEnabled = orderingContent.onlineEnabled;
   const brandLogo = navigation.brandLogo ?? DEFAULT_BRAND_LOGO;
   const staffTriggerLogo = navigation.brandLogo ?? DEFAULT_BRAND_LOGO;
   const navigationBackgroundStyle = createBackgroundStyle(navigation.style);
@@ -191,6 +193,17 @@ const Login: React.FC = () => {
   const heroBackgroundStyle = createHeroBackgroundStyle(hero.style, hero.backgroundImage);
   const heroTextStyle = createTextStyle(hero.style);
   const heroBodyTextStyle = createBodyTextStyle(hero.style);
+  const heroCtaStyles = isOnlineOrderingEnabled
+    ? {
+        ...getElementBodyTextStyle('hero.ctaLabel'),
+        ...getElementBackgroundStyle('hero.ctaLabel'),
+      }
+    : {
+        ...getElementBodyTextStyle('hero.ctaLabel'),
+      };
+  const heroCtaClassName = isOnlineOrderingEnabled
+    ? 'ui-btn ui-btn-accent hero-cta hero-cta--active'
+    : 'hero-cta hero-cta--disabled';
   const aboutBackgroundStyle = createBackgroundStyle(about.style);
   const aboutTextStyle = createTextStyle(about.style);
   const menuBackgroundStyle = createBackgroundStyle(menuContent.style);
@@ -543,24 +556,47 @@ const Login: React.FC = () => {
                   },
                   hero.subtitle,
                 )}
-                <button
-                  onClick={() => navigate('/commande-client')}
-                  className="ui-btn ui-btn-accent hero-cta"
-                  style={{
-                    ...getElementBodyTextStyle('hero.ctaLabel'),
-                    ...getElementBackgroundStyle('hero.ctaLabel'),
-                  }}
-                >
-                  {renderRichTextElement(
-                    'hero.ctaLabel',
-                    'span',
-                    {
-                      className: 'inline-flex items-center justify-center',
-                      style: getElementBodyTextStyle('hero.ctaLabel'),
-                    },
-                    hero.ctaLabel,
+                <div className="hero-ordering-status" role="status">
+                  {isOnlineOrderingEnabled ? (
+                    <div className="hero-ordering-status__badge">
+                      <span className="hero-ordering-status__badge-pulse" aria-hidden="true" />
+                      <div className="hero-ordering-status__badge-text">
+                        <span className="hero-ordering-status__badge-title">{orderingContent.onlineHighlight}</span>
+                        <span className="hero-ordering-status__badge-hours">{orderingContent.activeHoursLabel}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="hero-ordering-status__card">
+                      <p className="hero-ordering-status__card-title">{orderingContent.offlineTitle}</p>
+                      <p className="hero-ordering-status__card-text">{orderingContent.offlineSubtitle}</p>
+                      <p className="hero-ordering-status__card-hours">{orderingContent.activeHoursLabel}</p>
+                    </div>
                   )}
-                </button>
+                </div>
+                <div className="hero-cta-group">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/commande-client')}
+                    className={heroCtaClassName}
+                    style={heroCtaStyles}
+                    disabled={!isOnlineOrderingEnabled}
+                  >
+                    {renderRichTextElement(
+                      'hero.ctaLabel',
+                      'span',
+                      {
+                        className: 'inline-flex items-center justify-center',
+                        style: getElementBodyTextStyle('hero.ctaLabel'),
+                      },
+                      hero.ctaLabel,
+                    )}
+                  </button>
+                  {!isOnlineOrderingEnabled && (
+                    <a href="#menu" className="hero-secondary-link">
+                      Explorar el menú
+                    </a>
+                  )}
+                </div>
                 {orderHistory.length > 0 && (
                   <div className="hero-history">
                     {renderRichTextElement(
