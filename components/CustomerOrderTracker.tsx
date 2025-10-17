@@ -180,7 +180,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
 
     const containerClasses = variant === 'page'
         ? "container mx-auto p-4 lg:p-8"
-        : "w-full px-4 pt-1 pb-5 sm:pt-2 sm:pb-6 flex justify-center";
+        : "w-full px-4 pt-0 pb-4 sm:pt-1 sm:pb-5 flex justify-center";
 
     const contentClasses = variant === 'page'
         ? "bg-white/95 p-6 rounded-xl shadow-2xl max-w-2xl mx-auto"
@@ -232,13 +232,34 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
             const discountAmount = promotion.discount_amount || 0;
             const scheme = promotionColorSchemes[index % promotionColorSchemes.length];
 
+            const bannerPaddingClass = variant === 'hero' ? 'p-1.5 sm:p-2' : 'p-3 sm:p-4';
+            const bannerGapClass = variant === 'hero' ? 'gap-3' : 'gap-4';
+            const bannerMediaClass = variant === 'hero'
+                ? 'relative h-6 w-10 flex-shrink-0 overflow-hidden rounded-xl bg-white/15'
+                : 'relative h-8 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-white/15';
+            const bannerFallbackTextClass = variant === 'hero'
+                ? 'flex h-full w-full items-center justify-center px-2 text-center text-[9px] font-semibold leading-tight text-white'
+                : 'flex h-full w-full items-center justify-center px-2 text-center text-[11px] font-semibold leading-tight text-white';
+            const bannerTitleClass = variant === 'hero'
+                ? 'text-xs font-semibold tracking-wide text-white whitespace-nowrap truncate'
+                : 'text-sm font-semibold tracking-wide text-white whitespace-nowrap truncate';
+            const bannerCodeClass = variant === 'hero'
+                ? 'text-[9px] font-medium uppercase tracking-wide text-white/85 whitespace-nowrap'
+                : 'text-[11px] font-medium uppercase tracking-wide text-white/85 whitespace-nowrap';
+            const discountTextClass = variant === 'hero'
+                ? 'block text-xs font-bold text-white'
+                : 'block text-sm font-bold text-white';
+            const overlayTextClass = variant === 'hero'
+                ? 'absolute bottom-1 left-1 right-1 rounded bg-black/60 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide'
+                : 'absolute bottom-1 left-1 right-1 rounded bg-black/60 px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide';
+
             return (
                 <div
                     key={`${promotion.promotion_id}-${promotion.name}`}
-                    className={`promo-banner flex w-full items-center gap-4 overflow-hidden rounded-2xl border bg-gradient-to-r p-3 sm:p-4 text-white shadow-lg ${scheme.gradient} ${scheme.border} ${scheme.glow}`}
+                    className={`promo-banner flex w-full items-center ${bannerGapClass} overflow-hidden rounded-2xl border bg-gradient-to-r ${bannerPaddingClass} text-white shadow-lg ${scheme.gradient} ${scheme.border} ${scheme.glow}`}
                     aria-label={`Promotion ${promotion.name}`}
                 >
-                    <div className="relative h-8 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-white/15">
+                    <div className={bannerMediaClass}>
                         {bannerImage ? (
                             <>
                                 <img
@@ -247,34 +268,31 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                     className="h-full w-full object-cover opacity-95"
                                 />
                                 {bannerText && (
-                                    <div className="absolute bottom-1 left-1 right-1 rounded bg-black/60 px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                                    <div className={overlayTextClass}>
                                         {bannerText}
                                     </div>
                                 )}
                             </>
                         ) : (
-                            <div className="flex h-full w-full items-center justify-center px-2 text-center text-[11px] font-semibold leading-tight text-white">
+                            <div className={bannerFallbackTextClass}>
                                 {promotion.name}
                             </div>
                         )}
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col text-left">
                         {(!bannerImage || !bannerText) && (
-                            <span
-                                className="text-sm font-semibold tracking-wide text-white whitespace-nowrap truncate"
-                                title={promotion.name}
-                            >
+                            <span className={bannerTitleClass} title={promotion.name}>
                                 {promotion.name}
                             </span>
                         )}
                         {promoCode && (
-                            <span className="text-[11px] font-medium uppercase tracking-wide text-white/85 whitespace-nowrap">
+                            <span className={bannerCodeClass}>
                                 Code: {promoCode}
                             </span>
                         )}
                     </div>
                     <div className="text-right whitespace-nowrap">
-                        <span className="block text-sm font-bold text-white">
+                        <span className={discountTextClass}>
                             -{formatCurrencyCOP(discountAmount)}
                         </span>
                     </div>
@@ -301,7 +319,6 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
         : 100;
     const clampedProgressPercent = Math.max(0, Math.min(100, progressPercent));
     const progressAnimationKey = `${clampedProgressPercent}-${isOrderCompleted ? 'complete' : 'active'}`;
-    const currentStepLabel = steps[Math.min(steps.length - 1, normalizedStepIndex)]?.name ?? steps[0]?.name ?? '';
     const itemsCount = order.items?.length ?? 0;
 
     if (variant === 'hero') {
@@ -313,16 +330,8 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                         <div className="absolute -bottom-32 right-0 h-64 w-64 rounded-full bg-gradient-to-br from-amber-400/30 via-orange-500/20 to-red-500/30 blur-3xl" />
                     </div>
                     <div className="relative flex flex-col gap-6">
-                        <div className="flex flex-col gap-2">
-                            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/60">Commande active</p>
-                            <h2 className="mt-2 text-3xl font-bold sm:text-4xl">Commande #{order.id.slice(-6)}</h2>
-                            <p className="text-sm text-white/65">Suivi en temps réel</p>
-                            <p className="text-sm text-white/70">
-                                Statut actuel :{' '}
-                                <span className="font-semibold text-white">
-                                    {isOrderCompleted ? 'Commande prête' : currentStepLabel || 'Traitement'}
-                                </span>
-                            </p>
+                        <div className="flex flex-col items-center gap-2 text-center">
+                            <h2 className="text-3xl font-bold text-center sm:text-4xl">Commande #{order.id.slice(-6)}</h2>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -457,6 +466,15 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                 background: linear-gradient(90deg, rgba(34, 197, 94, 0.85), rgba(56, 189, 248, 0.9));
                             }
 
+                            .tracker-progress-fill-hero {
+                                animation: tracker-progress-loop 3s ease-in-out infinite;
+                                animation-delay: 0s;
+                            }
+
+                            .tracker-progress-fill-hero.tracker-progress-fill-complete {
+                                animation: tracker-progress-loop 3s ease-in-out infinite;
+                            }
+
                             .tracker-progress-fill::after {
                                 content: '';
                                 position: absolute;
@@ -484,12 +502,27 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                     width: var(--tracker-progress-target);
                                 }
                             }
+
+                            @keyframes tracker-progress-loop {
+                                0% {
+                                    width: 0;
+                                }
+                                60% {
+                                    width: var(--tracker-progress-target);
+                                }
+                                75% {
+                                    width: var(--tracker-progress-target);
+                                }
+                                100% {
+                                    width: 0;
+                                }
+                            }
                         `}</style>
 
                         <div className="tracker-progress-container tracker-progress-hero">
                             <div
                                 key={`hero-progress-${progressAnimationKey}`}
-                                className={`tracker-progress-fill ${isOrderCompleted ? 'tracker-progress-fill-complete' : ''}`}
+                                className={`tracker-progress-fill tracker-progress-fill-hero ${isOrderCompleted ? 'tracker-progress-fill-complete' : ''}`}
                                 style={{
                                     '--tracker-progress-target': `${clampedProgressPercent}%`,
                                 } as React.CSSProperties}
@@ -530,10 +563,24 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                 <div className="flex flex-col items-start gap-2 text-sm sm:min-w-[12rem] sm:items-end sm:text-right">
                                     {order.receipt_url && (
                                         <button
+                                            type="button"
                                             onClick={() => setReceiptModalOpen(true)}
-                                            className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 font-semibold text-white transition hover:bg-white/25"
+                                            className="group relative inline-flex flex-col items-end gap-2 focus:outline-none"
+                                            aria-label="Agrandir le justificatif"
                                         >
-                                            <Receipt size={16} /> Voir le justificatif
+                                            <div className="relative overflow-hidden rounded-xl border border-white/20 bg-black/40 shadow-lg">
+                                                <img
+                                                    src={order.receipt_url}
+                                                    alt="Aperçu du justificatif"
+                                                    className="h-20 w-28 object-cover transition duration-500 ease-out group-hover:scale-105 sm:h-24 sm:w-32"
+                                                />
+                                                <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition duration-300 group-hover:opacity-100">
+                                                    <Receipt size={20} className="text-white" />
+                                                </div>
+                                            </div>
+                                            <span className="text-[11px] font-medium uppercase tracking-wide text-white/70">
+                                                Cliquer pour agrandir
+                                            </span>
                                         </button>
                                     )}
                                     <span className="text-xs font-medium text-white/60">Mise à jour automatique toutes les 5 secondes.</span>

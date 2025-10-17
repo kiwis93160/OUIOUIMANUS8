@@ -518,7 +518,9 @@ const Login: React.FC = () => {
 
       <main>
         <section id="accueil" className="section section-hero" style={{ ...heroBackgroundStyle, ...heroTextStyle }}>
-          <div className="section-hero__inner">
+          <div
+            className={`section-hero__inner ${activeOrderId ? 'section-hero__inner--compact' : ''}`.trim()}
+          >
             {activeOrderId ? (
               <CustomerOrderTracker orderId={activeOrderId} onNewOrderClick={handleNewOrder} variant="hero" />
             ) : (
