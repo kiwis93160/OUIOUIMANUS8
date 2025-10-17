@@ -43,48 +43,81 @@ const MainStatCard: React.FC<{
     helper?: string;
     comparison?: number | null;
 }> = ({ title, value, icon, helper, comparison }) => {
-    const hasComparison = comparison !== null && comparison !== undefined;
-    const comparisonSign = hasComparison && typeof comparison === 'number' && comparison !== 0 ? (comparison > 0 ? '+' : '−') : '';
-    const comparisonValue = hasComparison && typeof comparison === 'number'
-        ? formatDecimal(Math.abs(comparison))
-        : null;
-    const comparisonClass = !hasComparison
-        ? 'text-gray-500'
-        : comparison && comparison < 0
-            ? 'text-red-600'
-            : 'text-emerald-600';
+    const hasComparison = typeof comparison === 'number' && Number.isFinite(comparison);
+    const normalizedComparison = hasComparison ? comparison ?? 0 : 0;
+    const comparisonValue = hasComparison ? formatDecimal(Math.abs(normalizedComparison)) : null;
+    const signSymbol = !hasComparison || normalizedComparison === 0 ? '' : normalizedComparison > 0 ? '+' : '−';
+    const comparisonLabel = comparisonValue ? `${signSymbol}${comparisonValue}%` : 'N/A';
+    const comparisonTone = !hasComparison
+        ? 'bg-white/10 text-white/60'
+        : normalizedComparison < 0
+            ? 'bg-red-500/20 text-red-200'
+            : normalizedComparison > 0
+                ? 'bg-emerald-500/25 text-emerald-100'
+                : 'bg-white/10 text-white/70';
 
     return (
-        <div className="ui-card flex min-w-0 flex-col gap-4 p-5">
-            <div className="flex items-start gap-3">
-                <div className="rounded-xl bg-brand-primary/10 p-3 text-brand-primary">
-                    {icon}
+        <article className="relative overflow-hidden rounded-3xl bg-slate-900 text-white shadow-lg transition-all hover:shadow-xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900/85 to-slate-900/60" aria-hidden />
+            <div className="absolute -right-12 -top-12 h-44 w-44 rounded-full bg-cyan-400/20 blur-3xl" aria-hidden />
+            <div className="absolute bottom-0 left-0 h-36 w-36 rounded-full bg-emerald-400/20 blur-3xl" aria-hidden />
+            <div className="relative flex flex-col gap-6 p-6 sm:p-7">
+                <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 space-y-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/60">{title}</p>
+                        <p className="text-3xl font-bold leading-tight text-balance break-words sm:text-4xl">{value}</p>
+                    </div>
+                    <div className="shrink-0 rounded-2xl bg-white/10 p-3 text-white shadow-inner shadow-white/10">
+                        {icon}
+                    </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{title}</p>
-                    <p className="mt-2 text-2xl font-bold text-gray-900 sm:text-3xl">{value}</p>
-                    <p className={`mt-1 text-sm font-semibold ${comparisonClass}`}>
-                        {comparisonValue ? `${comparisonSign}${comparisonValue}%` : 'N/A'}
-                        <span className="ml-1 text-xs font-medium text-gray-500 sm:text-sm">vs période précédente</span>
-                    </p>
+                <div className="flex flex-col gap-3 text-sm text-white/70">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className={`inline-flex min-w-[5.5rem] items-center justify-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] ${comparisonTone}`}>
+                            {comparisonLabel}
+                        </span>
+                        <span className="text-xs font-medium text-white/60">vs période précédente</span>
+                    </div>
+                    {helper ? <p className="text-xs leading-relaxed text-white/70">{helper}</p> : null}
                 </div>
             </div>
-            {helper ? <p className="text-sm text-gray-500">{helper}</p> : null}
-        </div>
+        </article>
     );
 };
 
-const OpStatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode; onClick?: () => void }> = ({ title, value, icon, onClick }) => (
-    <div className={`ui-card p-4 flex items-center space-x-3 min-w-0 ${onClick ? 'cursor-pointer hover:bg-gray-50' : ''}`} onClick={onClick}>
-        <div className="p-3 bg-gray-100 text-gray-600 rounded-lg">
-            {icon}
+const OpStatCard: React.FC<{ title: string; value: string | number; icon: React.ReactNode; onClick?: () => void }> = ({ title, value, icon, onClick }) => {
+    const interactiveProps = onClick
+        ? {
+            role: 'button' as const,
+            tabIndex: 0,
+            onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onClick();
+                }
+            },
+        }
+        : {};
+
+    return (
+        <div
+            className={`relative flex min-w-0 items-center gap-3 overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg ${
+                onClick ? 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400' : ''
+            }`}
+            onClick={onClick}
+            {...interactiveProps}
+        >
+            <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-slate-100" aria-hidden />
+            <div className="relative shrink-0 rounded-2xl bg-slate-900/5 p-3 text-slate-600">
+                {icon}
+            </div>
+            <div className="relative min-w-0 flex-1 space-y-1">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">{title}</p>
+                <p className="text-xl font-bold leading-tight text-balance break-words text-slate-900 sm:text-2xl">{value}</p>
+            </div>
         </div>
-        <div className="flex-1 min-w-0">
-            <p className="text-xs text-gray-500">{title}</p>
-            <p className="text-lg sm:text-xl xl:text-2xl font-bold text-gray-800 break-words leading-tight">{value}</p>
-        </div>
-    </div>
-);
+    );
+};
 
 
 const PERIOD_CONFIG: Record<DashboardPeriod, { label: string; days: number }> = {
@@ -178,30 +211,32 @@ const Dashboard: React.FC = () => {
     const averageDailyRevenueTrend = computePercentChange(averageDailyRevenue, averageDailyRevenuePrecedent);
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="inline-flex rounded-lg bg-gray-100 p-1 text-sm font-semibold text-gray-600">
-                    {Object.entries(PERIOD_CONFIG).map(([key, option]) => {
-                        const value = key as DashboardPeriod;
-                        const isActive = period === value;
-                        return (
-                            <button
-                                key={value}
-                                onClick={() => setPeriod(value)}
-                                className={`px-3 py-1.5 rounded-md transition-colors ${isActive ? 'bg-white text-gray-900 shadow' : 'hover:text-gray-900'}`}
-                            >
-                                {option.label}
-                            </button>
-                        );
-                    })}
+        <div className="space-y-8">
+            <div className="rounded-3xl border border-slate-200 bg-white/80 p-4 shadow-sm backdrop-blur">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-1 text-sm font-semibold text-slate-600 shadow-inner">
+                        {Object.entries(PERIOD_CONFIG).map(([key, option]) => {
+                            const value = key as DashboardPeriod;
+                            const isActive = period === value;
+                            return (
+                                <button
+                                    key={value}
+                                    onClick={() => setPeriod(value)}
+                                    className={`rounded-full px-4 py-1.5 transition ${isActive ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20' : 'hover:text-slate-900'}`}
+                                >
+                                    {option.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <button
+                        onClick={() => setRoleManagerOpen(true)}
+                        className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                    >
+                        <Shield className="h-4 w-4" />
+                        Gestión de roles
+                    </button>
                 </div>
-                <button
-                    onClick={() => setRoleManagerOpen(true)}
-                    className="ui-btn-primary"
-                >
-                    <Shield className="mr-2 h-4 w-4" />
-                    Gestión de roles
-                </button>
             </div>
 
             {/* Bloc 1 : Indicateurs financiers */}
@@ -277,7 +312,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Bloc 3 : Statut opérationnel */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 <OpStatCard title="Mesas ocupadas" value={stats.tablesOccupees} icon={<Armchair size={24}/>} />
                 <OpStatCard title="Clientes actuales" value={stats.clientsActuels} icon={<Users size={24}/>} />
                 <OpStatCard title="En cocina" value={stats.commandesEnCuisine} icon={<Soup size={24}/>} />
@@ -290,8 +325,8 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Bloc 4 : Évolution des ventes */}
-            <div className="ui-card p-6">
-                <h3 className="text-lg font-semibold mb-4 text-gray-900">Ventas durante {stats.periodLabel}</h3>
+            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="mb-4 text-lg font-semibold text-slate-900 text-balance">Ventas durante {stats.periodLabel}</h3>
                 <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={stats.ventesPeriodeSeries}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -303,15 +338,15 @@ const Dashboard: React.FC = () => {
                         <Bar dataKey="ventesPeriodePrecedente" fill="#d8d6f5" name="Periodo anterior" />
                     </BarChart>
                 </ResponsiveContainer>
-            </div>
+            </section>
 
             {/* Bloc 5 : Répartition des ventes */}
-            <div className="ui-card p-6">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Distribución de ventas ({stats.periodLabel})</h3>
-                    <div className="flex p-1 bg-gray-200 rounded-lg">
-                        <button onClick={() => setPieChartMode('category')} className={`px-3 py-1 text-sm font-semibold rounded-md ${pieChartMode === 'category' ? 'bg-white shadow' : ''}`}>Por categoría</button>
-                        <button onClick={() => setPieChartMode('product')} className={`px-3 py-1 text-sm font-semibold rounded-md ${pieChartMode === 'product' ? 'bg-white shadow' : ''}`}>Por producto</button>
+            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <h3 className="text-lg font-semibold text-slate-900 text-balance">Distribución de ventas ({stats.periodLabel})</h3>
+                    <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-1 text-sm font-semibold text-slate-600 shadow-inner">
+                        <button onClick={() => setPieChartMode('category')} className={`rounded-full px-3 py-1 transition ${pieChartMode === 'category' ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/15' : 'hover:text-slate-900'}`}>Por categoría</button>
+                        <button onClick={() => setPieChartMode('product')} className={`rounded-full px-3 py-1 transition ${pieChartMode === 'product' ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/15' : 'hover:text-slate-900'}`}>Por producto</button>
                     </div>
                 </div>
                 {hasPieData ? (
@@ -325,19 +360,19 @@ const Dashboard: React.FC = () => {
                         </PieChart>
                     </ResponsiveContainer>
                 ) : (
-                    <div style={{ height: 300 }} className="flex items-center justify-center text-gray-500">
+                    <div style={{ height: 300 }} className="flex items-center justify-center text-slate-500">
                         No hay datos para el periodo seleccionado.
                     </div>
                 )}
-            </div>
+            </section>
 
             <Modal isOpen={isLowStockModalOpen} onClose={() => setLowStockModalOpen(false)} title="Ingredientes con inventario bajo">
                 {stats.ingredientsStockBas.length > 0 ? (
                     <ul className="space-y-2">
                         {stats.ingredientsStockBas.map(ing => (
-                            <li key={ing.id} className="flex justify-between items-center bg-red-50 p-3 rounded-lg">
-                                <span className="font-semibold text-red-800">{ing.nom}</span>
-                                <span className="font-bold text-red-600">{ing.stock_actuel} / {ing.stock_minimum} {ing.unite}</span>
+                            <li key={ing.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-red-50 p-3 text-sm shadow-sm">
+                                <span className="min-w-0 flex-1 break-words font-semibold text-red-800">{ing.nom}</span>
+                                <span className="shrink-0 text-base font-bold text-red-600">{ing.stock_actuel} / {ing.stock_minimum} {ing.unite}</span>
                             </li>
                         ))}
                     </ul>
