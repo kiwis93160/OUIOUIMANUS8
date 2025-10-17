@@ -180,7 +180,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
 
     const containerClasses = variant === 'page'
         ? "container mx-auto p-4 lg:p-8"
-        : "w-full px-4 pt-2 pb-6 sm:pt-4 flex justify-center";
+        : "w-full px-4 pt-1 pb-5 sm:pt-2 sm:pb-6 flex justify-center";
 
     const contentClasses = variant === 'page'
         ? "bg-white/95 p-6 rounded-xl shadow-2xl max-w-2xl mx-auto"
@@ -299,6 +299,8 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
     const progressPercent = stepCount > 0
         ? Math.min(100, ((isOrderCompleted ? stepCount : normalizedStepIndex) / stepCount) * 100)
         : 100;
+    const clampedProgressPercent = Math.max(0, Math.min(100, progressPercent));
+    const progressAnimationKey = `${clampedProgressPercent}-${isOrderCompleted ? 'complete' : 'active'}`;
     const currentStepLabel = steps[Math.min(steps.length - 1, normalizedStepIndex)]?.name ?? steps[0]?.name ?? '';
     const itemsCount = order.items?.length ?? 0;
 
@@ -328,14 +330,14 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                 const isActive = index === currentStep;
                                 const isFinalStep = index === steps.length - 1;
                                 const isCompletedStep = index < currentStep || (isFinalStep && isOrderCompleted);
-                                const cardClasses = `tracker-step-card rounded-2xl border p-4 sm:p-6 transition-all ${
+                                const cardClasses = `tracker-step-card rounded-2xl border p-3 sm:p-4 transition-all ${
                                     isCompletedStep
                                         ? 'bg-gradient-to-br from-emerald-400/80 to-emerald-600/80 border-white/35 text-white shadow-lg shadow-emerald-500/25'
                                         : isActive
                                             ? 'bg-gradient-to-br from-amber-400/95 via-orange-500/90 to-red-500/95 border-white/30 text-white shadow-xl shadow-orange-500/25 tracker-step-active'
                                             : 'bg-white/10 border-white/10 text-white/70 backdrop-blur-sm hover:bg-white/15 hover:border-white/20'
                                 } ${isActive ? 'scale-[1.02]' : ''}`;
-                                const iconWrapperClasses = `tracker-step-icon-wrapper rounded-2xl bg-black/25 p-2.5 sm:p-3 ${
+                                const iconWrapperClasses = `tracker-step-icon-wrapper relative flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl bg-black/25 ${
                                     isCompletedStep || isActive ? 'text-white' : 'text-white/70'
                                 }`;
 
@@ -345,26 +347,28 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                         className={cardClasses}
                                         aria-current={isActive ? 'step' : undefined}
                                     >
-                                        <div className="flex items-start justify-between gap-3">
+                                        <div className="flex flex-col items-center text-center gap-2 sm:gap-3">
+                                            <p
+                                                className={`text-xs sm:text-sm font-semibold tracking-wide ${
+                                                    isCompletedStep || isActive ? 'text-white' : 'text-white/70'
+                                                }`}
+                                            >
+                                                {step.name}
+                                            </p>
                                             <div className={iconWrapperClasses}>
-                                                <step.icon className="tracker-step-icon h-7 w-7 sm:h-9 sm:w-9" />
+                                                <step.icon className="tracker-step-icon h-10 w-10 sm:h-12 sm:w-12" />
+                                                {isCompletedStep && (
+                                                    <CheckCircle className="absolute -top-2 -right-2 h-5 w-5 sm:h-6 sm:w-6 text-white drop-shadow" />
+                                                )}
                                             </div>
-                                            {isCompletedStep && (
-                                                <CheckCircle className="h-6 w-6 sm:h-7 sm:w-7 text-white/90" />
-                                            )}
+                                            <p
+                                                className={`text-[11px] sm:text-xs leading-snug ${
+                                                    isCompletedStep || isActive ? 'text-white/80' : 'text-white/60'
+                                                }`}
+                                            >
+                                                {step.description}
+                                            </p>
                                         </div>
-                                        <p className={`mt-4 text-sm sm:text-base font-semibold leading-tight ${
-                                            isCompletedStep || isActive ? 'text-white' : 'text-white/70'
-                                        }`}
-                                        >
-                                            {step.name}
-                                        </p>
-                                        <p className={`mt-2 text-xs sm:text-sm leading-relaxed ${
-                                            isCompletedStep || isActive ? 'text-white/80' : 'text-white/60'
-                                        }`}
-                                        >
-                                            {step.description}
-                                        </p>
                                     </div>
                                 );
                             })}
@@ -425,53 +429,115 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                     transform: scale(1.15);
                                 }
                             }
+
+                            .tracker-progress-container {
+                                position: relative;
+                                height: 10px;
+                                border-radius: 9999px;
+                                overflow: hidden;
+                                background: linear-gradient(90deg, rgba(255, 255, 255, 0.25), rgba(148, 163, 184, 0.18));
+                                box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.35);
+                                margin-top: 0.25rem;
+                            }
+
+                            .tracker-progress-fill {
+                                position: absolute;
+                                inset: 0;
+                                width: 0;
+                                display: flex;
+                                align-items: center;
+                                justify-content: flex-end;
+                                border-radius: inherit;
+                                background: linear-gradient(90deg, rgba(249, 168, 38, 0.8), rgba(239, 68, 68, 0.95));
+                                animation: tracker-progress-advance 1.2s ease forwards;
+                                animation-delay: 0.05s;
+                            }
+
+                            .tracker-progress-fill-complete {
+                                background: linear-gradient(90deg, rgba(34, 197, 94, 0.85), rgba(56, 189, 248, 0.9));
+                            }
+
+                            .tracker-progress-fill::after {
+                                content: '';
+                                position: absolute;
+                                inset: 0;
+                                background: linear-gradient(90deg, rgba(255, 255, 255, 0.25), transparent 55%);
+                                mix-blend-mode: screen;
+                            }
+
+                            .tracker-progress-glow {
+                                position: absolute;
+                                right: -14px;
+                                top: 50%;
+                                width: 28px;
+                                height: 28px;
+                                transform: translateY(-50%);
+                                background: radial-gradient(circle at center, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+                                pointer-events: none;
+                            }
+
+                            @keyframes tracker-progress-advance {
+                                0% {
+                                    width: 0;
+                                }
+                                100% {
+                                    width: var(--tracker-progress-target);
+                                }
+                            }
                         `}</style>
 
-                        <div className="relative h-2 w-full overflow-hidden rounded-full bg-white/15">
+                        <div className="tracker-progress-container tracker-progress-hero">
                             <div
-                                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 transition-all duration-700"
-                                style={{ width: `${progressPercent}%` }}
-                            />
+                                key={`hero-progress-${progressAnimationKey}`}
+                                className={`tracker-progress-fill ${isOrderCompleted ? 'tracker-progress-fill-complete' : ''}`}
+                                style={{
+                                    '--tracker-progress-target': `${clampedProgressPercent}%`,
+                                } as React.CSSProperties}
+                            >
+                                <span className="tracker-progress-glow" />
+                            </div>
                         </div>
 
                         <div className="rounded-2xl bg-black/25 p-4 sm:p-5">
                             <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Informations</p>
-                            <div className="mt-3 space-y-2 text-sm">
-                                {hasClientDetails ? (
-                                    <>
-                                        {clientName && (
-                                            <div className="flex items-center gap-2 text-white/80">
-                                                <User size={16} />
-                                                <span className="truncate" title={clientName}>{clientName}</span>
-                                            </div>
-                                        )}
-                                        {clientPhone && (
-                                            <div className="flex items-center gap-2 text-white/80">
-                                                <Phone size={16} />
-                                                <span className="truncate" title={clientPhone}>{clientPhone}</span>
-                                            </div>
-                                        )}
-                                        {clientAddress && (
-                                            <div className="flex items-center gap-2 text-white/80">
-                                                <MapPin size={16} />
-                                                <span className="truncate" title={clientAddress}>{clientAddress}</span>
-                                            </div>
-                                        )}
-                                    </>
-                                ) : (
-                                    <p className="text-white/70">Aucune information client requise.</p>
-                                )}
-                            </div>
-                            <div className="mt-4 flex flex-col gap-2 text-sm">
-                                {order.receipt_url && (
-                                    <button
-                                        onClick={() => setReceiptModalOpen(true)}
-                                        className="inline-flex items-center gap-2 self-start rounded-full bg-white/15 px-4 py-2 font-semibold text-white transition hover:bg-white/25"
-                                    >
-                                        <Receipt size={16} /> Voir le justificatif
-                                    </button>
-                                )}
-                                <span className="text-xs font-medium text-white/60">Mise à jour automatique toutes les 5 secondes.</span>
+                            <div className="mt-3 flex flex-col gap-4 text-sm sm:flex-row sm:items-start sm:justify-between">
+                                <div className="space-y-2">
+                                    {hasClientDetails ? (
+                                        <>
+                                            {clientName && (
+                                                <div className="flex items-center gap-2 text-white/80">
+                                                    <User size={16} />
+                                                    <span className="truncate" title={clientName}>{clientName}</span>
+                                                </div>
+                                            )}
+                                            {clientPhone && (
+                                                <div className="flex items-center gap-2 text-white/80">
+                                                    <Phone size={16} />
+                                                    <span className="truncate" title={clientPhone}>{clientPhone}</span>
+                                                </div>
+                                            )}
+                                            {clientAddress && (
+                                                <div className="flex items-center gap-2 text-white/80">
+                                                    <MapPin size={16} />
+                                                    <span className="truncate" title={clientAddress}>{clientAddress}</span>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <p className="text-white/70">Aucune information client requise.</p>
+                                    )}
+                                </div>
+                                <div className="flex flex-col items-start gap-2 text-sm sm:min-w-[12rem] sm:items-end sm:text-right">
+                                    {order.receipt_url && (
+                                        <button
+                                            onClick={() => setReceiptModalOpen(true)}
+                                            className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 font-semibold text-white transition hover:bg-white/25"
+                                        >
+                                            <Receipt size={16} /> Voir le justificatif
+                                        </button>
+                                    )}
+                                    <span className="text-xs font-medium text-white/60">Mise à jour automatique toutes les 5 secondes.</span>
+                                </div>
                             </div>
                         </div>
 
@@ -533,26 +599,12 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                 </div>
                             ) : null}
 
-                            <div className="mt-6 space-y-2 text-sm text-white/70">
-                                {order.subtotal !== undefined && order.subtotal !== null && (
-                                    <div className="flex items-center justify-between">
-                                        <span>Sous-total</span>
-                                        <span>{formatCurrencyCOP(order.subtotal)}</span>
-                                    </div>
-                                )}
-                                {totalDiscount > 0 && (
-                                    <div className="flex items-center justify-between text-emerald-200">
-                                        <span>Réductions</span>
-                                        <span className="font-semibold">- {formatCurrencyCOP(totalDiscount)}</span>
-                                    </div>
-                                )}
-                                {totalDiscount > 0 && order.subtotal !== undefined && order.subtotal !== null && (
-                                    <div className="flex items-center justify-between">
-                                        <span>Sous-total après réductions</span>
-                                        <span>{formatCurrencyCOP(subtotalAfterDiscounts)}</span>
-                                    </div>
-                                )}
-                            </div>
+                            {totalDiscount > 0 && (
+                                <div className="mt-5 flex items-center justify-between rounded-xl border border-emerald-300/30 bg-emerald-500/15 px-3 py-2 text-sm font-semibold text-emerald-100">
+                                    <span>Réductions totales</span>
+                                    <span>- {formatCurrencyCOP(totalDiscount)}</span>
+                                </div>
+                            )}
 
                             <div className="mt-4 flex items-center justify-between border-t border-white/15 pt-3 text-base font-semibold text-white">
                                 <span>Total de la commande</span>
@@ -616,9 +668,16 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
 
                             return (
                                 <React.Fragment key={step.name}>
-                                    <div className="flex flex-col items-center text-center">
+                                    <div className="flex flex-col items-center text-center gap-2 sm:gap-3">
+                                        <p
+                                            className={`text-xs sm:text-sm font-semibold ${
+                                                isCompleted || isActive ? 'text-gray-900' : 'text-gray-400'
+                                            }`}
+                                        >
+                                            {step.name}
+                                        </p>
                                         <div
-                                            className={`flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full border-4 transition-all duration-500 ${
+                                            className={`relative flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full border-4 transition-all duration-500 ${
                                                 isCompleted
                                                     ? 'bg-green-500 border-green-300'
                                                     : isActive
@@ -626,22 +685,14 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                                         : 'bg-gray-400 border-gray-300'
                                             }`}
                                         >
-                                            <step.icon className={`w-6 h-6 sm:w-8 sm:h-8 ${variant === 'hero' ? 'text-white' : 'text-white'}`} />
+                                            <step.icon className="h-8 w-8 text-white sm:h-9 sm:w-9" />
+                                            {isCompleted && (
+                                                <CheckCircle className="absolute -top-2 -right-2 h-5 w-5 text-emerald-100 drop-shadow" />
+                                            )}
                                         </div>
                                         <p
-                                            className={`mt-2 text-xs sm:text-sm font-semibold ${
-                                                isCompleted || isActive
-                                                    ? `${variant === 'hero' ? 'text-white' : 'text-gray-800'}`
-                                                    : `${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'}`
-                                            }`}
-                                        >
-                                            {step.name}
-                                        </p>
-                                        <p
-                                            className={`mt-1 text-[11px] sm:text-xs leading-snug ${
-                                                isCompleted || isActive
-                                                    ? `${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`
-                                                    : `${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'}`
+                                            className={`text-[11px] sm:text-xs leading-snug ${
+                                                isCompleted || isActive ? 'text-gray-600' : 'text-gray-400'
                                             }`}
                                         >
                                             {step.description}
@@ -1003,20 +1054,48 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                             order.items.map(item => {
                                 const isDomicilio = item.nom_produit === 'Domicilio';
                                 const isFreeShipping = isDomicilio && item.prix_unitaire === 0;
-                                
+                                const potentialDescription = (item as { description?: string | null }).description;
+                                const itemDescription = typeof potentialDescription === 'string' && potentialDescription.trim().length > 0
+                                    ? potentialDescription.trim()
+                                    : null;
+                                const itemComment = typeof item.commentaire === 'string' && item.commentaire.trim().length > 0
+                                    ? item.commentaire.trim()
+                                    : null;
+
                                 return (
-                                    <div key={item.id} className={`flex justify-between items-center ${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`}>
-                                        <span className="text-[clamp(0.95rem,1.8vw,1.1rem)] leading-snug break-words text-balance whitespace-normal [hyphens:auto]">
-                                            {item.quantite}x {item.nom_produit}
-                                        </span>
-                                        {isFreeShipping ? (
-                                            <div className="flex items-center space-x-2">
-                                                <span className={`text-sm ${variant === 'hero' ? 'text-gray-400' : 'text-gray-400'} line-through`}>{formatCurrencyCOP(8000)}</span>
-                                                <span className="text-sm font-bold text-green-600">GRATIS</span>
+                                    <div
+                                        key={item.id}
+                                        className={`flex flex-col gap-2 rounded-lg border-b border-dashed border-gray-200/70 pb-3 pt-2 last:border-b-0 last:pb-0 ${
+                                            variant === 'hero' ? 'text-gray-200' : 'text-gray-600'
+                                        }`}
+                                    >
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex-1">
+                                                <p className="text-[clamp(0.95rem,1.8vw,1.1rem)] font-semibold leading-snug text-balance">
+                                                    {item.quantite}x {item.nom_produit}
+                                                </p>
+                                                {itemDescription && (
+                                                    <p className="mt-1 text-sm text-gray-500">
+                                                        {itemDescription}
+                                                    </p>
+                                                )}
+                                                {itemComment && (
+                                                    <p className="mt-1 text-sm italic text-amber-600">
+                                                        “{itemComment}”
+                                                    </p>
+                                                )}
                                             </div>
-                                        ) : (
-                                            <span>{formatCurrencyCOP(item.prix_unitaire * item.quantite)}</span>
-                                        )}
+                                            <div className="whitespace-nowrap text-right text-sm font-semibold">
+                                                {isFreeShipping ? (
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="text-xs text-gray-400 line-through">{formatCurrencyCOP(8000)}</span>
+                                                        <span className="text-sm font-bold text-green-600">GRATIS</span>
+                                                    </div>
+                                                ) : (
+                                                    <span>{formatCurrencyCOP(item.prix_unitaire * item.quantite)}</span>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 );
                             })
@@ -1028,26 +1107,16 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                     {isTakeawayOrder && promotionsSectionContent}
 
                     {/* Affichage du subtotal, des promotions et des codes promo */}
-                    {(order.subtotal !== undefined && order.subtotal !== null) && (
-                        <div className={`flex justify-between ${variant === 'hero' ? 'text-gray-300' : 'text-gray-600'}`}>
-                            <span>Subtotal</span>
-                            <span>{formatCurrencyCOP(order.subtotal)}</span>
-                        </div>
-                    )}
-
                     {!isTakeawayOrder && promotionsSectionContent}
 
                     {totalDiscount > 0 && (
-                        <div className={`flex justify-between ${variant === 'hero' ? 'text-green-200' : 'text-green-700'}`}>
-                            <span className="text-sm font-semibold">Réductions totales</span>
-                            <span className="text-sm font-semibold">-{formatCurrencyCOP(totalDiscount)}</span>
-                        </div>
-                    )}
-
-                    {totalDiscount > 0 && order.subtotal !== undefined && order.subtotal !== null && (
-                        <div className={`flex justify-between ${variant === 'hero' ? 'text-gray-200' : 'text-gray-600'}`}>
-                            <span>Sous-total après réductions</span>
-                            <span>{formatCurrencyCOP(subtotalAfterDiscounts)}</span>
+                        <div className={`mt-4 flex items-center justify-between rounded-lg border px-3 py-2 text-sm font-semibold ${
+                            variant === 'hero'
+                                ? 'border-emerald-300/30 bg-emerald-500/15 text-emerald-100'
+                                : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                        }`}>
+                            <span>Réductions totales</span>
+                            <span>-{formatCurrencyCOP(totalDiscount)}</span>
                         </div>
                     )}
 
