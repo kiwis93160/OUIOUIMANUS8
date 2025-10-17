@@ -226,13 +226,6 @@ export interface SiteContent {
     text: string;
     style: SectionStyle;
   };
-  ordering: {
-    onlineEnabled: boolean;
-    activeHoursLabel: string;
-    onlineHighlight: string;
-    offlineTitle: string;
-    offlineSubtitle: string;
-  };
   whatsappNumber?: string;
   elementStyles: ElementStyles;
   elementRichText: ElementRichText;

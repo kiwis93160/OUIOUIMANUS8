@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { api } from '../services/api';
 import { Order, OrderItem } from '../types';
-import { Eye, User, MapPin, Phone, Power } from 'lucide-react';
+import { Eye, User, MapPin, Phone } from 'lucide-react';
 import Modal from '../components/Modal';
 import OrderTimer from '../components/OrderTimer';
 import { getOrderUrgencyStyles } from '../utils/orderUrgency';
 import { formatCurrencyCOP } from '../utils/formatIntegerAmount';
-import useSiteContent, { DEFAULT_SITE_CONTENT } from '../hooks/useSiteContent';
 
 
 const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => void, onDeliver?: (orderId: string) => void, isProcessing?: boolean }> = ({ order, onValidate, onDeliver, isProcessing }) => {
@@ -15,6 +14,11 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
     const displayName = order.table_nom || `Pedido #${order.id.slice(-6)}`;
     const timerStart = order.date_envoi_cuisine || order.date_creation;
     const urgencyStyles = getOrderUrgencyStyles(timerStart);
+    const urgencyLabelMap: Record<typeof urgencyStyles.level, string> = {
+        normal: 'Normal',
+        warning: 'En seguimiento',
+        critical: 'Crítico',
+    };
     const hasAppliedPromotions = (order.applied_promotions?.length ?? 0) > 0;
     const showPromotionDetails = hasAppliedPromotions;
 
@@ -22,30 +26,30 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
         <>
             <div className={`relative flex h-full flex-col overflow-hidden rounded-xl border text-gray-900 shadow-md transition-shadow duration-300 hover:shadow-lg ${urgencyStyles.border} ${urgencyStyles.background}`}>
                 <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${urgencyStyles.accent}`} />
-                <header className="border-b border-gray-200 px-5 py-3">
-                    <div className="grid gap-1.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
-                        <div className="min-w-0 space-y-0.5">
+                <header className="border-b border-gray-200 px-5 py-4">
+                    <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+                        <div className="min-w-0 space-y-1">
                             <h4 className="truncate text-base font-semibold leading-tight text-gray-900 sm:text-lg md:text-xl">{displayName}</h4>
                             <p className="text-xs text-gray-500">
                                 Pedido enviado {new Date(timerStart).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                         </div>
-                        <div className="flex w-full justify-start sm:justify-end">
-                            <OrderTimer
-                                startTime={timerStart}
-                                variant="chip"
-                                label="Tiempo"
-                                accentClassName={urgencyStyles.accent}
-                                className="!px-3 !py-1"
-                            />
+                        <div className="flex flex-col items-start gap-2 sm:items-end">
+                            <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${urgencyStyles.badge}`}>
+                                <span className={`h-2 w-2 rounded-full ${urgencyStyles.accent}`} />
+                                <span>{urgencyLabelMap[urgencyStyles.level]}</span>
+                            </span>
+                            <div className="flex w-full justify-start sm:justify-end">
+                                <OrderTimer startTime={timerStart} className=" text-sm sm:text-base" />
+                            </div>
                         </div>
                     </div>
                 </header>
 
-                <div className="flex-1 overflow-hidden px-5 py-3">
-                    <div className="flex h-full flex-col gap-1">
+                <div className="flex-1 overflow-hidden px-5 py-4">
+                    <div className="flex h-full flex-col gap-4">
                         {order.clientInfo && (
-                            <section className="space-y-1 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-900 shadow-sm">
+                            <section className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-900 shadow-sm">
                                 {order.clientInfo.nom && (
                                     <div className="space-y-1">
                                         <div className="flex items-center gap-2 text-gray-900">
@@ -69,11 +73,11 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
                             </section>
                         )}
 
-                        <section className="flex min-h-[10rem] flex-col gap-1 overflow-hidden">
+                        <section className="flex min-h-[10rem] flex-col gap-3 overflow-hidden">
                             <h5 className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Artículos</h5>
                             <div className="flex-1 overflow-y-auto pr-1">
                                 {order.items.length > 0 ? (
-                                    <ul className="space-y-1">
+                                    <ul className="space-y-2">
                                         {order.items.map((item: OrderItem) => {
                                             const note = item.commentaire?.trim();
                                             return (
@@ -90,7 +94,7 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
                                                         <span className="whitespace-nowrap text-sm font-semibold text-gray-900 sm:text-base">{formatCurrencyCOP(item.prix_unitaire * item.quantite)}</span>
                                                     </div>
                                                     {note && (
-                                                        <p className="mt-1 rounded-md border border-dashed border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium italic text-blue-800">
+                                                        <p className="mt-2 rounded-md border border-dashed border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium italic text-blue-800">
                                                             {note}
                                                         </p>
                                                     )}
@@ -107,7 +111,7 @@ const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => v
                         </section>
 
                         {showPromotionDetails && (
-                            <section className="space-y-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 shadow-sm">
+                            <section className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 shadow-sm">
                                 {hasAppliedPromotions && (
                                     <ul className="space-y-1" aria-label="Promotions">
                                         {order.applied_promotions!.map(promotion => {
@@ -192,9 +196,6 @@ const ParaLlevar: React.FC = () => {
     const [readyOrders, setReadyOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [processingOrderId, setProcessingOrderId] = useState<string | null>(null);
-    const { content: siteContent, loading: siteContentLoading, updateContent } = useSiteContent();
-    const [savingOnlineOrdering, setSavingOnlineOrdering] = useState(false);
-    const [orderingFeedback, setOrderingFeedback] = useState<string | null>(null);
 
     const fetchOrders = useCallback(async () => {
         // Don't set loading to true on refetches for a smoother experience
@@ -248,92 +249,15 @@ const ParaLlevar: React.FC = () => {
         }
     };
 
-    const handleToggleOnlineOrdering = useCallback(async () => {
-        if (savingOnlineOrdering) {
-            return;
-        }
-
-        if (!siteContent) {
-            alert('El contenido del sitio aún no está disponible. Intenta de nuevo en unos segundos.');
-            return;
-        }
-
-        const nextEnabled = !siteContent.ordering.onlineEnabled;
-        setSavingOnlineOrdering(true);
-        setOrderingFeedback(null);
-
-        try {
-            await updateContent({
-                ...siteContent,
-                ordering: {
-                    ...siteContent.ordering,
-                    onlineEnabled: nextEnabled,
-                },
-            });
-            setOrderingFeedback(nextEnabled ? 'Pedidos en línea activados' : 'Pedidos en línea desactivados');
-        } catch (error) {
-            console.error('Failed to toggle online ordering availability', error);
-            setOrderingFeedback('No se pudo actualizar la disponibilidad. Intenta nuevamente.');
-        } finally {
-            setSavingOnlineOrdering(false);
-        }
-    }, [savingOnlineOrdering, siteContent, updateContent]);
-
-    const resolvedSiteContent = siteContent ?? DEFAULT_SITE_CONTENT;
-    const orderingSettings = resolvedSiteContent.ordering;
-    const toggleDisabled = siteContentLoading || savingOnlineOrdering || !siteContent;
-
     if (loading) return <div className="text-gray-700">Cargando pedidos para llevar...</div>;
 
     return (
-        <div className="space-y-5">
-            <div className="rounded-2xl border border-dashed border-blue-200/70 bg-gradient-to-br from-blue-50/60 via-white/85 to-blue-100/60 p-5 shadow-sm backdrop-blur">
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div className="min-w-0 space-y-2 text-slate-800">
-                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-500">Disponibilidad pedidos en línea</p>
-                        <p className="text-lg font-bold text-slate-900">
-                            {orderingSettings.onlineEnabled ? 'Pedir en línea activo' : 'Pedir en línea inactivo'}
-                        </p>
-                        <p className="text-sm text-slate-600 break-words">{orderingSettings.activeHoursLabel}</p>
-                        {!orderingSettings.onlineEnabled && (
-                            <p className="text-sm font-medium text-amber-600">
-                                Activa esta opción para volver a recibir pedidos digitales.
-                            </p>
-                        )}
-                        {siteContentLoading && !siteContent && (
-                            <p className="text-xs font-medium uppercase tracking-[0.22em] text-slate-500">Cargando configuración...</p>
-                        )}
-                        {orderingFeedback && (
-                            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-blue-600">{orderingFeedback}</p>
-                        )}
-                    </div>
-                    <button
-                        type="button"
-                        onClick={handleToggleOnlineOrdering}
-                        disabled={toggleDisabled}
-                        className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
-                            orderingSettings.onlineEnabled
-                                ? 'bg-emerald-500 text-white hover:bg-emerald-400 focus-visible:outline-emerald-600'
-                                : 'bg-slate-900 text-white hover:bg-slate-800 focus-visible:outline-slate-900'
-                        } ${toggleDisabled ? 'cursor-not-allowed opacity-60' : ''}`}
-                        role="switch"
-                        aria-checked={orderingSettings.onlineEnabled}
-                    >
-                        <Power className="h-4 w-4" />
-                        {savingOnlineOrdering
-                            ? 'Actualizando...'
-                            : orderingSettings.onlineEnabled
-                                ? 'Desactivar pedidos en línea'
-                                : 'Activar pedidos en línea'}
-                    </button>
-                </div>
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="space-y-6">
+            <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2">
                 {/* Column for validation */}
                 <div className="bg-gray-100 p-4 rounded-xl">
                     <h2 className="text-lg sm:text-xl font-bold mb-4 text-center text-blue-700">Pendientes de validación ({pendingOrders.length})</h2>
-                    <div className="space-y-1.5">
+                    <div className="space-y-4">
                         {pendingOrders.length > 0 ? pendingOrders.map(order => (
                             <TakeawayCard key={order.id} order={order} onValidate={handleValidate} isProcessing={processingOrderId === order.id} />
                         )) : <p className="text-center text-gray-500 py-8">No hay pedidos para validar.</p>}
@@ -343,7 +267,7 @@ const ParaLlevar: React.FC = () => {
                 {/* Column for ready orders */}
                 <div className="bg-gray-100 p-4 rounded-xl">
                     <h2 className="text-lg sm:text-xl font-bold mb-4 text-center text-green-700">Pedidos listos ({readyOrders.length})</h2>
-                    <div className="space-y-1.5">
+                    <div className="space-y-4">
                         {readyOrders.length > 0 ? readyOrders.map(order => (
                             <TakeawayCard key={order.id} order={order} onDeliver={handleDeliver} isProcessing={processingOrderId === order.id} />
                         )) : <p className="text-center text-gray-500 py-8">No hay pedidos listos.</p>}
