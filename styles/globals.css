@@ -516,6 +516,11 @@ body {
   gap: clamp(1.5rem, 4vw, 2.5rem);
 }
 
+.section-hero__inner.section-hero__inner--compact {
+  padding-top: clamp(0.625rem, 1.5vw, 1.125rem);
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+}
+
 .hero-content {
   max-width: 720px;
   text-align: center;
