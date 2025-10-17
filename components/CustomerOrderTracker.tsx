@@ -530,13 +530,21 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                                 <span className="tracker-progress-glow" />
                             </div>
                         </div>
-
-                        <div className="rounded-2xl bg-black/25 p-4 sm:p-5">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Informations</p>
-                            <div className="mt-3 flex flex-col gap-4 text-sm sm:flex-row sm:items-start sm:justify-between">
-                                <div className="space-y-2">
-                                    {hasClientDetails ? (
-                                        <>
+                        <div className="relative">
+                            {isOrderCompleted && (
+                                <div
+                                    aria-hidden="true"
+                                    className="pointer-events-none absolute -top-6 right-4 z-20 inline-flex rotate-[-10deg] items-center justify-center rounded-full border-2 border-emerald-200/80 bg-emerald-500/90 px-6 py-2 text-lg font-black uppercase tracking-[0.35em] text-white shadow-[0_18px_35px_rgba(16,185,129,0.45)]"
+                                >
+                                    LISTO
+                                </div>
+                            )}
+                            <div className="rounded-2xl bg-black/25 p-4 sm:p-5">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Informations</p>
+                                <div className="mt-3 flex flex-col gap-4 text-sm sm:flex-row sm:items-start sm:justify-between">
+                                    <div className="space-y-2">
+                                        {hasClientDetails ? (
+                                            <>
                                             {clientName && (
                                                 <div className="flex items-center gap-2 text-white/80">
                                                     <User size={16} />
@@ -700,7 +708,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
         <div className={containerClasses}>
             <div className={contentClasses}>
                 <h2 className={`text-3xl font-bold text-center mb-2 ${variant === 'hero' ? 'text-white' : 'text-gray-800'}`}>Suivi de votre commande</h2>
-                <p className={`text-center font-semibold mb-8 ${variant === 'hero' ? 'text-gray-300' : 'text-gray-500'}`}>Commande #{order.id.slice(-6)}</p>
+                <p className={`text-center font-semibold mb-8 ${variant === 'hero' ? 'text-white' : 'text-gray-500'}`}>Commande #{order.id.slice(-6)}</p>
 
                 <div className="mb-8">
                     <div
