@@ -87,7 +87,7 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
     const nameClass = computeNameSizeClass(displayName);
 
     return (
-        <div className={`flex h-full flex-col overflow-hidden rounded-xl text-gray-900 shadow-lg transition-shadow duration-300 hover:shadow-xl ${urgencyStyles.border} ${urgencyStyles.background}`}>
+        <div className={`flex h-full min-w-[22rem] flex-col overflow-hidden rounded-xl text-gray-900 shadow-lg transition-shadow duration-300 hover:shadow-xl ${urgencyStyles.border} ${urgencyStyles.background}`}>
             <div className="flex flex-col gap-3 px-5 py-4">
                 <h3 className={`font-semibold leading-tight text-gray-900 ${nameClass}`}>
                     <span className="block max-w-full break-words text-balance">{displayName}</span>
@@ -112,12 +112,12 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
             <div className="flex-1 overflow-y-auto px-5">
                 <ul className="space-y-2 pb-4">
                     {groupedItems.map((item) => (
-                        <li key={item.key} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-3 shadow-sm">
+                        <li key={item.key} className="min-w-[22rem] rounded-lg border border-gray-200 bg-gray-50 px-3 py-3 shadow-sm">
                             <div className="flex items-center gap-3">
                                 <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white shadow-md ${urgencyStyles.accent}`}>
                                     {item.quantite}
                                 </span>
-                                <p className="text-[clamp(1rem,2.1vw,1.35rem)] font-semibold leading-snug text-gray-900 break-words text-balance whitespace-normal [hyphens:auto]">
+                                <p className="text-[clamp(1rem,2.1vw,1.35rem)] font-semibold leading-tight text-gray-900 whitespace-nowrap">
                                     {item.nom_produit}
                                 </p>
                             </div>
@@ -201,7 +201,7 @@ const Cuisine: React.FC = () => {
             {orders.length === 0 ? (
                 <div className="mt-6 flex flex-1 items-center justify-center text-2xl text-gray-500">No hay pedidos en preparación.</div>
             ) : (
-                <div className="mt-6 grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="mt-6 grid flex-1 grid-cols-1 justify-center gap-4 sm:[grid-template-columns:repeat(auto-fit,minmax(24rem,max-content))] sm:justify-start">
                     {orders.map(order => (
                         <KitchenTicketCard key={order.ticketKey} order={order} onReady={handleMarkAsReady} canMarkReady={canMarkReady} />
                     ))}

@@ -1,4 +1,4 @@
-import React, { useState, FormEvent, useEffect, useCallback, useRef } from 'react';
+import React, { useState, FormEvent, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../components/Modal';
@@ -23,6 +23,7 @@ import { resolveZoneFromElement } from '../components/SitePreviewCanvas';
 import { getHomeRedirectPath } from '../utils/navigation';
 import { DEFAULT_SITE_CONTENT as UTILS_DEFAULT_SITE_CONTENT } from '../utils/siteContent';
 import { withAppendedQueryParam } from '../utils/url';
+import { formatScheduleWindow, isWithinSchedule, minutesUntilNextChange } from '../utils/timeWindow';
 
 const DEFAULT_BRAND_LOGO = '/logo-brand.svg';
 
@@ -183,7 +184,7 @@ const Login: React.FC = () => {
   const safeContent = content ?? DEFAULT_SITE_CONTENT;
   useCustomFonts(safeContent.assets.library);
 
-  const { navigation, hero, about, menu: menuContent, findUs, footer } = safeContent;
+  const { navigation, hero, about, menu: menuContent, findUs, footer, onlineOrdering } = safeContent;
   const brandLogo = navigation.brandLogo ?? DEFAULT_BRAND_LOGO;
   const staffTriggerLogo = navigation.brandLogo ?? DEFAULT_BRAND_LOGO;
   const navigationBackgroundStyle = createBackgroundStyle(navigation.style);
@@ -230,6 +231,48 @@ const Login: React.FC = () => {
   };
 
   const elementRichText = safeContent.elementRichText ?? {};
+
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const updateNow = () => setNow(new Date());
+    updateNow();
+    const interval = window.setInterval(updateNow, 60000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  const orderingSchedule = onlineOrdering.schedule;
+  const scheduleWindowLabel = useMemo(
+    () => formatScheduleWindow(orderingSchedule, 'fr-FR'),
+    [orderingSchedule.startTime, orderingSchedule.endTime],
+  );
+  const isOrderingAvailable = isWithinSchedule(orderingSchedule, now);
+  const nextChangeMinutes = minutesUntilNextChange(orderingSchedule, now);
+
+  const countdownLabel = useMemo(() => {
+    if (nextChangeMinutes === null) {
+      return null;
+    }
+
+    if (nextChangeMinutes < 1) {
+      return 'Réouverture imminente';
+    }
+
+    if (nextChangeMinutes < 60) {
+      return `Réouverture dans environ ${nextChangeMinutes} min`;
+    }
+
+    const hours = Math.floor(nextChangeMinutes / 60);
+    const minutes = nextChangeMinutes % 60;
+    if (minutes === 0) {
+      return `Réouverture dans environ ${hours} h`;
+    }
+    return `Réouverture dans environ ${hours} h ${minutes.toString().padStart(2, '0')} min`;
+  }, [nextChangeMinutes]);
 
   const getRichTextHtml = (key: EditableElementKey): string | null => {
     const entry = elementRichText[key];
@@ -391,6 +434,13 @@ const Login: React.FC = () => {
     navigate('/commande-client');
   };
 
+  const handleHeroCtaClick = () => {
+    if (!isOrderingAvailable) {
+      return;
+    }
+    navigate('/commande-client');
+  };
+
   return (
     <div className="login-page">
       <header className="login-header" style={navigationBackgroundStyle}>
@@ -544,12 +594,14 @@ const Login: React.FC = () => {
                   hero.subtitle,
                 )}
                 <button
-                  onClick={() => navigate('/commande-client')}
-                  className="ui-btn ui-btn-accent hero-cta"
+                  onClick={handleHeroCtaClick}
+                  className={`ui-btn hero-cta ${isOrderingAvailable ? 'ui-btn-accent' : 'hero-cta--disabled'}`.trim()}
                   style={{
                     ...getElementBodyTextStyle('hero.ctaLabel'),
                     ...getElementBackgroundStyle('hero.ctaLabel'),
                   }}
+                  disabled={!isOrderingAvailable}
+                  aria-disabled={!isOrderingAvailable}
                 >
                   {renderRichTextElement(
                     'hero.ctaLabel',
@@ -561,6 +613,22 @@ const Login: React.FC = () => {
                     hero.ctaLabel,
                   )}
                 </button>
+                {!isOrderingAvailable && (
+                  <div className="hero-availability">
+                    <div className="hero-availability__icon">
+                      <Clock size={28} />
+                    </div>
+                    <div className="hero-availability__content">
+                      <p className="hero-availability__label">Commandes en ligne indisponibles</p>
+                      <p className="hero-availability__title">{onlineOrdering.closedTitle}</p>
+                      <p className="hero-availability__subtitle">
+                        {onlineOrdering.closedSubtitle || `Revenez entre ${scheduleWindowLabel}.`}
+                      </p>
+                      <p className="hero-availability__hours">{scheduleWindowLabel}</p>
+                      {countdownLabel && <p className="hero-availability__countdown">{countdownLabel}</p>}
+                    </div>
+                  </div>
+                )}
                 {orderHistory.length > 0 && (
                   <div className="hero-history">
                     {renderRichTextElement(

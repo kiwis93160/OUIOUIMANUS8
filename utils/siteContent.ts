@@ -7,6 +7,7 @@ import {
   ElementStyles,
   InstagramReview,
   InstagramReviewId,
+  OnlineOrderingSettings,
   SectionStyle,
   SiteAssets,
   SiteContent,
@@ -171,6 +172,26 @@ const resolveImage = (value: string | null | undefined, fallback: string | null)
 const sanitizeImage = (value: string | null | undefined): string | null => {
   const normalized = normalizeCloudinaryImageUrl(value);
   return normalized ?? null;
+};
+
+const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+const resolveTime = (value: string | null | undefined, fallback: string): string => {
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+
+  const trimmed = value.trim();
+  return TIME_PATTERN.test(trimmed) ? trimmed : fallback;
+};
+
+const sanitizeTime = (value: string | null | undefined, fallback: string): string => {
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+
+  const trimmed = value.trim();
+  return TIME_PATTERN.test(trimmed) ? trimmed : fallback;
 };
 
 const resolveInstagramReviewRecords = (
@@ -605,6 +626,14 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     text: 'Tous droits réservés.',
     style: DEFAULT_FOOTER_STYLE,
   },
+  onlineOrdering: {
+    schedule: {
+      startTime: '11:00',
+      endTime: '23:00',
+    },
+    closedTitle: 'Commandes en ligne indisponibles',
+    closedSubtitle: 'Revenez durant nos horaires de service pour commander vos plats préférés.',
+  },
   elementStyles: DEFAULT_ELEMENT_STYLES,
   elementRichText: DEFAULT_ELEMENT_RICH_TEXT,
   assets: DEFAULT_SITE_ASSETS,
@@ -674,11 +703,24 @@ export const resolveSiteContent = (content?: Partial<SiteContent> | null): SiteC
       text: resolveString(content?.footer?.text, base.footer.text),
       style: resolveSectionStyle(content?.footer?.style, base.footer.style),
     },
+    onlineOrdering: resolveOnlineOrderingSettings(content?.onlineOrdering, base.onlineOrdering),
     elementStyles: resolveElementStyles(content?.elementStyles ?? null, base.elementStyles),
     elementRichText: resolveElementRichText(content?.elementRichText ?? null, base.elementRichText),
     assets: resolveSiteAssets(content?.assets ?? null, DEFAULT_SITE_ASSETS),
   };
 };
+
+const resolveOnlineOrderingSettings = (
+  settings: Partial<OnlineOrderingSettings> | null | undefined,
+  fallback: OnlineOrderingSettings,
+): OnlineOrderingSettings => ({
+  schedule: {
+    startTime: resolveTime(settings?.schedule?.startTime ?? null, fallback.schedule.startTime),
+    endTime: resolveTime(settings?.schedule?.endTime ?? null, fallback.schedule.endTime),
+  },
+  closedTitle: resolveString(settings?.closedTitle ?? null, fallback.closedTitle),
+  closedSubtitle: resolveString(settings?.closedSubtitle ?? null, fallback.closedSubtitle),
+});
 
 export const sanitizeSiteContentInput = (content: SiteContent): SiteContent => ({
   navigation: {
@@ -738,6 +780,14 @@ export const sanitizeSiteContentInput = (content: SiteContent): SiteContent => (
   footer: {
     text: trimOrEmpty(content.footer.text),
     style: sanitizeSectionStyle(content.footer.style, DEFAULT_FOOTER_STYLE),
+  },
+  onlineOrdering: {
+    schedule: {
+      startTime: sanitizeTime(content.onlineOrdering.schedule.startTime, DEFAULT_SITE_CONTENT.onlineOrdering.schedule.startTime),
+      endTime: sanitizeTime(content.onlineOrdering.schedule.endTime, DEFAULT_SITE_CONTENT.onlineOrdering.schedule.endTime),
+    },
+    closedTitle: trimOrEmpty(content.onlineOrdering.closedTitle),
+    closedSubtitle: trimOrEmpty(content.onlineOrdering.closedSubtitle),
   },
   elementStyles: sanitizeElementStyles(content.elementStyles, DEFAULT_ELEMENT_STYLES),
   elementRichText: sanitizeElementRichText(content.elementRichText, DEFAULT_ELEMENT_RICH_TEXT),

@@ -1,11 +1,13 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { api } from '../services/api';
 import { Order, OrderItem } from '../types';
-import { Eye, User, MapPin, Phone } from 'lucide-react';
+import { Clock, Eye, User, MapPin, Phone } from 'lucide-react';
 import Modal from '../components/Modal';
 import OrderTimer from '../components/OrderTimer';
 import { getOrderUrgencyStyles } from '../utils/orderUrgency';
 import { formatCurrencyCOP } from '../utils/formatIntegerAmount';
+import useSiteContent from '../hooks/useSiteContent';
+import { formatScheduleWindow, isWithinSchedule } from '../utils/timeWindow';
 
 
 const TakeawayCard: React.FC<{ order: Order, onValidate?: (orderId: string) => void, onDeliver?: (orderId: string) => void, isProcessing?: boolean }> = ({ order, onValidate, onDeliver, isProcessing }) => {
@@ -196,6 +198,76 @@ const ParaLlevar: React.FC = () => {
     const [readyOrders, setReadyOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [processingOrderId, setProcessingOrderId] = useState<string | null>(null);
+    const { content: siteContent, updateContent, loading: siteContentLoading } = useSiteContent();
+    const [startTime, setStartTime] = useState('11:00');
+    const [endTime, setEndTime] = useState('23:00');
+    const [savingSchedule, setSavingSchedule] = useState(false);
+    const [scheduleFeedback, setScheduleFeedback] = useState<{ message: string; tone: 'success' | 'error' } | null>(null);
+    const [now, setNow] = useState(() => new Date());
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return undefined;
+        }
+
+        const updateNow = () => setNow(new Date());
+        updateNow();
+        const interval = window.setInterval(updateNow, 60000);
+        return () => window.clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        if (!siteContent) {
+            return;
+        }
+
+        setStartTime(siteContent.onlineOrdering.schedule.startTime);
+        setEndTime(siteContent.onlineOrdering.schedule.endTime);
+    }, [siteContent]);
+
+    const schedulePreview = useMemo(
+        () => formatScheduleWindow({ startTime, endTime }, 'fr-FR'),
+        [startTime, endTime],
+    );
+
+    const isScheduleValid = useMemo(() => {
+        const pattern = /^([01]\d|2[0-3]):([0-5]\d)$/;
+        return pattern.test(startTime) && pattern.test(endTime);
+    }, [startTime, endTime]);
+
+    const isCurrentlyOnline = useMemo(
+        () => isWithinSchedule({ startTime, endTime }, now),
+        [endTime, now, startTime],
+    );
+
+    const handleScheduleSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if (!siteContent || !isScheduleValid) {
+            return;
+        }
+
+        setSavingSchedule(true);
+        setScheduleFeedback(null);
+        try {
+            await updateContent({
+                ...siteContent,
+                onlineOrdering: {
+                    ...siteContent.onlineOrdering,
+                    schedule: {
+                        startTime,
+                        endTime,
+                    },
+                },
+            });
+            setScheduleFeedback({ message: 'Horaires mis à jour avec succès.', tone: 'success' });
+        } catch (error) {
+            console.error('Failed to update online ordering schedule', error);
+            const message = error instanceof Error ? error.message : 'Impossible de mettre à jour les horaires.';
+            setScheduleFeedback({ message, tone: 'error' });
+        } finally {
+            setSavingSchedule(false);
+        }
+    }, [endTime, isScheduleValid, siteContent, startTime, updateContent]);
 
     const fetchOrders = useCallback(async () => {
         // Don't set loading to true on refetches for a smoother experience
@@ -253,6 +325,75 @@ const ParaLlevar: React.FC = () => {
 
     return (
         <div className="space-y-6">
+            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+                <form onSubmit={handleScheduleSubmit} className="flex flex-col gap-6 p-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                                <Clock size={22} />
+                            </div>
+                            <div>
+                                <h2 className="text-base font-semibold text-gray-900">Disponibilité de la commande en ligne</h2>
+                                <p className="text-sm text-gray-500">
+                                    {siteContentLoading
+                                        ? 'Chargement des horaires...'
+                                        : `Plage actuelle : ${schedulePreview}`}
+                                </p>
+                            </div>
+                        </div>
+                        <span
+                            className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
+                                isCurrentlyOnline
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : 'bg-amber-100 text-amber-700'
+                            }`}
+                        >
+                            <span className={`h-2 w-2 rounded-full ${isCurrentlyOnline ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                            {isCurrentlyOnline ? 'Ouvert' : 'Fermé'}
+                        </span>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <label className="flex flex-col gap-2">
+                            <span className="text-sm font-medium text-gray-700">Heure de début</span>
+                            <input
+                                type="time"
+                                value={startTime}
+                                onChange={event => setStartTime(event.target.value)}
+                                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                                required
+                            />
+                        </label>
+                        <label className="flex flex-col gap-2">
+                            <span className="text-sm font-medium text-gray-700">Heure de fin</span>
+                            <input
+                                type="time"
+                                value={endTime}
+                                onChange={event => setEndTime(event.target.value)}
+                                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                                required
+                            />
+                        </label>
+                    </div>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        {scheduleFeedback && (
+                            <p
+                                className={`text-sm font-medium ${
+                                    scheduleFeedback.tone === 'success' ? 'text-emerald-600' : 'text-red-600'
+                                }`}
+                            >
+                                {scheduleFeedback.message}
+                            </p>
+                        )}
+                        <button
+                            type="submit"
+                            disabled={!isScheduleValid || savingSchedule || !siteContent}
+                            className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-blue-300"
+                        >
+                            {savingSchedule ? 'Enregistrement...' : 'Enregistrer les horaires'}
+                        </button>
+                    </div>
+                </form>
+            </div>
             <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2">
                 {/* Column for validation */}
                 <div className="bg-gray-100 p-4 rounded-xl">

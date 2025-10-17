@@ -7,13 +7,14 @@ import { Product, Category, OrderItem, Order } from '../types';
 import { api } from '../services/api';
 import { formatCurrencyCOP } from '../utils/formatIntegerAmount';
 import { uploadPaymentReceipt } from '../services/cloudinary';
-import { ShoppingCart, History, ArrowLeft, Trash2 } from 'lucide-react';
+import { ShoppingCart, History, ArrowLeft, Trash2, Clock } from 'lucide-react';
 import { storeActiveCustomerOrder, ONE_DAY_IN_MS } from '../services/customerOrderStorage';
 import ProductCardWithPromotion from '../components/ProductCardWithPromotion';
 import ActivePromotionsDisplay from '../components/ActivePromotionsDisplay';
 import { fetchActivePromotions, applyPromotionsToOrder, fetchPromotionByCode } from '../services/promotionsApi';
 import useSiteContent from '../hooks/useSiteContent';
-import { createHeroBackgroundStyle } from '../utils/siteStyleHelpers';
+import { formatScheduleWindow, isWithinSchedule, minutesUntilNextChange } from '../utils/timeWindow';
+import { DEFAULT_SITE_CONTENT } from '../utils/siteContent';
 import OrderConfirmationModal from '../components/OrderConfirmationModal';
 import CustomerOrderTracker from '../components/CustomerOrderTracker';
 
@@ -175,6 +176,7 @@ interface OrderMenuViewProps {
 const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
     const navigate = useNavigate();
     const { content: siteContent } = useSiteContent();
+    const safeContent = siteContent ?? DEFAULT_SITE_CONTENT;
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
@@ -198,6 +200,48 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
     const [promoCodeDiscount, setPromoCodeDiscount] = useState<number>(0);
     const [validatingPromoCode, setValidatingPromoCode] = useState<boolean>(false);
     const [isFreeShipping, setIsFreeShipping] = useState<boolean>(false);
+    const [now, setNow] = useState(() => new Date());
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return undefined;
+        }
+
+        const updateNow = () => setNow(new Date());
+        updateNow();
+        const interval = window.setInterval(updateNow, 60000);
+        return () => window.clearInterval(interval);
+    }, []);
+
+    const orderingSchedule = safeContent.onlineOrdering.schedule;
+    const scheduleWindowLabel = useMemo(
+        () => formatScheduleWindow(orderingSchedule, 'fr-FR'),
+        [orderingSchedule.startTime, orderingSchedule.endTime],
+    );
+    const isOrderingAvailable = isWithinSchedule(orderingSchedule, now);
+    const countdownMinutes = minutesUntilNextChange(orderingSchedule, now);
+
+    const countdownLabel = useMemo(() => {
+        if (countdownMinutes === null) {
+            return null;
+        }
+
+        if (countdownMinutes < 1) {
+            return 'Réouverture imminente';
+        }
+
+        if (countdownMinutes < 60) {
+            return `Réouverture dans environ ${countdownMinutes} min`;
+        }
+
+        const hours = Math.floor(countdownMinutes / 60);
+        const minutes = countdownMinutes % 60;
+        if (minutes === 0) {
+            return `Réouverture dans environ ${hours} h`;
+        }
+
+        return `Réouverture dans environ ${hours} h ${minutes.toString().padStart(2, '0')} min`;
+    }, [countdownMinutes]);
     const [freeShippingMinAmount, setFreeShippingMinAmount] = useState<number>(80000);
     const [orderType, setOrderType] = useState<'pedir_en_linea' | 'a_emporter'>('pedir_en_linea');
 
@@ -458,6 +502,39 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
             setSubmitting(false);
         }
     };
+
+    if (!isOrderingAvailable) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-orange-600 via-red-600 to-rose-600">
+                <div className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center px-6 py-16 text-center text-white">
+                    <div className="w-full rounded-3xl border border-white/20 bg-black/30 p-10 shadow-2xl backdrop-blur-xl">
+                        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/15 text-white">
+                            <Clock size={32} />
+                        </div>
+                        <h1 className="mt-6 text-3xl font-bold sm:text-4xl">{safeContent.onlineOrdering.closedTitle}</h1>
+                        <p className="mt-3 text-lg text-white/85">
+                            {safeContent.onlineOrdering.closedSubtitle || `Revenez entre ${scheduleWindowLabel} pour passer commande.`}
+                        </p>
+                        <p className="mt-6 text-sm font-semibold uppercase tracking-[0.3em] text-white/70">
+                            Horaires : {scheduleWindowLabel}
+                        </p>
+                        {countdownLabel && (
+                            <p className="mt-2 text-sm font-medium text-white/80">{countdownLabel}</p>
+                        )}
+                        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                            <button
+                                type="button"
+                                onClick={() => navigate('/')}
+                                className="inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-red-600"
+                            >
+                                Retour à l'accueil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col lg:flex-row">
