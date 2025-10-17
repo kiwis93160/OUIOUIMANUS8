@@ -324,12 +324,9 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
     const clampedProgressPercent = Math.max(0, Math.min(100, progressPercent));
     const progressAnimationKey = `${clampedProgressPercent}-${isOrderCompleted ? 'complete' : 'active'}`;
     const itemsCount = order.items?.length ?? 0;
-    const heroProgressStyle = useMemo<TrackerProgressStyle>(
-        () => ({
-            '--tracker-progress-target': `${clampedProgressPercent}%`,
-        }),
-        [clampedProgressPercent],
-    );
+    const heroProgressStyle: TrackerProgressStyle = {
+        '--tracker-progress-target': `${clampedProgressPercent}%`,
+    };
 
     if (variant === 'hero') {
         return (
