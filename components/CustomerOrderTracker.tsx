@@ -112,6 +112,36 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
 
     const currentStep = useMemo(() => getCurrentStepIndex(order), [order, getCurrentStepIndex]);
 
+    const heroProgressRef = useRef<HTMLDivElement | null>(null);
+
+    const stepCount = Math.max(steps.length - 1, 1);
+    const isOrderCompleted = Boolean(
+        order && (
+            order.statut === 'finalisee' ||
+            order.estado_cocina === 'servido' ||
+            order.estado_cocina === 'entregada' ||
+            order.estado_cocina === 'listo'
+        )
+    );
+    const normalizedStepIndex = Math.max(0, currentStep);
+    const progressPercent = stepCount > 0
+        ? Math.min(100, ((isOrderCompleted ? stepCount : normalizedStepIndex) / stepCount) * 100)
+        : 100;
+    const clampedProgressPercent = Math.max(0, Math.min(100, progressPercent));
+
+    useEffect(() => {
+        if (variant !== 'hero') {
+            return;
+        }
+
+        const node = heroProgressRef.current;
+        if (!node) {
+            return;
+        }
+
+        node.style.setProperty('--tracker-progress-target', `${clampedProgressPercent}%`);
+    }, [variant, clampedProgressPercent]);
+
     useEffect(() => {
         let isMounted = true;
         let interval: ReturnType<typeof setInterval> | null = null;
@@ -175,12 +205,6 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
             }
         };
     }, [orderId]);
-
-    const isOrderCompleted =
-        order?.statut === 'finalisee' ||
-        order?.estado_cocina === 'servido' ||
-        order?.estado_cocina === 'entregada' ||
-        order?.estado_cocina === 'listo';
 
     const containerClasses = variant === 'page'
         ? "container mx-auto p-4 lg:p-8"
@@ -316,28 +340,8 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
         )
         : null;
 
-    const stepCount = steps.length > 1 ? steps.length - 1 : 1;
-    const normalizedStepIndex = Math.max(0, currentStep);
-    const progressPercent = stepCount > 0
-        ? Math.min(100, ((isOrderCompleted ? stepCount : normalizedStepIndex) / stepCount) * 100)
-        : 100;
-    const clampedProgressPercent = Math.max(0, Math.min(100, progressPercent));
     const progressAnimationKey = `${clampedProgressPercent}-${isOrderCompleted ? 'complete' : 'active'}`;
     const itemsCount = order.items?.length ?? 0;
-    const heroProgressRef = useRef<HTMLDivElement | null>(null);
-
-    useEffect(() => {
-        if (variant !== 'hero') {
-            return;
-        }
-
-        const node = heroProgressRef.current;
-        if (!node) {
-            return;
-        }
-
-        node.style.setProperty('--tracker-progress-target', `${clampedProgressPercent}%`);
-    }, [variant, clampedProgressPercent]);
 
     if (variant === 'hero') {
         return (
