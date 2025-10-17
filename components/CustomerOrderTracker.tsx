@@ -11,6 +11,10 @@ import {
 } from '../services/customerOrderStorage';
 import Modal from './Modal';
 
+type TrackerProgressStyle = React.CSSProperties & {
+    '--tracker-progress-target': string;
+};
+
 const saveOrderToHistory = (order: Order) => {
     try {
         const historyJSON = localStorage.getItem('customer-order-history');
