@@ -713,7 +713,6 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                         </div>
                     </div>
                 </div>
-                </div>
                 <Modal
                     isOpen={isReceiptModalOpen}
                     onClose={() => setReceiptModalOpen(false)}
