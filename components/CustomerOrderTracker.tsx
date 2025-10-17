@@ -15,10 +15,6 @@ type TrackerProgressStyle = React.CSSProperties & {
     '--tracker-progress-target': string;
 };
 
-const getTrackerProgressStyle = (percent: number): TrackerProgressStyle => ({
-    '--tracker-progress-target': `${percent}%`,
-});
-
 const saveOrderToHistory = (order: Order) => {
     try {
         const historyJSON = localStorage.getItem('customer-order-history');
@@ -328,7 +324,12 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
     const clampedProgressPercent = Math.max(0, Math.min(100, progressPercent));
     const progressAnimationKey = `${clampedProgressPercent}-${isOrderCompleted ? 'complete' : 'active'}`;
     const itemsCount = order.items?.length ?? 0;
-    const heroProgressStyle = useMemo(() => getTrackerProgressStyle(clampedProgressPercent), [clampedProgressPercent]);
+    const heroProgressStyle = useMemo<TrackerProgressStyle>(
+        () => ({
+            '--tracker-progress-target': `${clampedProgressPercent}%`,
+        }),
+        [clampedProgressPercent],
+    );
 
     if (variant === 'hero') {
         return (
