@@ -217,14 +217,14 @@ const ProductCard: React.FC<{ product: Product; category?: Category; onEdit: () 
             <div className="p-4 flex flex-col flex-grow">
                 <div className="flex justify-between items-start">
                     <div>
-                        <p className="text-xs text-gray-500">{category?.nom || 'Sans catégorie'}</p>
-                        <h3 className="font-bold text-[clamp(1.05rem,2.2vw,1.35rem)] leading-snug text-gray-900 break-words text-balance whitespace-normal [hyphens:auto]">
+                        <p className="text-xs text-black">{category?.nom || 'Sans catégorie'}</p>
+                        <h3 className="font-bold text-[clamp(1.05rem,2.2vw,1.35rem)] leading-snug text-black break-words text-balance whitespace-normal [hyphens:auto]">
                             {product.nom_produit}
                         </h3>
                     </div>
-                <p className="text-xl font-extrabold text-brand-primary">{formatCurrencyCOP(product.prix_vente)}</p>
+                <p className="text-xl font-extrabold text-black">{formatCurrencyCOP(product.prix_vente)}</p>
                 </div>
-                 <p className="text-xs text-gray-600 mt-1 flex-grow">{product.description}</p>
+                 <p className="text-xs text-black mt-1 flex-grow">{product.description}</p>
                 
                 <div className="flex justify-between items-center mt-4">
                     <span className={`px-2 py-1 text-xs font-bold rounded-full flex items-center gap-1 ${color}`}>

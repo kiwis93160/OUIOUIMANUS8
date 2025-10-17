@@ -1231,6 +1231,20 @@ export const api = {
       return snapshot;
     };
 
+    const computePeriodProfit = (orders: Order[]) =>
+      orders.reduce((profit, order) => {
+        const snapshot = getSnapshotForOrder(order);
+        return (
+          profit +
+          order.items.reduce((acc, item, index) => {
+            const product = productMap.get(item.produitRef);
+            const cost = product ? calculateCost(product.recipe, ingredientMap) : 0;
+            const netTotal = snapshot.netPerItem[index] ?? item.prix_unitaire * item.quantite;
+            return acc + (netTotal - cost * item.quantite);
+          }, 0)
+        );
+      }, 0);
+
     const saleDateIso = toIsoString(todaysOrders[0]?.date_servido) ?? new Date().toISOString();
     const salesEntries = todaysOrders.flatMap(order => {
       const snapshot = getSnapshotForOrder(order);
@@ -1269,21 +1283,18 @@ export const api = {
     const panierMoyenDuJour = todaysOrders.length > 0 ? ventesDuJour / todaysOrders.length : 0;
 
     const ventesPeriode = currentPeriodOrders.reduce((sum, order) => sum + getSnapshotForOrder(order).totalRevenue, 0);
-    const beneficePeriode = currentPeriodOrders.reduce((profit, order) => {
-      const snapshot = getSnapshotForOrder(order);
-      return (
-        profit +
-        order.items.reduce((acc, item, index) => {
-          const product = productMap.get(item.produitRef);
-          const cost = product ? calculateCost(product.recipe, ingredientMap) : 0;
-          const netTotal = snapshot.netPerItem[index] ?? item.prix_unitaire * item.quantite;
-          return acc + (netTotal - cost * item.quantite);
-        }, 0)
-      );
-    }, 0);
+    const ventesPeriodePrecedente = previousPeriodOrders.reduce(
+      (sum, order) => sum + getSnapshotForOrder(order).totalRevenue,
+      0,
+    );
+    const beneficePeriode = computePeriodProfit(currentPeriodOrders);
+    const beneficePeriodePrecedente = computePeriodProfit(previousPeriodOrders);
 
     const clientsPeriode = currentPeriodOrders.reduce((sum, order) => sum + (order.couverts ?? 0), 0);
+    const clientsPeriodePrecedente = previousPeriodOrders.reduce((sum, order) => sum + (order.couverts ?? 0), 0);
     const panierMoyen = currentPeriodOrders.length > 0 ? ventesPeriode / currentPeriodOrders.length : 0;
+    const commandesPeriode = currentPeriodOrders.length;
+    const commandesPeriodePrecedente = previousPeriodOrders.length;
 
     const ventesParCategorieMap = new Map<string, number>();
     currentPeriodOrders.forEach(order => {
@@ -1367,9 +1378,14 @@ export const api = {
       periodStart: startIso,
       periodEnd: endIso,
       ventesPeriode,
+      ventesPeriodePrecedente,
       beneficePeriode,
+      beneficePeriodePrecedente,
       clientsPeriode,
+      clientsPeriodePrecedente,
       panierMoyen,
+      commandesPeriode,
+      commandesPeriodePrecedente,
       tablesOccupees,
       clientsActuels,
       commandesEnCuisine,

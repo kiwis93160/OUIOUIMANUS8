@@ -191,13 +191,13 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
 
     const containerClasses = variant === 'page'
         ? "container mx-auto p-4 lg:p-8"
-        : "flex-1 flex flex-col justify-center items-center text-center text-white p-4 bg-black bg-opacity-60 w-full";
+        : "w-full px-4 py-6 flex justify-center";
 
     const contentClasses = variant === 'page'
         ? "bg-white/95 p-6 rounded-xl shadow-2xl max-w-2xl mx-auto"
         : "max-w-4xl mx-auto";
 
-    const detailContainerClasses = `${variant === 'hero' ? 'bg-black/20 p-4 rounded-lg' : 'border-t pt-6 mt-6'} space-y-4 relative ${variant === 'page' ? 'md:w-1/2 md:mx-auto' : 'w-full'}`;
+    const detailContainerClasses = 'border-t pt-6 mt-6 space-y-4 relative md:w-1/2 md:mx-auto';
 
     if (loading) {
         return <div className={containerClasses}>Chargement du suivi de commande...</div>;
@@ -300,6 +300,232 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
             </div>
         </div>
     ) : null;
+
+    const stepCount = steps.length > 1 ? steps.length - 1 : 1;
+    const normalizedStepIndex = Math.max(0, currentStep);
+    const progressPercent = stepCount > 0
+        ? Math.min(100, ((isOrderCompleted ? stepCount : normalizedStepIndex) / stepCount) * 100)
+        : 100;
+    const currentStepLabel = steps[Math.min(steps.length - 1, normalizedStepIndex)]?.name ?? steps[0]?.name ?? '';
+    const itemsCount = order.items?.length ?? 0;
+
+    if (variant === 'hero') {
+        return (
+            <div className={containerClasses}>
+                <div className="relative w-full max-w-4xl overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-br from-slate-900/90 via-slate-900/75 to-slate-900/60 p-6 text-white shadow-2xl backdrop-blur-xl sm:p-8">
+                    <div className="pointer-events-none absolute inset-0 opacity-70">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_65%)]" />
+                        <div className="absolute -bottom-32 right-0 h-64 w-64 rounded-full bg-gradient-to-br from-amber-400/30 via-orange-500/20 to-red-500/30 blur-3xl" />
+                    </div>
+                    <div className="relative flex flex-col gap-6">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/60">Commande active</p>
+                                <h2 className="mt-2 text-3xl font-bold sm:text-4xl">Commande #{order.id.slice(-6)}</h2>
+                                <p className="text-sm text-white/65">Suivi en temps réel</p>
+                            </div>
+                            <div className="flex flex-col gap-1 rounded-2xl bg-black/30 px-4 py-3 text-sm font-semibold text-white shadow-inner sm:items-end">
+                                <span className="text-xs uppercase tracking-wide text-white/60">Étape en cours</span>
+                                <span>{currentStepLabel || 'Traitement'}</span>
+                                <span className="text-xs font-medium text-white/70">Prochaine étape : {nextStepLabel}</span>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                            {steps.map((step, index) => {
+                                const isActive = index === currentStep;
+                                const isFinalStep = index === steps.length - 1;
+                                const isCompletedStep = index < currentStep || (isFinalStep && isOrderCompleted);
+                                const baseClasses = 'rounded-2xl border p-4 transition-all sm:p-5';
+                                const stateClasses = isCompletedStep
+                                    ? 'bg-gradient-to-br from-emerald-400/80 to-emerald-600/80 border-white/30 shadow-lg shadow-emerald-500/25'
+                                    : isActive
+                                        ? 'bg-gradient-to-br from-amber-400/90 via-orange-500/85 to-red-500/90 border-white/25 shadow-lg shadow-orange-500/20'
+                                        : 'bg-white/10 border-white/10 backdrop-blur';
+
+                                return (
+                                    <div
+                                        key={step.name}
+                                        className={`${baseClasses} ${stateClasses} ${isActive ? 'scale-[1.02]' : ''}`}
+                                    >
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div className={`rounded-xl bg-black/25 p-2 ${isCompletedStep || isActive ? 'text-white' : 'text-white/70'}`}>
+                                                <step.icon className="h-5 w-5" />
+                                            </div>
+                                            {isCompletedStep && (
+                                                <CheckCircle className="h-5 w-5 text-white/90" />
+                                            )}
+                                        </div>
+                                        <p className="mt-3 text-sm font-semibold leading-tight text-white">{step.name}</p>
+                                        <p className="mt-1 text-xs leading-relaxed text-white/70">{step.description}</p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className="relative h-2 w-full overflow-hidden rounded-full bg-white/15">
+                            <div
+                                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 transition-all duration-700"
+                                style={{ width: `${progressPercent}%` }}
+                            />
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="rounded-2xl bg-black/25 p-4 sm:p-5">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Résumé</p>
+                                <div className="mt-3 space-y-3 text-sm">
+                                    <div className="flex items-center justify-between text-white/80">
+                                        <span>Statut</span>
+                                        <span className="font-semibold text-white">{isOrderCompleted ? 'Commande prête' : currentStepLabel || 'Traitement'}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-white/80">
+                                        <span>Total</span>
+                                        <span className="font-semibold text-white">{formatCurrencyCOP(order.total)}</span>
+                                    </div>
+                                    {totalDiscount > 0 && (
+                                        <div className="flex items-center justify-between text-emerald-200/90">
+                                            <span>Réductions</span>
+                                            <span className="font-semibold">- {formatCurrencyCOP(totalDiscount)}</span>
+                                        </div>
+                                    )}
+                                    {order.subtotal !== undefined && order.subtotal !== null && (
+                                        <div className="flex items-center justify-between text-white/70">
+                                            <span>Sous-total</span>
+                                            <span>{formatCurrencyCOP(order.subtotal)}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center justify-between text-white/70">
+                                        <span>Type</span>
+                                        <span className="font-semibold text-white">{isTakeawayOrder ? 'À emporter' : 'Sur place'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="rounded-2xl bg-black/25 p-4 sm:p-5">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Informations</p>
+                                <div className="mt-3 space-y-2 text-sm">
+                                    {hasClientDetails ? (
+                                        <>
+                                            {clientName && (
+                                                <div className="flex items-center gap-2 text-white/80">
+                                                    <User size={16} />
+                                                    <span className="truncate" title={clientName}>{clientName}</span>
+                                                </div>
+                                            )}
+                                            {clientPhone && (
+                                                <div className="flex items-center gap-2 text-white/80">
+                                                    <Phone size={16} />
+                                                    <span className="truncate" title={clientPhone}>{clientPhone}</span>
+                                                </div>
+                                            )}
+                                            {clientAddress && (
+                                                <div className="flex items-center gap-2 text-white/80">
+                                                    <MapPin size={16} />
+                                                    <span className="truncate" title={clientAddress}>{clientAddress}</span>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <p className="text-white/70">Aucune information client requise.</p>
+                                    )}
+                                </div>
+                                <div className="mt-4 flex flex-col gap-2 text-sm">
+                                    {order.receipt_url && (
+                                        <button
+                                            onClick={() => setReceiptModalOpen(true)}
+                                            className="inline-flex items-center gap-2 self-start rounded-full bg-white/15 px-4 py-2 font-semibold text-white transition hover:bg-white/25"
+                                        >
+                                            <Receipt size={16} /> Voir le justificatif
+                                        </button>
+                                    )}
+                                    <span className="text-xs font-medium text-white/60">Mise à jour automatique toutes les 5 secondes.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="rounded-2xl bg-black/20 p-4 sm:p-5">
+                            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-white/60">
+                                <span>Articles ({itemsCount})</span>
+                                <span>Total : {formatCurrencyCOP(order.total)}</span>
+                            </div>
+                            <div className="mt-3 max-h-48 space-y-3 overflow-y-auto pr-1 text-sm">
+                                {order.items && order.items.length > 0 ? (
+                                    order.items.map(item => {
+                                        const isDomicilio = item.nom_produit === 'Domicilio';
+                                        const isFreeShipping = isDomicilio && item.prix_unitaire === 0;
+
+                                        return (
+                                            <div key={item.id} className="flex items-start justify-between gap-3 rounded-xl border border-white/10 bg-black/25 px-3 py-2">
+                                                <div className="flex flex-1 items-start gap-3">
+                                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/90 to-red-500/90 text-sm font-bold text-white shadow-md">
+                                                        {item.quantite}
+                                                    </span>
+                                                    <div className="flex-1">
+                                                        <p className="font-semibold text-white">{item.nom_produit}</p>
+                                                        <p className="text-xs text-white/60">{formatCurrencyCOP(item.prix_unitaire)} /u</p>
+                                                        {item.commentaire && (
+                                                            <p className="mt-1 text-xs italic text-white/60">“{item.commentaire}”</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="text-right text-sm font-semibold text-white">
+                                                    {isFreeShipping ? (
+                                                        <span className="text-emerald-200">GRATUIT</span>
+                                                    ) : (
+                                                        formatCurrencyCOP(item.prix_unitaire * item.quantite)
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <p className="text-white/70">Aucun article enregistré pour cette commande.</p>
+                                )}
+                            </div>
+                        </div>
+
+                        {promotionsSection ? (
+                            <div className="rounded-2xl bg-black/20 p-4 sm:p-5">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-white/60">Promotions appliquées</p>
+                                <div className="mt-3 space-y-3">{promotionsSection}</div>
+                            </div>
+                        ) : null}
+
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            {isOrderCompleted ? (
+                                <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-4 py-2 text-sm font-semibold text-emerald-200">
+                                    <CheckCircle size={16} /> Commande prête
+                                </span>
+                            ) : (
+                                <span className="text-xs font-medium uppercase tracking-wide text-white/60">Nous préparons votre commande</span>
+                            )}
+                            <button
+                                onClick={isOrderCompleted ? onNewOrderClick : undefined}
+                                disabled={!isOrderCompleted}
+                                className={`inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition ${
+                                    isOrderCompleted
+                                        ? 'bg-white text-amber-600 shadow-lg hover:bg-white/90'
+                                        : 'cursor-not-allowed bg-white/10 text-white/50'
+                                }`}
+                            >
+                                Revenir au menu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <Modal
+                    isOpen={isReceiptModalOpen}
+                    onClose={() => setReceiptModalOpen(false)}
+                    title="Justificatif de Paiement"
+                >
+                    {order.receipt_url ? (
+                        <img src={order.receipt_url} alt="Justificatif" className="h-auto w-full rounded-md" />
+                    ) : (
+                        <p>Aucun justificatif fourni.</p>
+                    )}
+                </Modal>
+            </div>
+        );
+    }
 
     return (
         <div className={containerClasses}>

@@ -41,18 +41,18 @@ const ProductCardWithPromotion: React.FC<ProductCardWithPromotionProps> = ({ pro
       
       {/* Nom du produit */}
       <p
-        className="font-semibold flex-grow text-gray-800 leading-snug text-[clamp(1.05rem,2.4vw,1.3rem)] break-words text-balance whitespace-normal [hyphens:auto]"
+        className="font-semibold flex-grow text-black leading-snug text-[clamp(1.05rem,2.4vw,1.3rem)] break-words text-balance whitespace-normal [hyphens:auto]"
       >
         {product.nom_produit}
       </p>
-      
+
       {/* Description */}
-      <p className="text-base text-gray-600 mt-2 px-1 max-h-20 overflow-hidden">
+      <p className="text-base text-black mt-2 px-1 max-h-20 overflow-hidden">
         {product.description}
       </p>
-      
+
       {/* Prix */}
-      <p className="font-bold text-2xl text-gray-800 mt-3">
+      <p className="font-bold text-2xl text-black mt-3">
         {formatCurrencyCOP(product.prix_vente)}
       </p>
       

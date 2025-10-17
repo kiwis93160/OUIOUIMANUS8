@@ -677,7 +677,7 @@ const Commande: React.FC = () => {
 
     return (
         <>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)] lg:items-start lg:min-h-[calc(100vh-10rem)]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2.15fr)_minmax(0,0.85fr)] lg:items-start lg:min-h-[calc(100vh-10rem)]">
             {/* Menu Section */}
             <div className="ui-card flex h-full flex-col overflow-hidden">
                 <div className="p-4">
@@ -706,7 +706,7 @@ const Commande: React.FC = () => {
             <div className="flex flex-col lg:h-full">
                 <div className="lg:sticky lg:top-24">
                     <OrderSummary
-                        className="mt-6 lg:mt-0 lg:h-full"
+                        className="mt-6 lg:mt-0 lg:h-full lg:max-w-[420px] lg:mx-auto"
                         categorizedItems={categorizedItems}
                         order={order}
                         total={order.total}
