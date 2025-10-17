@@ -330,8 +330,24 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
                         <div className="absolute -bottom-32 right-0 h-64 w-64 rounded-full bg-gradient-to-br from-amber-400/30 via-orange-500/20 to-red-500/30 blur-3xl" />
                     </div>
                     <div className="relative flex flex-col gap-6">
+                        {isOrderCompleted && (
+                            <div className="pointer-events-none absolute -top-6 right-4 sm:right-8">
+                                <div className="relative" style={{ transform: 'rotate(10deg)' }}>
+                                    <div className="stamp-container scale-75 sm:scale-90">
+                                        <div className="stamp-border">
+                                            <div className="stamp-inner">
+                                                <span className="stamp-text">PEDIDO</span>
+                                                <span className="stamp-text stamp-text-large">LISTO</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         <div className="flex flex-col items-center gap-2 text-center">
-                            <h2 className="text-3xl font-bold text-center sm:text-4xl">Commande #{order.id.slice(-6)}</h2>
+                            <h2 className="text-3xl font-bold text-center text-white sm:text-4xl">
+                                Commande #{order.id.slice(-6)}
+                            </h2>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -700,7 +716,7 @@ const CustomerOrderTracker: React.FC<CustomerOrderTrackerProps> = ({ orderId, on
         <div className={containerClasses}>
             <div className={contentClasses}>
                 <h2 className={`text-3xl font-bold text-center mb-2 ${variant === 'hero' ? 'text-white' : 'text-gray-800'}`}>Suivi de votre commande</h2>
-                <p className={`text-center font-semibold mb-8 ${variant === 'hero' ? 'text-gray-300' : 'text-gray-500'}`}>Commande #{order.id.slice(-6)}</p>
+                <p className={`text-center font-semibold mb-8 ${variant === 'hero' ? 'text-white' : 'text-gray-500'}`}>Commande #{order.id.slice(-6)}</p>
 
                 <div className="mb-8">
                     <div
