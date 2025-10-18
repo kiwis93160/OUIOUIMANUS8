@@ -1881,6 +1881,15 @@ const SiteCustomization: React.FC = () => {
     });
   }, [draft, expandedSections, renderField]);
 
+  const handleLibraryUpload = useCallback(
+    async (file: File) => {
+      const url = await uploadCustomizationAsset(file, { tags: [guessAssetType(file)] });
+      const asset = createAssetFromFile(file, url);
+      appendAssetToDraft(asset);
+    },
+    [appendAssetToDraft],
+  );
+
   if (loading) {
     return (
       <div className="flex h-full min-h-[60vh] flex-col items-center justify-center gap-3">
@@ -1900,15 +1909,6 @@ const SiteCustomization: React.FC = () => {
   }
 
   const assets = draft.assets?.library ?? [];
-
-  const handleLibraryUpload = useCallback(
-    async (file: File) => {
-      const url = await uploadCustomizationAsset(file, { tags: [guessAssetType(file)] });
-      const asset = createAssetFromFile(file, url);
-      appendAssetToDraft(asset);
-    },
-    [appendAssetToDraft],
-  );
 
   return (
     <div className="space-y-8 px-4 sm:px-6 lg:px-0">
