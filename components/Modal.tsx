@@ -42,6 +42,7 @@ const Modal: React.FC<ModalProps> = ({
 
     const anchorCenterX = anchor.left + anchor.width / 2;
     const anchorCenterY = anchor.top + anchor.height / 2;
+    const boundaryCenterX = boundary ? boundary.left + boundary.width / 2 : null;
 
     const updatePosition = () => {
       if (!containerRef.current) {
@@ -67,7 +68,13 @@ const Modal: React.FC<ModalProps> = ({
       const availableWidth = Math.max(bounds.right - bounds.left, 0);
       const availableHeight = Math.max(bounds.bottom - bounds.top, 0);
 
-      let left = anchorCenterX - rect.width / 2;
+      let left;
+      if (boundaryCenterX !== null) {
+        left = boundaryCenterX - rect.width / 2;
+      } else {
+        left = anchorCenterX - rect.width / 2;
+      }
+
       if (rect.width > availableWidth) {
         left = bounds.left;
       } else {
@@ -141,17 +148,30 @@ const Modal: React.FC<ModalProps> = ({
       ? Math.min(boundaryMaxHeight, viewportMaxHeight)
       : boundaryMaxHeight ?? viewportMaxHeight;
 
+  const preferredWidth =
+    boundary && typeof maxWidthValue === 'number'
+      ? Math.min(Math.max(boundary.width * 0.6, 320), maxWidthValue)
+      : boundary
+        ? Math.max(boundary.width * 0.6, 320)
+        : null;
+
   const baseStyle: React.CSSProperties = {
     position: 'fixed',
     maxHeight:
       typeof maxHeightValue === 'number'
         ? `${Math.max(maxHeightValue, 200)}px`
         : `calc(100vh - ${VIEWPORT_MARGIN * 2}px)`,
-    maxWidth:
+  };
+
+  if (preferredWidth !== null) {
+    baseStyle.width = `${preferredWidth}px`;
+    baseStyle.maxWidth = `${preferredWidth}px`;
+  } else {
+    baseStyle.maxWidth =
       typeof maxWidthValue === 'number'
         ? `${Math.max(maxWidthValue, 260)}px`
-        : `calc(100vw - ${VIEWPORT_MARGIN * 2}px)`,
-  };
+        : `calc(100vw - ${VIEWPORT_MARGIN * 2}px)`;
+  }
 
   const anchorCenterX = anchor ? anchor.left + anchor.width / 2 : null;
   const anchorCenterY = anchor ? anchor.top + anchor.height / 2 : null;
@@ -159,7 +179,11 @@ const Modal: React.FC<ModalProps> = ({
   const anchoredStyle: React.CSSProperties | undefined = anchor
     ? {
         top: position?.top ?? anchorCenterY ?? anchor.top,
-        left: position?.left ?? anchorCenterX ?? anchor.left,
+        left:
+          position?.left ??
+          (boundary
+            ? boundary.left + boundary.width / 2
+            : anchorCenterX ?? anchor.left),
         transform: position ? undefined : 'translate(-50%, -50%)',
       }
     : undefined;
@@ -184,7 +208,9 @@ const Modal: React.FC<ModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby={headingId}
-        className={`fixed flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ${sizeClasses[size]} sm:max-h-[90vh] focus:outline-none`}
+        className={`fixed flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ${
+          anchor && boundary ? 'max-w-none' : sizeClasses[size]
+        } sm:max-h-[90vh] focus:outline-none`}
         style={{
           ...baseStyle,
           ...(anchor ? anchoredStyle : centeredStyle),
