@@ -48,6 +48,22 @@ interface ProductModalProps {
     onAddToCart: (item: OrderItem) => void;
 }
 
+const normalizeComment = (value?: string | null) => (value ?? '').trim();
+
+const haveSameExcludedIngredients = (
+    a: string[] | undefined,
+    b: string[] | undefined,
+) => {
+    const normalizedA = [...(a ?? [])].sort();
+    const normalizedB = [...(b ?? [])].sort();
+
+    if (normalizedA.length !== normalizedB.length) {
+        return false;
+    }
+
+    return normalizedA.every((value, index) => value === normalizedB[index]);
+};
+
 const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, selectedProduct, onAddToCart }) => {
     const [quantity, setQuantity] = useState(1);
     const [comment, setComment] = useState('');
@@ -378,14 +394,25 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
 
     const handleAddToCart = (item: OrderItem) => {
         setCart(prevCart => {
-            const existingIndex = prevCart.findIndex(i => i.produitRef === item.produitRef);
+            const existingIndex = prevCart.findIndex(existing =>
+                existing.produitRef === item.produitRef
+                && normalizeComment(existing.commentaire) === normalizeComment(item.commentaire)
+                && haveSameExcludedIngredients(existing.excluded_ingredients, item.excluded_ingredients)
+            );
+
             if (existingIndex > -1) {
                 const newCart = [...prevCart];
-                newCart[existingIndex] = { ...newCart[existingIndex], ...item };
+                const existingItem = newCart[existingIndex];
+                newCart[existingIndex] = {
+                    ...existingItem,
+                    quantite: existingItem.quantite + item.quantite,
+                    commentaire: item.commentaire ?? existingItem.commentaire,
+                    excluded_ingredients: item.excluded_ingredients ?? existingItem.excluded_ingredients,
+                };
                 return newCart;
-            } else {
-                return [...prevCart, item];
             }
+
+            return [...prevCart, item];
         });
         setModalOpen(false);
     };
