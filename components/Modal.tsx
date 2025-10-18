@@ -9,6 +9,7 @@ interface ModalProps {
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   anchor?: DOMRect | DOMRectReadOnly | null;
+  boundary?: DOMRect | DOMRectReadOnly | null;
 }
 
 const VIEWPORT_MARGIN = 16;
@@ -20,6 +21,7 @@ const Modal: React.FC<ModalProps> = ({
   children,
   size = 'md',
   anchor = null,
+  boundary = null,
 }) => {
   const sizeClasses = {
     sm: 'max-w-sm',
@@ -33,13 +35,10 @@ const Modal: React.FC<ModalProps> = ({
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
 
   useLayoutEffect(() => {
-    if (!isOpen || !anchor) {
+    if (!isOpen) {
       setPosition(null);
       return;
     }
-
-    const anchorCenterX = anchor.left + anchor.width / 2;
-    const anchorCenterY = anchor.top + anchor.height / 2;
 
     const updatePosition = () => {
       if (!containerRef.current) {
@@ -48,11 +47,40 @@ const Modal: React.FC<ModalProps> = ({
       const rect = containerRef.current.getBoundingClientRect();
       const { innerWidth, innerHeight } = window;
 
-      let left = anchorCenterX - rect.width / 2;
-      left = Math.max(VIEWPORT_MARGIN, Math.min(left, innerWidth - rect.width - VIEWPORT_MARGIN));
+      const bounds = boundary
+        ? {
+            top: Math.max(boundary.top + VIEWPORT_MARGIN, VIEWPORT_MARGIN),
+            left: Math.max(boundary.left + VIEWPORT_MARGIN, VIEWPORT_MARGIN),
+            right: Math.min(boundary.right - VIEWPORT_MARGIN, innerWidth - VIEWPORT_MARGIN),
+            bottom: Math.min(boundary.bottom - VIEWPORT_MARGIN, innerHeight - VIEWPORT_MARGIN),
+          }
+        : {
+            top: VIEWPORT_MARGIN,
+            left: VIEWPORT_MARGIN,
+            right: innerWidth - VIEWPORT_MARGIN,
+            bottom: innerHeight - VIEWPORT_MARGIN,
+          };
 
-      let top = anchorCenterY - rect.height / 2;
-      top = Math.max(VIEWPORT_MARGIN, Math.min(top, innerHeight - rect.height - VIEWPORT_MARGIN));
+      const availableWidth = Math.max(bounds.right - bounds.left, 0);
+      const availableHeight = Math.max(bounds.bottom - bounds.top, 0);
+
+      const centerX = innerWidth / 2;
+      const centerY = innerHeight / 2;
+
+      let left = centerX - rect.width / 2;
+
+      if (rect.width > availableWidth) {
+        left = bounds.left;
+      } else {
+        left = Math.max(bounds.left, Math.min(left, bounds.right - rect.width));
+      }
+
+      let top = centerY - rect.height / 2;
+      if (rect.height > availableHeight) {
+        top = bounds.top;
+      } else {
+        top = Math.max(bounds.top, Math.min(top, bounds.bottom - rect.height));
+      }
 
       setPosition({ top, left });
     };
@@ -71,7 +99,7 @@ const Modal: React.FC<ModalProps> = ({
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', handleResize, true);
     };
-  }, [anchor, isOpen]);
+  }, [anchor, boundary, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -92,28 +120,56 @@ const Modal: React.FC<ModalProps> = ({
 
   if (!isOpen) return null;
 
+  const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : null;
+  const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : null;
+
+  const viewportMaxWidth =
+    viewportWidth !== null ? Math.max(viewportWidth - VIEWPORT_MARGIN * 2, 200) : null;
+  const viewportMaxHeight =
+    viewportHeight !== null ? Math.max(viewportHeight - VIEWPORT_MARGIN * 2, 200) : null;
+
+  const boundaryMaxWidth =
+    boundary !== null ? Math.max(boundary.width - VIEWPORT_MARGIN * 2, 200) : null;
+  const boundaryMaxHeight =
+    boundary !== null ? Math.max(boundary.height - VIEWPORT_MARGIN * 2, 200) : null;
+
+  const maxWidthValue =
+    boundaryMaxWidth !== null && viewportMaxWidth !== null
+      ? Math.min(boundaryMaxWidth, viewportMaxWidth)
+      : boundaryMaxWidth ?? viewportMaxWidth;
+  const maxHeightValue =
+    boundaryMaxHeight !== null && viewportMaxHeight !== null
+      ? Math.min(boundaryMaxHeight, viewportMaxHeight)
+      : boundaryMaxHeight ?? viewportMaxHeight;
+
+  const preferredWidth =
+    boundary && typeof maxWidthValue === 'number'
+      ? Math.min(Math.max(boundary.width * 0.6, 320), maxWidthValue)
+      : boundary
+        ? Math.max(boundary.width * 0.6, 320)
+        : null;
+
   const baseStyle: React.CSSProperties = {
     position: 'fixed',
-    maxHeight: 'calc(100vh - 2rem)',
-    maxWidth: `calc(100vw - ${VIEWPORT_MARGIN * 2}px)`,
+    maxHeight:
+      typeof maxHeightValue === 'number'
+        ? `${Math.max(maxHeightValue, 200)}px`
+        : `calc(100vh - ${VIEWPORT_MARGIN * 2}px)`,
   };
 
-  const anchorCenterX = anchor ? anchor.left + anchor.width / 2 : null;
-  const anchorCenterY = anchor ? anchor.top + anchor.height / 2 : null;
+  if (preferredWidth !== null) {
+    baseStyle.width = `${preferredWidth}px`;
+    baseStyle.maxWidth = `${preferredWidth}px`;
+  } else {
+    baseStyle.maxWidth =
+      typeof maxWidthValue === 'number'
+        ? `${Math.max(maxWidthValue, 260)}px`
+        : `calc(100vw - ${VIEWPORT_MARGIN * 2}px)`;
+  }
 
-  const anchoredStyle: React.CSSProperties | undefined = anchor
-    ? {
-        top: position?.top ?? anchorCenterY ?? anchor.top,
-        left: position?.left ?? anchorCenterX ?? anchor.left,
-        transform: position ? undefined : 'translate(-50%, -50%)',
-      }
-    : undefined;
-
-  const centeredStyle: React.CSSProperties = {
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-  };
+  const resolvedPosition: React.CSSProperties = position
+    ? { top: position.top, left: position.left }
+    : { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
 
   return (
     <div className="fixed inset-0 z-50">
@@ -123,10 +179,12 @@ const Modal: React.FC<ModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby={headingId}
-        className={`fixed flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ${sizeClasses[size]} sm:max-h-[90vh] focus:outline-none`}
+        className={`fixed flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ${
+          anchor && boundary ? 'max-w-none' : sizeClasses[size]
+        } sm:max-h-[90vh] focus:outline-none`}
         style={{
           ...baseStyle,
-          ...(anchor ? anchoredStyle : centeredStyle),
+          ...resolvedPosition,
         }}
         onClick={e => e.stopPropagation()}
       >
