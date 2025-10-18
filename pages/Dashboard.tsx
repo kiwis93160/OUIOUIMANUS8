@@ -42,17 +42,18 @@ const MainStatCard: React.FC<{
     icon: React.ReactNode;
     helper?: string;
     comparison?: number | null;
-}> = ({ title, value, icon, helper, comparison }) => {
-    const hasComparison = comparison !== null && comparison !== undefined;
-    const comparisonSign = hasComparison && typeof comparison === 'number' && comparison !== 0 ? (comparison > 0 ? '+' : '−') : '';
-    const comparisonValue = hasComparison && typeof comparison === 'number'
-        ? formatDecimal(Math.abs(comparison))
-        : null;
+    previousValue?: string | null;
+}> = ({ title, value, icon, helper, comparison, previousValue }) => {
+    const numericComparison = typeof comparison === 'number' ? comparison : null;
+    const hasComparison = numericComparison !== null;
+    const comparisonSign = hasComparison && numericComparison !== 0 ? (numericComparison > 0 ? '+' : '−') : '';
+    const comparisonValue = hasComparison ? formatDecimal(Math.abs(numericComparison)) : null;
     const comparisonClass = !hasComparison
         ? 'text-gray-500'
-        : comparison && comparison < 0
+        : numericComparison < 0
             ? 'text-red-600'
             : 'text-emerald-600';
+    const showPreviousSection = previousValue !== undefined && previousValue !== null;
 
     return (
         <div className="ui-card flex min-w-0 flex-col gap-4 p-5">
@@ -63,13 +64,25 @@ const MainStatCard: React.FC<{
                 <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{title}</p>
                     <p className="mt-2 text-2xl font-bold text-gray-900 sm:text-3xl">{value}</p>
-                    <p className={`mt-1 text-sm font-semibold ${comparisonClass}`}>
-                        {comparisonValue ? `${comparisonSign}${comparisonValue}%` : 'N/A'}
-                        <span className="ml-1 text-xs font-medium text-gray-500 sm:text-sm">vs période précédente</span>
-                    </p>
+                    {showPreviousSection ? (
+                        <p className="mt-2 text-sm text-gray-600">
+                            Période précédente : <span className="font-semibold text-gray-800">{previousValue}</span>
+                            {comparisonValue ? (
+                                <span className={`ml-2 font-semibold ${comparisonClass}`}>
+                                    {comparisonSign}
+                                    {comparisonValue}%
+                                </span>
+                            ) : null}
+                        </p>
+                    ) : (
+                        <p className={`mt-1 text-sm font-semibold ${comparisonClass}`}>
+                            {comparisonValue ? `${comparisonSign}${comparisonValue}%` : 'N/A'}
+                            <span className="ml-1 text-xs font-medium text-gray-500 sm:text-sm">vs période précédente</span>
+                        </p>
+                    )}
                 </div>
             </div>
-            {helper ? <p className="text-sm text-gray-500">{helper}</p> : null}
+            {!showPreviousSection && helper ? <p className="text-sm text-gray-500">{helper}</p> : null}
         </div>
     );
 };
@@ -211,21 +224,21 @@ const Dashboard: React.FC = () => {
                     value={formatCurrencyCOP(stats.ventesPeriode)}
                     icon={<DollarSign size={24} />}
                     comparison={revenueTrend}
-                    helper={`Période précédente : ${formatCurrencyCOP(previousRevenueTotal)}`}
+                    previousValue={formatCurrencyCOP(previousRevenueTotal)}
                 />
                 <MainStatCard
                     title="Bénéfice net"
                     value={formatCurrencyCOP(stats.beneficePeriode)}
                     icon={<TrendingUp size={24} />}
                     comparison={beneficeTrend}
-                    helper={profitMargin !== null ? `Marge : ${formatDecimal(profitMargin)}%` : 'Marge indisponible'}
+                    previousValue={formatCurrencyCOP(stats.beneficePeriodePrecedente)}
                 />
                 <MainStatCard
                     title="Marge bénéficiaire"
                     value={profitMargin !== null ? `${formatDecimal(profitMargin)}%` : '0%'}
                     icon={<Percent size={24} />}
-                    comparison={profitMarginTrend}
-                    helper={`Profit : ${formatCurrencyCOP(stats.beneficePeriode)}`}
+                    comparison={previousProfitMargin !== null ? profitMarginTrend : null}
+                    previousValue={previousProfitMargin !== null ? `${formatDecimal(previousProfitMargin)}%` : 'N/A'}
                 />
                 <MainStatCard
                     title="Commandes traitées"

@@ -15,6 +15,7 @@ import { fetchActivePromotions, applyPromotionsToOrder, fetchPromotionByCode } f
 import useSiteContent from '../hooks/useSiteContent';
 import { formatScheduleWindow, isWithinSchedule, minutesUntilNextChange } from '../utils/timeWindow';
 import { DEFAULT_SITE_CONTENT } from '../utils/siteContent';
+import { createHeroBackgroundStyle } from '../utils/siteStyleHelpers';
 import OrderConfirmationModal from '../components/OrderConfirmationModal';
 import CustomerOrderTracker from '../components/CustomerOrderTracker';
 
@@ -193,6 +194,10 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
     const navigate = useNavigate();
     const { content: siteContent } = useSiteContent();
     const safeContent = siteContent ?? DEFAULT_SITE_CONTENT;
+    const heroBackgroundStyle = useMemo(
+        () => createHeroBackgroundStyle(safeContent.hero.style, safeContent.hero.backgroundImage),
+        [safeContent.hero.backgroundImage, safeContent.hero.style]
+    );
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
@@ -551,6 +556,15 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
         }
     };
 
+    const isMissingRequiredInfo =
+        clientName.trim() === '' ||
+        clientPhone.trim() === '' ||
+        (orderType === 'pedir_en_linea' && clientAddress.trim() === '') ||
+        (paymentMethod === 'transferencia' && !paymentProof);
+
+    const isSubmitDisabled = submitting || cart.length === 0 || isMissingRequiredInfo;
+    const shouldShowMissingInfoNotice = !submitting && cart.length > 0 && isMissingRequiredInfo;
+
     if (!isOrderingAvailable) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-orange-600 via-red-600 to-rose-600">
@@ -585,7 +599,7 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
     }
 
     return (
-        <div className="flex flex-col lg:flex-row">
+        <div className="min-h-screen flex flex-col lg:flex-row" style={heroBackgroundStyle}>
             {/* Main Content */}
             <div className="flex-1 p-4 lg:p-8">
                 <div className="flex items-center justify-between mb-6">
@@ -973,7 +987,7 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
                         {paymentMethod === 'transferencia' && (
                             <div>
                                 <label htmlFor="paymentProof" className="block text-sm font-medium text-gray-700">
-                                    Comprobante de pago:
+                                    Comprobante de pago: <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="file"
@@ -981,18 +995,23 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
                                     onChange={(e) => setPaymentProof(e.target.files ? e.target.files[0] : null)}
                                     className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                                     accept="image/*,application/pdf"
-                                    required
+                                    required={paymentMethod === 'transferencia'}
                                 />
                             </div>
                         )}
 
                         <button
                             type="submit"
-                            disabled={submitting || cart.length === 0 || (paymentMethod === 'transferencia' && !paymentProof)}
+                            disabled={isSubmitDisabled}
                             className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {submitting ? 'Enviando pedido...' : 'Confirmar Pedido'}
                         </button>
+                        {shouldShowMissingInfoNotice && (
+                            <p className="mt-2 text-sm text-red-600">
+                                Faltan datos obligatorios. Completa los campos marcados con <span className="font-semibold">*</span>.
+                            </p>
+                        )}
                     </form>
                 </div>
             </div>
