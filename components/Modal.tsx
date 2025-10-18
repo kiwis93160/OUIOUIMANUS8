@@ -35,14 +35,10 @@ const Modal: React.FC<ModalProps> = ({
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
 
   useLayoutEffect(() => {
-    if (!isOpen || !anchor) {
+    if (!isOpen) {
       setPosition(null);
       return;
     }
-
-    const anchorCenterX = anchor.left + anchor.width / 2;
-    const anchorCenterY = anchor.top + anchor.height / 2;
-    const boundaryCenterX = boundary ? boundary.left + boundary.width / 2 : null;
 
     const updatePosition = () => {
       if (!containerRef.current) {
@@ -68,12 +64,10 @@ const Modal: React.FC<ModalProps> = ({
       const availableWidth = Math.max(bounds.right - bounds.left, 0);
       const availableHeight = Math.max(bounds.bottom - bounds.top, 0);
 
-      let left;
-      if (boundaryCenterX !== null) {
-        left = boundaryCenterX - rect.width / 2;
-      } else {
-        left = anchorCenterX - rect.width / 2;
-      }
+      const centerX = innerWidth / 2;
+      const centerY = innerHeight / 2;
+
+      let left = centerX - rect.width / 2;
 
       if (rect.width > availableWidth) {
         left = bounds.left;
@@ -81,7 +75,7 @@ const Modal: React.FC<ModalProps> = ({
         left = Math.max(bounds.left, Math.min(left, bounds.right - rect.width));
       }
 
-      let top = anchorCenterY - rect.height / 2;
+      let top = centerY - rect.height / 2;
       if (rect.height > availableHeight) {
         top = bounds.top;
       } else {
@@ -173,32 +167,9 @@ const Modal: React.FC<ModalProps> = ({
         : `calc(100vw - ${VIEWPORT_MARGIN * 2}px)`;
   }
 
-  const anchorCenterX = anchor ? anchor.left + anchor.width / 2 : null;
-  const anchorCenterY = anchor ? anchor.top + anchor.height / 2 : null;
-
-  const anchoredStyle: React.CSSProperties | undefined = anchor
-    ? {
-        top: position?.top ?? anchorCenterY ?? anchor.top,
-        left:
-          position?.left ??
-          (boundary
-            ? boundary.left + boundary.width / 2
-            : anchorCenterX ?? anchor.left),
-        transform: position ? undefined : 'translate(-50%, -50%)',
-      }
-    : undefined;
-
-  const centeredStyle: React.CSSProperties = {
-    top:
-      boundary && !anchor
-        ? boundary.top + boundary.height / 2
-        : '50%',
-    left:
-      boundary && !anchor
-        ? boundary.left + boundary.width / 2
-        : '50%',
-    transform: 'translate(-50%, -50%)',
-  };
+  const resolvedPosition: React.CSSProperties = position
+    ? { top: position.top, left: position.left }
+    : { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
 
   return (
     <div className="fixed inset-0 z-50">
@@ -213,7 +184,7 @@ const Modal: React.FC<ModalProps> = ({
         } sm:max-h-[90vh] focus:outline-none`}
         style={{
           ...baseStyle,
-          ...(anchor ? anchoredStyle : centeredStyle),
+          ...resolvedPosition,
         }}
         onClick={e => e.stopPropagation()}
       >
