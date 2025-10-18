@@ -1,18 +1,6 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  ChevronDown,
-  Copy,
-  Loader2,
-  Upload,
-} from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, CheckCircle2, Copy, Loader2, Upload } from 'lucide-react';
+import Modal from '../components/Modal';
 import SitePreviewCanvas, { resolveZoneFromElement } from '../components/SitePreviewCanvas';
 import useSiteContent from '../hooks/useSiteContent';
 import RichTextEditor from '../components/RichTextEditor';
@@ -821,6 +809,12 @@ type ApplyUpdater = (updater: DraftUpdater) => void;
 
 type AssetAppender = (asset: CustomizationAsset) => void;
 
+type FieldMeta = {
+  section: CustomizationSection;
+  group: CustomizationGroup;
+  field: CustomizationField;
+};
+
 interface FieldWrapperProps {
   element: EditableElementKey;
   label: string;
@@ -1593,36 +1587,6 @@ const MediaLibraryList: React.FC<MediaLibraryListProps> = ({ title, assets, onCo
   );
 };
 
-const SectionAccordion: React.FC<{
-  section: CustomizationSection;
-  isExpanded: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}> = ({ section, isExpanded, onToggle, children }) => {
-  return (
-    <section className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left"
-      >
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">{section.title}</h2>
-          {section.description && <p className="text-sm text-slate-500">{section.description}</p>}
-        </div>
-        <span
-          className={`flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition ${
-            isExpanded ? 'bg-brand-primary/10 text-brand-primary rotate-180' : ''
-          }`}
-        >
-          <ChevronDown className="h-4 w-4" aria-hidden="true" />
-        </span>
-      </button>
-      {isExpanded && <div className="space-y-6 border-t border-slate-100 px-6 py-6">{children}</div>}
-    </section>
-  );
-};
-
 const SiteCustomization: React.FC = () => {
   const { content, loading, error, updateContent } = useSiteContent();
   const [draft, setDraft] = useState<SiteContent | null>(() =>
@@ -1637,15 +1601,8 @@ const SiteCustomization: React.FC = () => {
   const [bestSellerProducts, setBestSellerProducts] = useState<Product[]>([]);
   const [bestSellerLoading, setBestSellerLoading] = useState<boolean>(false);
   const [bestSellerError, setBestSellerError] = useState<string | null>(null);
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {};
-    CUSTOMIZATION_SECTIONS.forEach(section => {
-      initial[section.id] = section.id === 'navigation' || section.id === 'hero';
-    });
-    return initial;
-  });
-
-  const fieldRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [editorElement, setEditorElement] = useState<EditableElementKey | null>(null);
+  const [isLibraryOpen, setIsLibraryOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (content) {
@@ -1716,9 +1673,19 @@ const SiteCustomization: React.FC = () => {
     });
   }, []);
 
-  const registerFieldRef = useCallback<FieldRegistration>((element, node) => {
-    fieldRefs.current[element] = node;
+  const fieldMetaByElement = useMemo(() => {
+    const map = new Map<EditableElementKey, FieldMeta>();
+    CUSTOMIZATION_SECTIONS.forEach(section => {
+      section.groups.forEach(group => {
+        group.fields.forEach(field => {
+          map.set(field.element, { section, group, field });
+        });
+      });
+    });
+    return map;
   }, []);
+
+  const registerFieldRef = useCallback<FieldRegistration>(() => undefined, []);
 
   const focusElement = useCallback<FocusElementHandler>(element => {
     setActiveElement(element);
@@ -1737,16 +1704,13 @@ const SiteCustomization: React.FC = () => {
     ) => {
       focusElement(element);
       setActiveZone(meta.zone);
-      const target = fieldRefs.current[element];
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        const focusable = target.querySelector<HTMLElement>(
-          'input, textarea, button, [contenteditable="true"], select',
-        );
-        focusable?.focus({ preventScroll: true });
+      if (!fieldMetaByElement.has(element)) {
+        console.warn(`Aucun formulaire de personnalisation trouvé pour l'élément "${element}".`);
+        return;
       }
+      setEditorElement(element);
     },
-    [focusElement],
+    [fieldMetaByElement, focusElement],
   );
 
   const handleSave = async () => {
@@ -1779,6 +1743,56 @@ const SiteCustomization: React.FC = () => {
       .map(asset => sanitizeFontFamilyName(asset.name));
     return Array.from(new Set([...base, ...custom]));
   }, [draft]);
+
+  const activeFieldMeta = useMemo(() => {
+    if (!editorElement) {
+      return null;
+    }
+    return fieldMetaByElement.get(editorElement) ?? null;
+  }, [editorElement, fieldMetaByElement]);
+
+  const activeElementLabel = useMemo(() => {
+    if (!editorElement) {
+      return '';
+    }
+    const fallback = fieldMetaByElement.get(editorElement)?.field.label ?? editorElement;
+    return ELEMENT_LABELS[editorElement] ?? fallback;
+  }, [editorElement, fieldMetaByElement]);
+
+  const closeEditor = useCallback(() => {
+    setEditorElement(null);
+    setActiveElement(null);
+    setActiveZone(null);
+  }, [setActiveElement, setActiveZone, setEditorElement]);
+
+  useEffect(() => {
+    if (activeTab !== 'custom') {
+      closeEditor();
+    }
+  }, [activeTab, closeEditor]);
+
+  useEffect(() => {
+    if (!editorElement) {
+      return;
+    }
+    if (!activeFieldMeta) {
+      closeEditor();
+      return;
+    }
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const timeout = window.setTimeout(() => {
+      const container = document.querySelector<HTMLDivElement>('[data-element-editor-modal="true"]');
+      const focusable = container?.querySelector<HTMLElement>(
+        'input, textarea, [contenteditable="true"], select',
+      );
+      focusable?.focus({ preventScroll: true });
+    }, 80);
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [activeFieldMeta, closeEditor, editorElement]);
 
   const renderField = useCallback(
     (field: CustomizationField) => {
@@ -1841,46 +1855,6 @@ const SiteCustomization: React.FC = () => {
     [activeElement, appendAssetToDraft, applyDraftUpdate, draft, focusElement, fontOptions, registerFieldRef],
   );
 
-  const expandedContent = useMemo(() => {
-    if (!draft) {
-      return null;
-    }
-    return CUSTOMIZATION_SECTIONS.map(section => {
-      const isExpanded = expandedSections[section.id];
-      return (
-        <SectionAccordion
-          key={section.id}
-          section={section}
-          isExpanded={isExpanded}
-          onToggle={() =>
-            setExpandedSections(current => ({
-              ...current,
-              [section.id]: !current[section.id],
-            }))
-          }
-        >
-          <div className="space-y-6">
-            {section.groups.map(group => (
-              <div key={group.id} className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                    {group.title}
-                  </h3>
-                  {group.description && (
-                    <p className="mt-1 text-sm text-slate-500">{group.description}</p>
-                  )}
-                </div>
-                <div className="space-y-4">
-                  {group.fields.map(renderField)}
-                </div>
-              </div>
-            ))}
-          </div>
-        </SectionAccordion>
-      );
-    });
-  }, [draft, expandedSections, renderField]);
-
   const handleLibraryUpload = useCallback(
     async (file: File) => {
       const url = await uploadCustomizationAsset(file, { tags: [guessAssetType(file)] });
@@ -1932,6 +1906,13 @@ const SiteCustomization: React.FC = () => {
               {saveError}
             </div>
           )}
+          <button
+            type="button"
+            onClick={() => setIsLibraryOpen(true)}
+            className="ui-btn-secondary"
+          >
+            Bibliothèque de médias
+          </button>
           <button
             type="button"
             onClick={handleSave}
@@ -1991,31 +1972,62 @@ const SiteCustomization: React.FC = () => {
                 <p>{bestSellerError}</p>
               </div>
             )}
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-              <div className="space-y-4">
-                <div className="rounded-[2.5rem] border border-slate-200 bg-slate-50 p-6">
-                  <SitePreviewCanvas
-                    content={draft}
-                    bestSellerProducts={bestSellerProducts}
-                    onEdit={(element, meta) => handlePreviewEdit(element, meta)}
-                    activeZone={activeZone}
-                  />
-                </div>
-                {bestSellerLoading && (
-                  <div className="flex items-center gap-2 text-sm text-slate-500">
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                    Chargement des produits populaires…
-                  </div>
-                )}
-              </div>
-              <div className="space-y-6">
-                {expandedContent}
-                <MediaLibrarySection assets={assets} onUpload={handleLibraryUpload} />
+            <div className="mx-auto w-full max-w-7xl">
+              <div className="rounded-[2.75rem] border border-slate-200 bg-slate-50 p-4 shadow-inner sm:p-6 lg:p-8">
+                <SitePreviewCanvas
+                  content={draft}
+                  bestSellerProducts={bestSellerProducts}
+                  onEdit={(element, meta) => handlePreviewEdit(element, meta)}
+                  activeZone={activeZone}
+                />
               </div>
             </div>
+            {bestSellerLoading && (
+              <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                Chargement des produits populaires…
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={Boolean(editorElement && activeFieldMeta)}
+        onClose={closeEditor}
+        title={
+          activeElementLabel
+            ? `Personnaliser ${activeElementLabel}`
+            : 'Personnalisation'
+        }
+        size="lg"
+      >
+        {activeFieldMeta ? (
+          <div className="space-y-5" data-element-editor-modal="true">
+            <div className="rounded-2xl bg-slate-100/70 p-4 text-sm text-slate-600">
+              <p className="text-sm font-semibold text-slate-900">
+                {activeFieldMeta.section.title}
+              </p>
+              <p className="text-xs text-slate-500">{activeFieldMeta.group.title}</p>
+              {activeFieldMeta.group.description && (
+                <p className="mt-2 text-xs text-slate-500">{activeFieldMeta.group.description}</p>
+              )}
+            </div>
+            {renderField(activeFieldMeta.field)}
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500">Sélectionnez un élément à personnaliser.</p>
+        )}
+      </Modal>
+
+      <Modal
+        isOpen={isLibraryOpen}
+        onClose={() => setIsLibraryOpen(false)}
+        title="Bibliothèque de médias"
+        size="xl"
+      >
+        <MediaLibrarySection assets={assets} onUpload={handleLibraryUpload} />
+      </Modal>
     </div>
   );
 };
