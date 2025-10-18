@@ -7,7 +7,7 @@ import { Product, Category, OrderItem, Order } from '../types';
 import { api } from '../services/api';
 import { formatCurrencyCOP } from '../utils/formatIntegerAmount';
 import { uploadPaymentReceipt } from '../services/cloudinary';
-import { ShoppingCart, History, ArrowLeft, Trash2, Clock } from 'lucide-react';
+import { ShoppingCart, History, ArrowLeft, Trash2, Clock, Minus, Plus } from 'lucide-react';
 import { storeActiveCustomerOrder, ONE_DAY_IN_MS } from '../services/customerOrderStorage';
 import ProductCardWithPromotion from '../components/ProductCardWithPromotion';
 import ActivePromotionsDisplay from '../components/ActivePromotionsDisplay';
@@ -383,11 +383,11 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
 
     const handleProductClick = (product: Product) => {
         const existingItem = cart.find(item => item.produitRef === product.id);
-        setSelectedProduct({ 
-            product, 
-            quantite: existingItem?.quantite, 
-            commentaire: existingItem?.commentaire, 
-            excluded_ingredients: existingItem?.excluded_ingredients 
+        setSelectedProduct({
+            product,
+            quantite: 1,
+            commentaire: existingItem?.commentaire,
+            excluded_ingredients: existingItem?.excluded_ingredients
         });
         setModalOpen(true);
     };
@@ -419,6 +419,27 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
 
     const handleRemoveCartItem = (itemId: string) => {
         setCart(prevCart => prevCart.filter(item => item.id !== itemId));
+    };
+
+    const handleCartItemQuantityChange = (itemId: string, delta: number) => {
+        setCart(prevCart => {
+            return prevCart.flatMap(item => {
+                if (item.id !== itemId) {
+                    return item;
+                }
+
+                const newQuantity = item.quantite + delta;
+
+                if (newQuantity <= 0) {
+                    return [];
+                }
+
+                return {
+                    ...item,
+                    quantite: newQuantity,
+                };
+            });
+        });
     };
 
     const handleReorder = (order: Order) => {
@@ -697,7 +718,6 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
                                             {item?.nom_produit || 'Article inconnu'}
                                         </p>
                                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/90">
-                                            <span className="font-semibold">Cantidad: {item.quantite}</span>
                                             <span className="font-semibold">Precio unitario: {formatCurrencyCOP(item.prix_unitaire)}</span>
                                             <span className="font-semibold">Total: {formatCurrencyCOP(item.prix_unitaire * item.quantite)}</span>
                                         </div>
@@ -712,13 +732,32 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
                                             </p>
                                         )}
                                     </div>
-                                    <button
-                                        onClick={() => handleRemoveCartItem(item.id)}
-                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
-                                        aria-label="Eliminar artículo"
-                                    >
-                                        <Trash2 size={20} />
-                                    </button>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <button
+                                            onClick={() => handleRemoveCartItem(item.id)}
+                                            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+                                            aria-label="Eliminar artículo"
+                                        >
+                                            <Trash2 size={20} />
+                                        </button>
+                                        <div className="flex items-center gap-2 rounded-full bg-white/15 px-2 py-1 text-xs font-semibold">
+                                            <button
+                                                onClick={() => handleCartItemQuantityChange(item.id, -1)}
+                                                className="rounded-full p-1 transition hover:bg-white/20"
+                                                aria-label="Disminuir cantidad"
+                                            >
+                                                <Minus size={14} />
+                                            </button>
+                                            <span className="min-w-[1.5rem] text-center text-sm">{item.quantite}</span>
+                                            <button
+                                                onClick={() => handleCartItemQuantityChange(item.id, 1)}
+                                                className="rounded-full p-1 transition hover:bg-white/20"
+                                                aria-label="Aumentar cantidad"
+                                            >
+                                                <Plus size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         ))}
