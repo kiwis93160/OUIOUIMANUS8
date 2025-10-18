@@ -1602,6 +1602,7 @@ const SiteCustomization: React.FC = () => {
   const [bestSellerLoading, setBestSellerLoading] = useState<boolean>(false);
   const [bestSellerError, setBestSellerError] = useState<string | null>(null);
   const [editorElement, setEditorElement] = useState<EditableElementKey | null>(null);
+  const [editorAnchor, setEditorAnchor] = useState<DOMRect | DOMRectReadOnly | null>(null);
   const [isLibraryOpen, setIsLibraryOpen] = useState<boolean>(false);
 
   useEffect(() => {
@@ -1704,13 +1705,14 @@ const SiteCustomization: React.FC = () => {
     ) => {
       focusElement(element);
       setActiveZone(meta.zone);
+      setEditorAnchor(meta.anchor ?? null);
       if (!fieldMetaByElement.has(element)) {
         console.warn(`Aucun formulaire de personnalisation trouvé pour l'élément "${element}".`);
         return;
       }
       setEditorElement(element);
     },
-    [fieldMetaByElement, focusElement],
+    [fieldMetaByElement, focusElement, setActiveZone, setEditorAnchor],
   );
 
   const handleSave = async () => {
@@ -1763,7 +1765,8 @@ const SiteCustomization: React.FC = () => {
     setEditorElement(null);
     setActiveElement(null);
     setActiveZone(null);
-  }, [setActiveElement, setActiveZone, setEditorElement]);
+    setEditorAnchor(null);
+  }, [setActiveElement, setActiveZone, setEditorAnchor, setEditorElement]);
 
   useEffect(() => {
     if (activeTab !== 'custom') {
@@ -2001,6 +2004,7 @@ const SiteCustomization: React.FC = () => {
             : 'Personnalisation'
         }
         size="lg"
+        anchor={editorAnchor}
       >
         {activeFieldMeta ? (
           <div className="space-y-5" data-element-editor-modal="true">
