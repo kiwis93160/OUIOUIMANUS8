@@ -4,11 +4,15 @@ import React, {
   useMemo,
   useRef,
   useState,
-  useLayoutEffect,
-  useId,
 } from 'react';
-import { createPortal } from 'react-dom';
-import { AlertTriangle, CheckCircle2, Loader2, Upload, X } from 'lucide-react';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronDown,
+  Copy,
+  Loader2,
+  Upload,
+} from 'lucide-react';
 import SitePreviewCanvas, { resolveZoneFromElement } from '../components/SitePreviewCanvas';
 import useSiteContent from '../hooks/useSiteContent';
 import RichTextEditor from '../components/RichTextEditor';
@@ -23,6 +27,7 @@ import {
   SectionStyle,
   SiteContent,
   STYLE_EDITABLE_ELEMENT_KEYS,
+  INSTAGRAM_REVIEW_IDS,
 } from '../types';
 import { api } from '../services/api';
 import { normalizeCloudinaryImageUrl, uploadCustomizationAsset } from '../services/cloudinary';
@@ -67,6 +72,7 @@ const BACKGROUND_ELEMENT_KEYS = new Set<EditableElementKey>([
   'hero.style.background',
   'about.style.background',
   'menu.style.background',
+  'instagramReviews.style.background',
   'findUs.style.background',
   'footer.style.background',
 ]);
@@ -75,6 +81,7 @@ const IMAGE_ELEMENT_KEYS = new Set<EditableElementKey>([
   'hero.backgroundImage',
   'about.image',
   'menu.image',
+  'instagramReviews.image',
   'navigation.brandLogo',
   'navigation.staffLogo',
 ]);
@@ -105,6 +112,10 @@ const BASE_ELEMENT_LABELS: Partial<Record<EditableElementKey, string>> = {
   'menu.loadingLabel': 'Texte de chargement du menu',
   'menu.image': 'Image du menu',
   'menu.style.background': 'Fond du menu',
+  'instagramReviews.title': 'Titre Avis Instagram',
+  'instagramReviews.subtitle': 'Sous-titre Avis Instagram',
+  'instagramReviews.image': 'Image centrale Avis Instagram',
+  'instagramReviews.style.background': 'Fond Avis Instagram',
   'findUs.title': 'Titre Encuéntranos',
   'findUs.addressLabel': "Libellé de l'adresse (Encuéntranos)",
   'findUs.address': 'Adresse (Encuéntranos)',
@@ -130,6 +141,52 @@ const TABS = [
 type TabId = (typeof TABS)[number]['id'];
 
 type DraftUpdater = (current: SiteContent) => SiteContent;
+
+type CustomizationFieldType = 'text' | 'image' | 'background';
+
+interface CustomizationFieldBase {
+  id: string;
+  label: string;
+  description?: string;
+  element: EditableElementKey;
+  type: CustomizationFieldType;
+}
+
+interface TextCustomizationField extends CustomizationFieldBase {
+  type: 'text';
+  multiline?: boolean;
+  allowRichText?: boolean;
+  placeholder?: string;
+  showStyleOptions?: boolean;
+}
+
+interface ImageCustomizationField extends CustomizationFieldBase {
+  type: 'image';
+  placeholder?: string;
+}
+
+interface BackgroundCustomizationField extends CustomizationFieldBase {
+  type: 'background';
+}
+
+type CustomizationField =
+  | TextCustomizationField
+  | ImageCustomizationField
+  | BackgroundCustomizationField;
+
+interface CustomizationGroup {
+  id: string;
+  title: string;
+  description?: string;
+  fields: CustomizationField[];
+}
+
+interface CustomizationSection {
+  id: string;
+  title: string;
+  description?: string;
+  groups: CustomizationGroup[];
+}
 
 const createAssetId = (): string =>
   typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -298,305 +355,556 @@ const createAssetFromFile = (file: File, url: string): CustomizationAsset => {
   };
 };
 
-type AnchorRect = Pick<DOMRectReadOnly, 'x' | 'y' | 'top' | 'left' | 'bottom' | 'right' | 'width' | 'height'>;
-
-const FOCUSABLE_SELECTOR =
-  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
-
-const escapeAttributeValue = (value: string): string => {
-  if (typeof window !== 'undefined' && window.CSS && typeof window.CSS.escape === 'function') {
-    return window.CSS.escape(value);
+const formatBytes = (bytes: number): string => {
+  if (bytes === 0) {
+    return '0 o';
   }
-  return value.replace(/"/g, '\\"');
+  const units = ['o', 'Ko', 'Mo', 'Go'];
+  const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / Math.pow(1024, index);
+  return `${value.toFixed(value >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
 };
 
-const cloneAnchorRect = (rect: DOMRect | DOMRectReadOnly | AnchorRect | null): AnchorRect | null => {
-  if (!rect) {
-    return null;
-  }
-  const { x, y, top, left, bottom, right, width, height } = rect;
-  return { x, y, top, left, bottom, right, width, height };
-};
+const CUSTOMIZATION_SECTIONS: CustomizationSection[] = [
+  {
+    id: 'navigation',
+    title: 'Navigation',
+    description: 'Logos, liens principaux et fond du menu supérieur.',
+    groups: [
+      {
+        id: 'navigation-main',
+        title: 'Contenu principal',
+        fields: [
+          { id: 'navigation-brand', type: 'text', element: 'navigation.brand', label: 'Nom de la marque' },
+          {
+            id: 'navigation-home',
+            type: 'text',
+            element: 'navigation.links.home',
+            label: 'Libellé du lien Accueil',
+          },
+          {
+            id: 'navigation-about',
+            type: 'text',
+            element: 'navigation.links.about',
+            label: 'Libellé du lien À propos',
+          },
+          {
+            id: 'navigation-menu',
+            type: 'text',
+            element: 'navigation.links.menu',
+            label: 'Libellé du lien Menu',
+          },
+          {
+            id: 'navigation-contact',
+            type: 'text',
+            element: 'navigation.links.contact',
+            label: 'Libellé du lien Contact',
+          },
+          {
+            id: 'navigation-login',
+            type: 'text',
+            element: 'navigation.links.loginCta',
+            label: "Texte du bouton d'accès staff",
+          },
+        ],
+      },
+      {
+        id: 'navigation-branding',
+        title: 'Identité visuelle',
+        fields: [
+          {
+            id: 'navigation-brand-logo',
+            type: 'image',
+            element: 'navigation.brandLogo',
+            label: 'Logo principal',
+            description: 'PNG ou SVG recommandé pour un rendu net sur tous les écrans.',
+          },
+          {
+            id: 'navigation-staff-logo',
+            type: 'image',
+            element: 'navigation.staffLogo',
+            label: "Logo d'accès équipe",
+            description: "S'affiche pour le bouton d'accès staff si disponible.",
+          },
+        ],
+      },
+      {
+        id: 'navigation-background',
+        title: 'Fond et mise en forme',
+        fields: [
+          {
+            id: 'navigation-style-background',
+            type: 'background',
+            element: 'navigation.style.background',
+            label: 'Fond du bandeau',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'hero',
+    title: 'Section Hero',
+    description: 'Grand bandeau d’ouverture avec accroche et image de fond.',
+    groups: [
+      {
+        id: 'hero-content',
+        title: 'Contenu',
+        fields: [
+          {
+            id: 'hero-title',
+            type: 'text',
+            element: 'hero.title',
+            label: 'Titre principal',
+            allowRichText: true,
+            showStyleOptions: true,
+            multiline: true,
+          },
+          {
+            id: 'hero-subtitle',
+            type: 'text',
+            element: 'hero.subtitle',
+            label: 'Sous-titre',
+            allowRichText: true,
+            showStyleOptions: true,
+            multiline: true,
+          },
+          {
+            id: 'hero-cta',
+            type: 'text',
+            element: 'hero.ctaLabel',
+            label: 'Bouton principal',
+          },
+          {
+            id: 'hero-history',
+            type: 'text',
+            element: 'hero.historyTitle',
+            label: "Titre du bloc historique",
+            multiline: true,
+          },
+          {
+            id: 'hero-reorder',
+            type: 'text',
+            element: 'hero.reorderCtaLabel',
+            label: 'Bouton de réassort',
+          },
+        ],
+      },
+      {
+        id: 'hero-visuals',
+        title: 'Visuels et ambiance',
+        fields: [
+          {
+            id: 'hero-background-image',
+            type: 'image',
+            element: 'hero.backgroundImage',
+            label: 'Image de fond',
+            description: 'Utilisez des images haute résolution. Optimisation Cloudinary recommandée.',
+          },
+          {
+            id: 'hero-background-style',
+            type: 'background',
+            element: 'hero.style.background',
+            label: 'Couleurs et ambiance',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'about',
+    title: 'Section À propos',
+    description: 'Présentation de votre histoire et visuels associés.',
+    groups: [
+      {
+        id: 'about-content',
+        title: 'Contenu',
+        fields: [
+          {
+            id: 'about-title',
+            type: 'text',
+            element: 'about.title',
+            label: 'Titre',
+            showStyleOptions: true,
+          },
+          {
+            id: 'about-description',
+            type: 'text',
+            element: 'about.description',
+            label: 'Texte descriptif',
+            allowRichText: true,
+            multiline: true,
+            showStyleOptions: true,
+          },
+        ],
+      },
+      {
+        id: 'about-visuals',
+        title: 'Visuels',
+        fields: [
+          {
+            id: 'about-image',
+            type: 'image',
+            element: 'about.image',
+            label: 'Image principale',
+            description: 'Photo illustrative de votre établissement ou de vos produits.',
+          },
+          {
+            id: 'about-background',
+            type: 'background',
+            element: 'about.style.background',
+            label: 'Fond de section',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'menu',
+    title: 'Section Menu',
+    description: 'Mettre en avant vos plats signatures et CTA vers la commande.',
+    groups: [
+      {
+        id: 'menu-content',
+        title: 'Contenu',
+        fields: [
+          { id: 'menu-title', type: 'text', element: 'menu.title', label: 'Titre du menu', showStyleOptions: true },
+          { id: 'menu-cta', type: 'text', element: 'menu.ctaLabel', label: 'Texte du bouton', showStyleOptions: true },
+          {
+            id: 'menu-loading',
+            type: 'text',
+            element: 'menu.loadingLabel',
+            label: 'Message de chargement',
+            multiline: true,
+          },
+        ],
+      },
+      {
+        id: 'menu-visuals',
+        title: 'Visuels',
+        fields: [
+          {
+            id: 'menu-image',
+            type: 'image',
+            element: 'menu.image',
+            label: 'Image d’illustration',
+          },
+          {
+            id: 'menu-background',
+            type: 'background',
+            element: 'menu.style.background',
+            label: 'Fond de section',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'instagram',
+    title: 'Section Avis Instagram',
+    description: 'Personnalisez le carrousel social, ses textes et ses visuels.',
+    groups: [
+      {
+        id: 'instagram-header',
+        title: 'En-tête de section',
+        fields: [
+          {
+            id: 'instagram-title',
+            type: 'text',
+            element: 'instagramReviews.title',
+            label: 'Titre de la section',
+            showStyleOptions: true,
+          },
+          {
+            id: 'instagram-subtitle',
+            type: 'text',
+            element: 'instagramReviews.subtitle',
+            label: 'Sous-titre',
+            allowRichText: true,
+            multiline: true,
+          },
+          {
+            id: 'instagram-image',
+            type: 'image',
+            element: 'instagramReviews.image',
+            label: 'Image centrale',
+            description: 'Illustration affichée à droite du carrousel.',
+          },
+          {
+            id: 'instagram-background',
+            type: 'background',
+            element: 'instagramReviews.style.background',
+            label: 'Fond de section',
+          },
+        ],
+      },
+      ...INSTAGRAM_REVIEW_IDS.map((reviewId, index) => ({
+        id: `instagram-review-${reviewId}`,
+        title: `Carte témoignage ${index + 1}`,
+        description:
+          "Personnalisez le contenu de la carte et les médias associés (avatar, visuel de post, mise en avant).",
+        fields: [
+          {
+            id: `instagram-review-${reviewId}-name`,
+            type: 'text',
+            element: `instagramReviews.reviews.${reviewId}.name` as EditableElementKey,
+            label: 'Nom',
+          },
+          {
+            id: `instagram-review-${reviewId}-handle`,
+            type: 'text',
+            element: `instagramReviews.reviews.${reviewId}.handle` as EditableElementKey,
+            label: 'Handle Instagram',
+          },
+          {
+            id: `instagram-review-${reviewId}-timeAgo`,
+            type: 'text',
+            element: `instagramReviews.reviews.${reviewId}.timeAgo` as EditableElementKey,
+            label: 'Durée depuis la publication',
+          },
+          {
+            id: `instagram-review-${reviewId}-message`,
+            type: 'text',
+            element: `instagramReviews.reviews.${reviewId}.message` as EditableElementKey,
+            label: 'Message principal',
+            multiline: true,
+            allowRichText: true,
+          },
+          {
+            id: `instagram-review-${reviewId}-highlight`,
+            type: 'text',
+            element: `instagramReviews.reviews.${reviewId}.highlight` as EditableElementKey,
+            label: 'Message mis en avant',
+            multiline: true,
+          },
+          {
+            id: `instagram-review-${reviewId}-highlight-caption`,
+            type: 'text',
+            element: `instagramReviews.reviews.${reviewId}.highlightCaption` as EditableElementKey,
+            label: 'Description du highlight',
+            multiline: true,
+          },
+          {
+            id: `instagram-review-${reviewId}-badge`,
+            type: 'text',
+            element: `instagramReviews.reviews.${reviewId}.badgeLabel` as EditableElementKey,
+            label: 'Badge',
+          },
+          {
+            id: `instagram-review-${reviewId}-location`,
+            type: 'text',
+            element: `instagramReviews.reviews.${reviewId}.location` as EditableElementKey,
+            label: 'Localisation',
+          },
+          {
+            id: `instagram-review-${reviewId}-avatar`,
+            type: 'image',
+            element: `instagramReviews.reviews.${reviewId}.avatarUrl` as EditableElementKey,
+            label: 'Avatar',
+          },
+          {
+            id: `instagram-review-${reviewId}-highlight-image`,
+            type: 'image',
+            element: `instagramReviews.reviews.${reviewId}.highlightImageUrl` as EditableElementKey,
+            label: 'Image highlight',
+          },
+          {
+            id: `instagram-review-${reviewId}-post-image`,
+            type: 'image',
+            element: `instagramReviews.reviews.${reviewId}.postImageUrl` as EditableElementKey,
+            label: 'Image du post',
+          },
+          {
+            id: `instagram-review-${reviewId}-post-alt`,
+            type: 'text',
+            element: `instagramReviews.reviews.${reviewId}.postImageAlt` as EditableElementKey,
+            label: "Texte alternatif de l'image du post",
+          },
+        ],
+      })),
+    ],
+  },
+  {
+    id: 'find-us',
+    title: 'Section Encuéntranos',
+    description: 'Coordonnées, horaires et informations de contact.',
+    groups: [
+      {
+        id: 'find-us-content',
+        title: 'Contenu',
+        fields: [
+          { id: 'find-us-title', type: 'text', element: 'findUs.title', label: 'Titre', showStyleOptions: true },
+          {
+            id: 'find-us-address-label',
+            type: 'text',
+            element: 'findUs.addressLabel',
+            label: "Libellé de l'adresse",
+          },
+          { id: 'find-us-address', type: 'text', element: 'findUs.address', label: 'Adresse complète', multiline: true },
+          {
+            id: 'find-us-city-label',
+            type: 'text',
+            element: 'findUs.cityLabel',
+            label: 'Libellé de contact',
+          },
+          { id: 'find-us-city', type: 'text', element: 'findUs.city', label: 'Contact (mail ou téléphone)' },
+          {
+            id: 'find-us-hours-label',
+            type: 'text',
+            element: 'findUs.hoursLabel',
+            label: 'Libellé des horaires',
+          },
+          { id: 'find-us-hours', type: 'text', element: 'findUs.hours', label: 'Horaires détaillés', multiline: true },
+          {
+            id: 'find-us-map-label',
+            type: 'text',
+            element: 'findUs.mapLabel',
+            label: 'Libellé du lien carte',
+          },
+        ],
+      },
+      {
+        id: 'find-us-background',
+        title: 'Fond',
+        fields: [
+          {
+            id: 'find-us-style-background',
+            type: 'background',
+            element: 'findUs.style.background',
+            label: 'Personnalisation du fond',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'footer',
+    title: 'Pied de page',
+    description: 'Dernière section visible de la page d’accueil.',
+    groups: [
+      {
+        id: 'footer-content',
+        title: 'Contenu',
+        fields: [
+          {
+            id: 'footer-text',
+            type: 'text',
+            element: 'footer.text',
+            label: 'Texte du pied de page',
+            multiline: true,
+            allowRichText: true,
+            showStyleOptions: true,
+          },
+        ],
+      },
+      {
+        id: 'footer-background',
+        title: 'Fond',
+        fields: [
+          {
+            id: 'footer-style-background',
+            type: 'background',
+            element: 'footer.style.background',
+            label: 'Couleur ou image de fond',
+          },
+        ],
+      },
+    ],
+  },
+];
 
-interface EditorPopoverProps {
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-  footer: React.ReactNode;
-  anchor: AnchorRect | null;
-  elementId: EditableElementKey;
-}
+type FieldRegistration = (element: EditableElementKey, node: HTMLDivElement | null) => void;
 
-const EditorPopover: React.FC<EditorPopoverProps> = ({
-  title,
-  onClose,
-  children,
-  footer,
-  anchor,
-  elementId,
-}) => {
-  const headingId = useId();
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [position, setPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
-  const [placement, setPlacement] = useState<'top' | 'bottom'>('top');
-  const [isMounted, setIsMounted] = useState(false);
-  const [isPositioned, setIsPositioned] = useState(false);
-  const [arrowPosition, setArrowPosition] = useState<{ top: number; left: number } | null>(null);
+type FocusElementHandler = (element: EditableElementKey) => void;
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+type ApplyUpdater = (updater: DraftUpdater) => void;
 
-  const updatePosition = useCallback(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    const node = containerRef.current;
-    if (!node) {
-      return;
-    }
+type AssetAppender = (asset: CustomizationAsset) => void;
 
-    const anchorSelector = `[data-element-id="${escapeAttributeValue(elementId)}"]`;
-    const anchorElement = document.querySelector(anchorSelector) as HTMLElement | null;
-    const rect = anchorElement?.getBoundingClientRect() ?? anchor;
-
-    const { width: dialogWidth, height: dialogHeight } = node.getBoundingClientRect();
-    const viewportWidth = document.documentElement.clientWidth;
-    const viewportHeight = window.innerHeight;
-    const gutter = 16;
-    const offset = 12;
-
-    if (!rect) {
-      const fallbackLeft = Math.max(gutter, (viewportWidth - dialogWidth) / 2);
-      const fallbackTop = Math.max(gutter, (viewportHeight - dialogHeight) / 2);
-      setPosition({ top: fallbackTop, left: fallbackLeft });
-      setPlacement('top');
-      setIsPositioned(true);
-      setArrowPosition(null);
-      return;
-    }
-
-    let top = rect.top - dialogHeight - offset;
-    let currentPlacement: 'top' | 'bottom' = 'top';
-    if (top < gutter) {
-      top = rect.bottom + offset;
-      currentPlacement = 'bottom';
-    }
-
-    if (top + dialogHeight > viewportHeight - gutter) {
-      const availableAbove = rect.top - gutter;
-      const availableBelow = viewportHeight - rect.bottom - gutter;
-      if (availableAbove > availableBelow) {
-        top = Math.max(gutter, rect.top - dialogHeight - offset);
-        currentPlacement = 'top';
-      } else {
-        top = Math.min(viewportHeight - dialogHeight - gutter, rect.bottom + offset);
-        currentPlacement = 'bottom';
-      }
-    }
-
-    const desiredLeft = rect.left + rect.width / 2 - dialogWidth / 2;
-    const maxLeft = viewportWidth - dialogWidth - gutter;
-    const clampedLeft = Math.max(gutter, Math.min(desiredLeft, maxLeft));
-
-    setPosition({ top, left: clampedLeft });
-    setPlacement(currentPlacement);
-    setIsPositioned(true);
-
-    const arrowCenter = Math.max(
-      clampedLeft + 12,
-      Math.min(rect.left + rect.width / 2, clampedLeft + dialogWidth - 12),
-    );
-    const arrowTop = currentPlacement === 'top' ? top + dialogHeight - 6 : top - 6;
-    setArrowPosition({ top: arrowTop, left: arrowCenter - 6 });
-  }, [anchor, elementId]);
-
-  useIsomorphicLayoutEffect(() => {
-    if (!isMounted) {
-      return;
-    }
-    updatePosition();
-  }, [updatePosition, isMounted]);
-
-  useEffect(() => {
-    if (!isMounted) {
-      return;
-    }
-    const handleScroll = () => updatePosition();
-    window.addEventListener('scroll', handleScroll, true);
-    window.addEventListener('resize', handleScroll);
-
-    const anchorSelector = `[data-element-id="${escapeAttributeValue(elementId)}"]`;
-    const anchorElement = document.querySelector(anchorSelector) as HTMLElement | null;
-    const observers: ResizeObserver[] = [];
-    if (typeof ResizeObserver !== 'undefined') {
-      const resizeObserver = new ResizeObserver(() => updatePosition());
-      if (anchorElement) {
-        resizeObserver.observe(anchorElement);
-      }
-      const node = containerRef.current;
-      if (node) {
-        resizeObserver.observe(node);
-      }
-      observers.push(resizeObserver);
-    }
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll, true);
-      window.removeEventListener('resize', handleScroll);
-      observers.forEach(observer => observer.disconnect());
-    };
-  }, [updatePosition, elementId, isMounted]);
-
-  useEffect(() => {
-    if (!isMounted) {
-      return;
-    }
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        onClose();
-        return;
-      }
-      if (event.key === 'Tab') {
-        const node = containerRef.current;
-        if (!node) {
-          return;
-        }
-        const focusable = Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(element =>
-          element.tabIndex !== -1 && !element.hasAttribute('disabled') && !element.getAttribute('aria-hidden'),
-        );
-        if (focusable.length === 0) {
-          event.preventDefault();
-          node.focus();
-          return;
-        }
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        if (event.shiftKey) {
-          if (document.activeElement === first || !node.contains(document.activeElement)) {
-            event.preventDefault();
-            last.focus();
-          }
-          return;
-        }
-        if (document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, isMounted]);
-
-  useEffect(() => {
-    if (!isMounted) {
-      return;
-    }
-    const handlePointerDown = (event: MouseEvent) => {
-      const node = containerRef.current;
-      if (!node) {
-        return;
-      }
-      if (!node.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-    document.addEventListener('mousedown', handlePointerDown);
-    return () => document.removeEventListener('mousedown', handlePointerDown);
-  }, [onClose, isMounted]);
-
-  useEffect(() => {
-    if (!isMounted) {
-      return;
-    }
-    const node = containerRef.current;
-    if (!node) {
-      return;
-    }
-    const focusable = node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-    const target = focusable[0] ?? node;
-    target.focus({ preventScroll: true });
-  }, [isMounted]);
-
-  if (typeof document === 'undefined' || !isMounted) {
-    return null;
-  }
-
-  const content = (
-    <div className="fixed inset-0 z-[60] pointer-events-none">
-      <div
-        ref={containerRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={headingId}
-        tabIndex={-1}
-        className="pointer-events-auto flex w-[min(90vw,32rem)] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-slate-200"
-        style={{ position: 'absolute', top: position.top, left: position.left, opacity: isPositioned ? 1 : 0 }}
-      >
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-          <h2 id={headingId} className="text-lg font-semibold text-slate-900">
-            {title}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full p-1 text-slate-500 transition hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
-          >
-            <X className="h-5 w-5" aria-hidden="true" />
-            <span className="sr-only">Fermer</span>
-          </button>
-        </div>
-        <div className="max-h-[70vh] overflow-y-auto px-6 py-5">{children}</div>
-        <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">{footer}</div>
-      </div>
-      {arrowPosition ? (
-        <span
-          aria-hidden="true"
-          className={`pointer-events-none absolute h-3 w-3 rotate-45 rounded-sm bg-white shadow-[0_0_0_1px_rgba(148,163,184,0.35)] ${
-            placement === 'top' ? 'translate-y-[-4px]' : 'translate-y-[4px]'
-          }`}
-          style={{ top: arrowPosition.top, left: arrowPosition.left, opacity: isPositioned ? 1 : 0 }}
-        />
-      ) : null}
-    </div>
-  );
-
-  return createPortal(content, document.body);
-};
-
-interface TextElementEditorProps {
+interface FieldWrapperProps {
   element: EditableElementKey;
   label: string;
-  draft: SiteContent;
-  onApply: (updater: DraftUpdater) => void;
-  onClose: () => void;
-  fontOptions: readonly string[];
-  onAssetAdded: (asset: CustomizationAsset) => void;
-  anchor: AnchorRect | null;
+  description?: string;
+  isActive: boolean;
+  register: FieldRegistration;
+  onFocus: FocusElementHandler;
+  children: React.ReactNode;
 }
 
-const TextElementEditor: React.FC<TextElementEditorProps> = ({
+const FieldWrapper: React.FC<FieldWrapperProps> = ({
   element,
   label,
+  description,
+  isActive,
+  register,
+  onFocus,
+  children,
+}) => {
+  const setRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      register(element, node);
+    },
+    [element, register],
+  );
+
+  return (
+    <div
+      ref={setRef}
+      className={`group relative rounded-3xl border p-6 transition shadow-sm focus-within:ring-2 focus-within:ring-brand-primary/60 ${
+        isActive
+          ? 'border-brand-primary/80 ring-1 ring-brand-primary/40'
+          : 'border-slate-200 hover:border-slate-300'
+      }`}
+      tabIndex={-1}
+      onFocusCapture={() => onFocus(element)}
+      onMouseEnter={() => onFocus(element)}
+    >
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-base font-semibold text-slate-900">{label}</h3>
+          {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
+        </div>
+        {isActive && (
+          <span className="rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-medium text-brand-primary">
+            Sélectionné
+          </span>
+        )}
+      </div>
+      <div className="space-y-4">{children}</div>
+    </div>
+  );
+};
+
+interface TextFieldEditorContentProps {
+  element: EditableElementKey;
+  draft: SiteContent;
+  onApply: ApplyUpdater;
+  fontOptions: readonly string[];
+  onAssetAdded: AssetAppender;
+  multiline?: boolean;
+  allowRichText?: boolean;
+  showStyleOptions?: boolean;
+  placeholder?: string;
+}
+
+const TextFieldEditorContent: React.FC<TextFieldEditorContentProps> = ({
+  element,
   draft,
   onApply,
-  onClose,
   fontOptions,
   onAssetAdded,
-  anchor,
+  multiline = false,
+  allowRichText = true,
+  showStyleOptions = false,
+  placeholder,
 }) => {
-  const formId = `${element.replace(/\./g, '-')}-text-form`;
   const initialPlain = getPlainTextValue(draft, element);
   const initialRichText = getElementRichTextValue(draft, element);
   const elementStyle = getElementStyle(draft, element);
 
   const [plainText, setPlainText] = useState<string>(initialPlain);
   const [richText, setRichText] = useState<RichTextValue | null>(initialRichText);
+  const [isRichTextOpen, setIsRichTextOpen] = useState<boolean>(Boolean(initialRichText));
   const [fontFamily, setFontFamily] = useState<string>(elementStyle.fontFamily ?? '');
   const [fontSize, setFontSize] = useState<string>(elementStyle.fontSize ?? '');
   const [textColor, setTextColor] = useState<string>(elementStyle.textColor ?? '');
@@ -607,28 +915,52 @@ const TextElementEditor: React.FC<TextElementEditorProps> = ({
   useEffect(() => {
     setPlainText(initialPlain);
     setRichText(initialRichText);
+    setIsRichTextOpen(Boolean(initialRichText));
     setFontFamily(elementStyle.fontFamily ?? '');
     setFontSize(elementStyle.fontSize ?? '');
     setTextColor(elementStyle.textColor ?? '');
     setBackgroundColor(elementStyle.backgroundColor ?? '');
   }, [initialPlain, initialRichText, elementStyle.fontFamily, elementStyle.fontSize, elementStyle.textColor, elementStyle.backgroundColor]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const sanitizedPlain = plainText;
-
+  const handleApply = useCallback(() => {
+    const sanitized = plainText;
     onApply(current => {
-      setNestedValue(current, element, sanitizedPlain);
-      applyElementRichText(current, element, richText);
-      applyElementStyleOverrides(current, element, {
-        fontFamily,
-        fontSize,
-        textColor,
-        backgroundColor,
-      });
+      setNestedValue(current, element, sanitized);
+      applyElementRichText(current, element, isRichTextOpen ? richText : null);
+      if (showStyleOptions) {
+        applyElementStyleOverrides(current, element, {
+          fontFamily,
+          fontSize,
+          textColor,
+          backgroundColor,
+        });
+      }
       return current;
     });
-    onClose();
+  }, [backgroundColor, element, fontFamily, fontSize, isRichTextOpen, onApply, plainText, richText, showStyleOptions, textColor]);
+
+  const handleResetStyle = useCallback(() => {
+    setFontFamily('');
+    setFontSize('');
+    setTextColor('');
+    setBackgroundColor('');
+    onApply(current => {
+      applyElementStyleOverrides(current, element, {});
+      return current;
+    });
+  }, [element, onApply]);
+
+  const handleToggleRichText = () => {
+    if (isRichTextOpen) {
+      setIsRichTextOpen(false);
+      setRichText(null);
+      onApply(current => {
+        applyElementRichText(current, element, null);
+        return current;
+      });
+    } else {
+      setIsRichTextOpen(true);
+    }
   };
 
   const handleFontUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -653,209 +985,216 @@ const TextElementEditor: React.FC<TextElementEditorProps> = ({
     }
   };
 
-  const footer = (
-    <>
-      <button type="button" onClick={onClose} className="ui-btn-secondary">Annuler</button>
-      <button type="submit" form={formId} className="ui-btn-primary">Enregistrer</button>
-    </>
-  );
-
   return (
-    <EditorPopover
-      title={`Personnaliser ${label}`}
-      onClose={onClose}
-      footer={footer}
-      anchor={anchor}
-      elementId={element}
-    >
-      <form id={formId} onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor={`${formId}-plain`} className="block text-sm font-medium text-slate-700">
-            Texte de base
-          </label>
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-slate-700" htmlFor={`${element}-input`}>
+          Contenu
+        </label>
+        {multiline ? (
           <textarea
-            id={`${formId}-plain`}
-            className="ui-textarea mt-2 w-full"
+            id={`${element}-input`}
+            className="ui-textarea w-full"
+            rows={4}
             value={plainText}
-            onChange={event => {
-              setPlainText(event.target.value);
-              setRichText(null);
-            }}
-            rows={3}
+            placeholder={placeholder}
+            onChange={event => setPlainText(event.target.value)}
           />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-slate-700">Mise en forme avancée</p>
-          <RichTextEditor
-            id={`${formId}-rich`}
-            value={richText}
-            fallback={plainText}
-            onChange={value => {
-              setRichText(value);
-              if (value) {
-                setPlainText(value.plainText);
-              }
-            }}
-            className="mt-2"
-            placeholder="Saisissez votre texte..."
+        ) : (
+          <input
+            id={`${element}-input`}
+            className="ui-input w-full"
+            value={plainText}
+            placeholder={placeholder}
+            onChange={event => setPlainText(event.target.value)}
           />
-          <button
-            type="button"
-            className="mt-2 text-sm font-medium text-brand-primary hover:text-brand-primary/80"
-            onClick={() => setRichText(null)}
-          >
-            Supprimer la mise en forme personnalisée
-          </button>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label htmlFor={`${formId}-font`} className="block text-sm font-medium text-slate-700">
-              Police
-            </label>
-            <input
-              id={`${formId}-font`}
-              className="ui-input mt-2 w-full"
-              value={fontFamily}
-              onChange={event => setFontFamily(event.target.value)}
-              list={`${formId}-font-options`}
-              placeholder="Ex: Poppins"
-            />
-            <datalist id={`${formId}-font-options`}>
-              {fontOptions.map(option => (
-                <option key={option} value={option} />
-              ))}
-            </datalist>
-            <div className="mt-2 flex items-center gap-3">
-              <label className="ui-btn-secondary relative cursor-pointer">
-                <input
-                  type="file"
-                  accept=".woff,.woff2,.ttf,.otf"
-                  className="absolute inset-0 cursor-pointer opacity-0"
-                  onChange={handleFontUpload}
-                  disabled={uploadingFont}
-                />
-                <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
-                Importer une police
-              </label>
-              {uploadingFont && <Loader2 className="h-4 w-4 animate-spin text-brand-primary" aria-hidden="true" />}
+        )}
+      </div>
+
+      {allowRichText && (
+        <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-slate-700">Mise en forme avancée</p>
+              <p className="text-xs text-slate-500">
+                Activez l’éditeur riche pour ajouter du gras, de l’italique et des liens.
+              </p>
             </div>
-            {fontUploadError && <p className="mt-2 text-sm text-amber-600">{fontUploadError}</p>}
+            <button
+              type="button"
+              className="ui-btn-secondary whitespace-nowrap"
+              onClick={handleToggleRichText}
+            >
+              {isRichTextOpen ? 'Désactiver' : 'Activer'}
+            </button>
           </div>
-          <div>
-            <label htmlFor={`${formId}-size`} className="block text-sm font-medium text-slate-700">
-              Taille du texte
-            </label>
-            <input
-              id={`${formId}-size`}
-              className="ui-input mt-2 w-full"
-              value={fontSize}
-              onChange={event => setFontSize(event.target.value)}
-              list={`${formId}-size-options`}
-              placeholder="Ex: 18px"
+          {isRichTextOpen && (
+            <RichTextEditor
+              id={`${element}-rich`}
+              value={richText}
+              fallback={plainText}
+              onChange={value => {
+                setRichText(value);
+                if (value) {
+                  setPlainText(value.plainText);
+                }
+              }}
+              className="rounded-xl border border-slate-200 bg-white"
+              placeholder="Saisissez votre texte..."
             />
-            <datalist id={`${formId}-size-options`}>
-              {FONT_SIZE_SUGGESTIONS.map(size => (
-                <option key={size} value={size} />
-              ))}
-            </datalist>
-          </div>
+          )}
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label htmlFor={`${formId}-text-color`} className="block text-sm font-medium text-slate-700">
-              Couleur du texte
-            </label>
-            <div className="mt-2 flex items-center gap-3">
+      )}
+
+      {showStyleOptions && (
+        <div className="space-y-4 rounded-2xl border border-slate-200 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-slate-700">Style du texte</p>
+            <button type="button" className="text-sm font-medium text-brand-primary" onClick={handleResetStyle}>
+              Réinitialiser
+            </button>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                Police
+              </label>
               <input
-                id={`${formId}-text-color`}
+                className="ui-input w-full"
+                value={fontFamily}
+                onChange={event => setFontFamily(event.target.value)}
+                list={`${element}-font-options`}
+                placeholder="Ex: Poppins"
+              />
+              <datalist id={`${element}-font-options`}>
+                {fontOptions.map(option => (
+                  <option key={option} value={option} />
+                ))}
+              </datalist>
+              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                <label className="ui-btn-secondary relative cursor-pointer text-xs">
+                  <input
+                    type="file"
+                    accept=".woff,.woff2,.ttf,.otf"
+                    className="absolute inset-0 cursor-pointer opacity-0"
+                    onChange={handleFontUpload}
+                    disabled={uploadingFont}
+                  />
+                  <Upload className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
+                  Importer une police
+                </label>
+                {uploadingFont && (
+                  <Loader2 className="h-4 w-4 animate-spin text-brand-primary" aria-hidden="true" />
+                )}
+                {fontUploadError && <span className="text-xs text-amber-600">{fontUploadError}</span>}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                Taille du texte
+              </label>
+              <input
+                className="ui-input w-full"
+                value={fontSize}
+                onChange={event => setFontSize(event.target.value)}
+                list={`${element}-size-options`}
+                placeholder="Ex: 18px"
+              />
+              <datalist id={`${element}-size-options`}>
+                {FONT_SIZE_SUGGESTIONS.map(size => (
+                  <option key={size} value={size} />
+                ))}
+              </datalist>
+            </div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                Couleur du texte
+              </label>
+              <input
                 className="ui-input w-full"
                 value={textColor}
                 onChange={event => setTextColor(event.target.value)}
                 placeholder="Ex: #0f172a"
               />
-              <input
-                type="color"
-                className="h-10 w-10 rounded border border-slate-200"
-                value={textColor || '#000000'}
-                onChange={event => setTextColor(event.target.value)}
-                aria-label="Choisir la couleur du texte"
-              />
+              <div className="flex flex-wrap gap-2">
+                {COLOR_SUGGESTIONS.map(color => (
+                  <button
+                    key={color}
+                    type="button"
+                    className="h-8 w-8 rounded-full border border-slate-200"
+                    style={{ backgroundColor: color }}
+                    onClick={() => setTextColor(color)}
+                  >
+                    <span className="sr-only">{color}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {COLOR_SUGGESTIONS.map(color => (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={() => setTextColor(color)}
-                  className="h-8 w-8 rounded-full border border-slate-200"
-                  style={{ backgroundColor: color === 'transparent' ? '#ffffff' : color }}
-                  title={color}
-                />
-              ))}
-            </div>
-          </div>
-          <div>
-            <label htmlFor={`${formId}-bg-color`} className="block text-sm font-medium text-slate-700">
-              Couleur de fond
-            </label>
-            <div className="mt-2 flex items-center gap-3">
+            <div className="space-y-2">
+              <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                Fond du texte
+              </label>
               <input
-                id={`${formId}-bg-color`}
                 className="ui-input w-full"
                 value={backgroundColor}
                 onChange={event => setBackgroundColor(event.target.value)}
-                placeholder="Ex: rgba(255,255,255,0.8)"
+                placeholder="Ex: transparent"
               />
-              <input
-                type="color"
-                className="h-10 w-10 rounded border border-slate-200"
-                value={backgroundColor || '#ffffff'}
-                onChange={event => setBackgroundColor(event.target.value)}
-                aria-label="Choisir la couleur d'arrière-plan"
-              />
+              <div className="flex flex-wrap gap-2">
+                {COLOR_SUGGESTIONS.map(color => (
+                  <button
+                    key={color}
+                    type="button"
+                    className="h-8 w-8 rounded-full border border-slate-200"
+                    style={{ backgroundColor: color }}
+                    onClick={() => setBackgroundColor(color)}
+                  >
+                    <span className="sr-only">{color}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-between border-t border-slate-200 pt-4">
-          <p className="text-sm text-slate-500">Laissez un champ vide pour hériter du style par défaut.</p>
-          <button
-            type="button"
-            className="text-sm font-medium text-brand-primary hover:text-brand-primary/80"
-            onClick={() => {
-              setFontFamily('');
-              setFontSize('');
-              setTextColor('');
-              setBackgroundColor('');
-            }}
-          >
-            Réinitialiser le style
-          </button>
-        </div>
-      </form>
-    </EditorPopover>
+      )}
+
+      <div className="flex flex-wrap justify-end gap-3">
+        <button type="button" className="ui-btn-secondary" onClick={() => {
+          setPlainText(initialPlain);
+          setRichText(initialRichText);
+          setIsRichTextOpen(Boolean(initialRichText));
+          setFontFamily(elementStyle.fontFamily ?? '');
+          setFontSize(elementStyle.fontSize ?? '');
+          setTextColor(elementStyle.textColor ?? '');
+          setBackgroundColor(elementStyle.backgroundColor ?? '');
+        }}>
+          Réinitialiser les modifications
+        </button>
+        <button type="button" className="ui-btn-primary" onClick={handleApply}>
+          Appliquer
+        </button>
+      </div>
+    </div>
   );
 };
 
-interface ImageElementEditorProps {
+interface ImageFieldEditorContentProps {
   element: EditableElementKey;
-  label: string;
   draft: SiteContent;
-  onApply: (updater: DraftUpdater) => void;
-  onClose: () => void;
-  onAssetAdded: (asset: CustomizationAsset) => void;
-  anchor: AnchorRect | null;
+  onApply: ApplyUpdater;
+  onAssetAdded: AssetAppender;
+  placeholder?: string;
 }
 
-const ImageElementEditor: React.FC<ImageElementEditorProps> = ({
+const ImageFieldEditorContent: React.FC<ImageFieldEditorContentProps> = ({
   element,
-  label,
   draft,
   onApply,
-  onClose,
   onAssetAdded,
-  anchor,
+  placeholder,
 }) => {
-  const formId = `${element.replace(/\./g, '-')}-image-form`;
   const initialImage = getImageValue(draft, element) ?? '';
   const [imageUrl, setImageUrl] = useState<string>(initialImage);
   const [error, setError] = useState<string | null>(null);
@@ -865,8 +1204,7 @@ const ImageElementEditor: React.FC<ImageElementEditorProps> = ({
     setImageUrl(initialImage);
   }, [initialImage]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleApply = () => {
     const trimmed = imageUrl.trim();
     const normalized = normalizeCloudinaryImageUrl(trimmed) ?? (trimmed.length > 0 ? trimmed : null);
 
@@ -874,7 +1212,6 @@ const ImageElementEditor: React.FC<ImageElementEditorProps> = ({
       setNestedValue(current, element, normalized);
       return current;
     });
-    onClose();
   };
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -897,96 +1234,79 @@ const ImageElementEditor: React.FC<ImageElementEditorProps> = ({
     }
   };
 
-  const footer = (
-    <>
-      <button type="button" onClick={onClose} className="ui-btn-secondary">Annuler</button>
-      <button type="submit" form={formId} className="ui-btn-primary">Enregistrer</button>
-    </>
-  );
-
   const previewUrl = imageUrl.trim();
 
   return (
-    <EditorPopover
-      title={`Personnaliser ${label}`}
-      onClose={onClose}
-      footer={footer}
-      anchor={anchor}
-      elementId={element}
-    >
-      <form id={formId} onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor={`${formId}-input`} className="block text-sm font-medium text-slate-700">
-            URL de l'image
-          </label>
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-slate-700" htmlFor={`${element}-image`}>
+          URL de l'image ou du média
+        </label>
+        <input
+          id={`${element}-image`}
+          className="ui-input w-full"
+          value={imageUrl}
+          placeholder={placeholder ?? 'https://'}
+          onChange={event => setImageUrl(event.target.value)}
+        />
+        <p className="text-xs text-slate-500">
+          Collez une URL Cloudinary ou téléversez un fichier pour l’ajouter automatiquement.
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="ui-btn-secondary relative cursor-pointer">
           <input
-            id={`${formId}-input`}
-            className="ui-input mt-2 w-full"
-            value={imageUrl}
-            onChange={event => setImageUrl(event.target.value)}
-            placeholder="https://..."
+            type="file"
+            accept="image/*,video/*,audio/*,.ttf,.otf,.woff,.woff2"
+            className="absolute inset-0 cursor-pointer opacity-0"
+            onChange={handleUpload}
+            disabled={uploading}
           />
-          <p className="mt-2 text-xs text-slate-500">
-            Fournissez une URL Cloudinary ou téléversez un fichier pour l'ajouter automatiquement.
-          </p>
+          <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
+          Importer un média
+        </label>
+        {uploading && <Loader2 className="h-4 w-4 animate-spin text-brand-primary" aria-hidden="true" />}
+        <button
+          type="button"
+          className="text-sm font-medium text-brand-primary hover:text-brand-primary/80"
+          onClick={() => setImageUrl('')}
+        >
+          Supprimer le média
+        </button>
+      </div>
+      {error && (
+        <div className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
+          <AlertTriangle className="mt-0.5 h-4 w-4" aria-hidden="true" />
+          <p>{error}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="ui-btn-secondary relative cursor-pointer">
-            <input
-              type="file"
-              accept="image/*,video/*,audio/*,.ttf,.otf,.woff,.woff2"
-              className="absolute inset-0 cursor-pointer opacity-0"
-              onChange={handleUpload}
-              disabled={uploading}
-            />
-            <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
-            Importer un média
-          </label>
-          {uploading && <Loader2 className="h-4 w-4 animate-spin text-brand-primary" aria-hidden="true" />}
-          <button
-            type="button"
-            onClick={() => setImageUrl('')}
-            className="text-sm font-medium text-brand-primary hover:text-brand-primary/80"
-          >
-            Supprimer le média
-          </button>
+      )}
+      {previewUrl && (
+        <div className="overflow-hidden rounded-2xl border border-slate-200">
+          <img src={previewUrl} alt="Aperçu" className="h-48 w-full object-cover" />
         </div>
-        {error && (
-          <div className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
-            <AlertTriangle className="mt-0.5 h-4 w-4" aria-hidden="true" />
-            <p>{error}</p>
-          </div>
-        )}
-        {previewUrl && (
-          <div className="overflow-hidden rounded-2xl border border-slate-200">
-            <img src={previewUrl} alt="Aperçu" className="h-56 w-full object-cover" />
-          </div>
-        )}
-      </form>
-    </EditorPopover>
+      )}
+      <div className="flex justify-end">
+        <button type="button" className="ui-btn-primary" onClick={handleApply}>
+          Appliquer
+        </button>
+      </div>
+    </div>
   );
 };
 
-interface BackgroundElementEditorProps {
+interface BackgroundFieldEditorContentProps {
   element: EditableElementKey;
-  label: string;
   draft: SiteContent;
-  onApply: (updater: DraftUpdater) => void;
-  onClose: () => void;
-  onAssetAdded: (asset: CustomizationAsset) => void;
-  anchor: AnchorRect | null;
+  onApply: ApplyUpdater;
+  onAssetAdded: AssetAppender;
 }
 
-const BackgroundElementEditor: React.FC<BackgroundElementEditorProps> = ({
+const BackgroundFieldEditorContent: React.FC<BackgroundFieldEditorContentProps> = ({
   element,
-  label,
   draft,
   onApply,
-  onClose,
   onAssetAdded,
-  anchor,
 }) => {
-  const formId = `${element.replace(/\./g, '-')}-background-form`;
   const background = getSectionBackground(draft, element);
   const [backgroundType, setBackgroundType] = useState<SectionStyle['background']['type']>(background.type);
   const [color, setColor] = useState<string>(background.color);
@@ -1000,8 +1320,7 @@ const BackgroundElementEditor: React.FC<BackgroundElementEditorProps> = ({
     setImageUrl(background.image ?? '');
   }, [background.type, background.color, background.image]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleApply = () => {
     const trimmedColor = color.trim() || 'transparent';
     const trimmedImage = imageUrl.trim();
     const normalizedImage = normalizeCloudinaryImageUrl(trimmedImage) ?? (trimmedImage.length > 0 ? trimmedImage : null);
@@ -1014,7 +1333,6 @@ const BackgroundElementEditor: React.FC<BackgroundElementEditorProps> = ({
       });
       return current;
     });
-    onClose();
   };
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1038,123 +1356,270 @@ const BackgroundElementEditor: React.FC<BackgroundElementEditorProps> = ({
     }
   };
 
-  const footer = (
-    <>
-      <button type="button" onClick={onClose} className="ui-btn-secondary">Annuler</button>
-      <button type="submit" form={formId} className="ui-btn-primary">Enregistrer</button>
-    </>
-  );
+  return (
+    <div className="space-y-5">
+      <div className="flex gap-3">
+        <button
+          type="button"
+          className={`ui-btn-secondary flex-1 ${backgroundType === 'color' ? 'ring-2 ring-brand-primary' : ''}`}
+          onClick={() => setBackgroundType('color')}
+        >
+          Couleur
+        </button>
+        <button
+          type="button"
+          className={`ui-btn-secondary flex-1 ${backgroundType === 'image' ? 'ring-2 ring-brand-primary' : ''}`}
+          onClick={() => setBackgroundType('image')}
+        >
+          Image
+        </button>
+      </div>
 
-  const previewUrl = imageUrl.trim();
+      <div className="space-y-3">
+        <label className="text-sm font-medium text-slate-700" htmlFor={`${element}-background-color`}>
+          Couleur
+        </label>
+        <input
+          id={`${element}-background-color`}
+          className="ui-input w-full"
+          value={color}
+          onChange={event => setColor(event.target.value)}
+        />
+        <div className="flex flex-wrap gap-2">
+          {COLOR_SUGGESTIONS.map(colorValue => (
+            <button
+              key={colorValue}
+              type="button"
+              className="h-8 w-8 rounded-full border border-slate-200"
+              style={{ backgroundColor: colorValue }}
+              onClick={() => setColor(colorValue)}
+            >
+              <span className="sr-only">{colorValue}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {backgroundType === 'image' && (
+        <div className="space-y-3">
+          <label className="text-sm font-medium text-slate-700" htmlFor={`${element}-background-image`}>
+            Image de fond
+          </label>
+          <input
+            id={`${element}-background-image`}
+            className="ui-input w-full"
+            value={imageUrl}
+            onChange={event => setImageUrl(event.target.value)}
+            placeholder="https://"
+          />
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="ui-btn-secondary relative cursor-pointer">
+              <input
+                type="file"
+                accept="image/*,video/*"
+                className="absolute inset-0 cursor-pointer opacity-0"
+                onChange={handleUpload}
+                disabled={uploading}
+              />
+              <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
+              Importer une image
+            </label>
+            {uploading && <Loader2 className="h-4 w-4 animate-spin text-brand-primary" aria-hidden="true" />}
+            <button
+              type="button"
+              className="text-sm font-medium text-brand-primary hover:text-brand-primary/80"
+              onClick={() => setImageUrl('')}
+            >
+              Supprimer l'image
+            </button>
+          </div>
+          {error && (
+            <div className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
+              <AlertTriangle className="mt-0.5 h-4 w-4" aria-hidden="true" />
+              <p>{error}</p>
+            </div>
+          )}
+          {imageUrl.trim() && (
+            <div className="overflow-hidden rounded-2xl border border-slate-200">
+              <img src={imageUrl} alt="Aperçu du fond" className="h-40 w-full object-cover" />
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="flex justify-end">
+        <button type="button" className="ui-btn-primary" onClick={handleApply}>
+          Appliquer
+        </button>
+      </div>
+    </div>
+  );
+};
+
+interface MediaLibrarySectionProps {
+  assets: CustomizationAsset[];
+  onUpload: (file: File) => Promise<void>;
+}
+
+const MediaLibrarySection: React.FC<MediaLibrarySectionProps> = ({ assets, onUpload }) => {
+  const [copySuccessId, setCopySuccessId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleCopy = async (asset: CustomizationAsset) => {
+    try {
+      await navigator.clipboard.writeText(asset.url);
+      setCopySuccessId(asset.id);
+      setTimeout(() => setCopySuccessId(null), 2000);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    setError(null);
+    setUploading(true);
+    try {
+      await onUpload(file);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Téléversement impossible.');
+    } finally {
+      setUploading(false);
+      event.target.value = '';
+    }
+  };
+
+  const fonts = assets.filter(asset => asset.type === 'font');
+  const images = assets.filter(asset => asset.type === 'image');
+  const others = assets.filter(asset => asset.type !== 'image' && asset.type !== 'font');
 
   return (
-    <EditorPopover
-      title={`Personnaliser ${label}`}
-      onClose={onClose}
-      footer={footer}
-      anchor={anchor}
-      elementId={element}
-    >
-      <form id={formId} onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex gap-3">
-          <button
-            type="button"
-            className={`ui-btn-secondary flex-1 ${backgroundType === 'color' ? 'ring-2 ring-brand-primary' : ''}`}
-            onClick={() => setBackgroundType('color')}
-          >
-            Couleur
-          </button>
-          <button
-            type="button"
-            className={`ui-btn-secondary flex-1 ${backgroundType === 'image' ? 'ring-2 ring-brand-primary' : ''}`}
-            onClick={() => setBackgroundType('image')}
-          >
-            Image
-          </button>
-        </div>
+    <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <label htmlFor={`${formId}-color`} className="block text-sm font-medium text-slate-700">
-            Couleur
-          </label>
-          <div className="mt-2 flex items-center gap-3">
-            <input
-              id={`${formId}-color`}
-              className="ui-input w-full"
-              value={color}
-              onChange={event => setColor(event.target.value)}
-              placeholder="Ex: rgba(15,23,42,0.75)"
-            />
-            <input
-              type="color"
-              className="h-10 w-10 rounded border border-slate-200"
-              value={color || '#ffffff'}
-              onChange={event => setColor(event.target.value)}
-              aria-label="Choisir la couleur d'arrière-plan"
-            />
-          </div>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {COLOR_SUGGESTIONS.map(option => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setColor(option)}
-                className="h-8 w-8 rounded-full border border-slate-200"
-                style={{ backgroundColor: option === 'transparent' ? '#ffffff' : option }}
-                title={option}
-              />
-            ))}
+          <h2 className="text-lg font-semibold text-slate-900">Bibliothèque de médias</h2>
+          <p className="text-sm text-slate-500">
+            Centralisez toutes vos ressources pour la personnalisation (polices, images, vidéos, audio).
+          </p>
+        </div>
+        <label className="ui-btn-primary relative cursor-pointer">
+          <input
+            type="file"
+            accept="image/*,video/*,audio/*,.ttf,.otf,.woff,.woff2"
+            className="absolute inset-0 cursor-pointer opacity-0"
+            onChange={handleUpload}
+            disabled={uploading}
+          />
+          <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
+          Ajouter un média
+        </label>
+      </header>
+
+      {error && (
+        <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+          <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+          <div>
+            <p>{error}</p>
           </div>
         </div>
-        {backgroundType === 'image' && (
-          <div className="space-y-4">
-            <div>
-              <label htmlFor={`${formId}-image`} className="block text-sm font-medium text-slate-700">
-                URL de l'image
-              </label>
-              <input
-                id={`${formId}-image`}
-                className="ui-input mt-2 w-full"
-                value={imageUrl}
-                onChange={event => setImageUrl(event.target.value)}
-                placeholder="https://..."
-              />
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <label className="ui-btn-secondary relative cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="absolute inset-0 cursor-pointer opacity-0"
-                  onChange={handleUpload}
-                  disabled={uploading}
-                />
-                <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
-                Importer une image
-              </label>
-              {uploading && <Loader2 className="h-4 w-4 animate-spin text-brand-primary" aria-hidden="true" />}
+      )}
+
+      {uploading && (
+        <div className="flex items-center gap-2 text-sm text-slate-500">
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Téléversement en cours…
+        </div>
+      )}
+
+      <div className="space-y-6">
+        <MediaLibraryList title="Polices" assets={fonts} onCopy={handleCopy} copySuccessId={copySuccessId} />
+        <MediaLibraryList title="Images" assets={images} onCopy={handleCopy} copySuccessId={copySuccessId} />
+        <MediaLibraryList title="Autres médias" assets={others} onCopy={handleCopy} copySuccessId={copySuccessId} />
+      </div>
+    </section>
+  );
+};
+
+interface MediaLibraryListProps {
+  title: string;
+  assets: CustomizationAsset[];
+  onCopy: (asset: CustomizationAsset) => void;
+  copySuccessId: string | null;
+}
+
+const MediaLibraryList: React.FC<MediaLibraryListProps> = ({ title, assets, onCopy, copySuccessId }) => {
+  if (assets.length === 0) {
+    return (
+      <div>
+        <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
+        <p className="mt-2 text-sm text-slate-500">Aucun média pour le moment.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {assets.map(asset => (
+          <article
+            key={asset.id}
+            className="rounded-2xl border border-slate-200 p-4 shadow-sm"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">{asset.name}</p>
+                <p className="text-xs text-slate-500">
+                  {asset.format.split('/').pop() ?? asset.format} • {formatBytes(asset.bytes)}
+                </p>
+              </div>
               <button
                 type="button"
-                onClick={() => setImageUrl('')}
-                className="text-sm font-medium text-brand-primary hover:text-brand-primary/80"
+                className={`ui-btn-secondary flex items-center gap-2 text-xs ${copySuccessId === asset.id ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : ''}`}
+                onClick={() => onCopy(asset)}
               >
-                Retirer l'image
+                <Copy className="h-4 w-4" aria-hidden="true" />
+                {copySuccessId === asset.id ? 'Copié !' : 'Copier l’URL'}
               </button>
             </div>
-            {error && (
-              <div className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
-                <AlertTriangle className="mt-0.5 h-4 w-4" aria-hidden="true" />
-                <p>{error}</p>
-              </div>
-            )}
-            {previewUrl && (
-              <div className="overflow-hidden rounded-2xl border border-slate-200">
-                <img src={previewUrl} alt="Aperçu" className="h-48 w-full object-cover" />
-              </div>
-            )}
-          </div>
-        )}
-      </form>
-    </EditorPopover>
+            <p className="mt-3 break-all text-xs text-slate-500">{asset.url}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const SectionAccordion: React.FC<{
+  section: CustomizationSection;
+  isExpanded: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}> = ({ section, isExpanded, onToggle, children }) => {
+  return (
+    <section className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left"
+      >
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">{section.title}</h2>
+          {section.description && <p className="text-sm text-slate-500">{section.description}</p>}
+        </div>
+        <span
+          className={`flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition ${
+            isExpanded ? 'bg-brand-primary/10 text-brand-primary rotate-180' : ''
+          }`}
+        >
+          <ChevronDown className="h-4 w-4" aria-hidden="true" />
+        </span>
+      </button>
+      {isExpanded && <div className="space-y-6 border-t border-slate-100 px-6 py-6">{children}</div>}
+    </section>
   );
 };
 
@@ -1166,13 +1631,21 @@ const SiteCustomization: React.FC = () => {
   const [activeElement, setActiveElement] = useState<EditableElementKey | null>(null);
   const [activeZone, setActiveZone] = useState<EditableZoneKey | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('custom');
-  const [activeAnchor, setActiveAnchor] = useState<AnchorRect | null>(null);
   const [saving, setSaving] = useState<boolean>(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [bestSellerProducts, setBestSellerProducts] = useState<Product[]>([]);
   const [bestSellerLoading, setBestSellerLoading] = useState<boolean>(false);
   const [bestSellerError, setBestSellerError] = useState<string | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    CUSTOMIZATION_SECTIONS.forEach(section => {
+      initial[section.id] = section.id === 'navigation' || section.id === 'hero';
+    });
+    return initial;
+  });
+
+  const fieldRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     if (content) {
@@ -1219,8 +1692,8 @@ const SiteCustomization: React.FC = () => {
     return () => clearTimeout(timeout);
   }, [saveSuccess]);
 
-  const applyDraftUpdate = useCallback(
-    (updater: DraftUpdater) => {
+  const applyDraftUpdate = useCallback<ApplyUpdater>(
+    updater => {
       setDraft(prev => {
         if (!prev) {
           return prev;
@@ -1232,7 +1705,7 @@ const SiteCustomization: React.FC = () => {
     [],
   );
 
-  const appendAssetToDraft = useCallback((asset: CustomizationAsset) => {
+  const appendAssetToDraft = useCallback<AssetAppender>(asset => {
     setDraft(prev => {
       if (!prev) {
         return prev;
@@ -1243,23 +1716,38 @@ const SiteCustomization: React.FC = () => {
     });
   }, []);
 
-  const handleEdit = useCallback(
+  const registerFieldRef = useCallback<FieldRegistration>((element, node) => {
+    fieldRefs.current[element] = node;
+  }, []);
+
+  const focusElement = useCallback<FocusElementHandler>(element => {
+    setActiveElement(element);
+    try {
+      const zone = resolveZoneFromElement(element);
+      setActiveZone(zone);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  const handlePreviewEdit = useCallback(
     (
       element: EditableElementKey,
       meta: { zone: EditableZoneKey; anchor: DOMRect | DOMRectReadOnly | null },
     ) => {
-      setActiveElement(element);
+      focusElement(element);
       setActiveZone(meta.zone);
-      setActiveAnchor(cloneAnchorRect(meta.anchor));
+      const target = fieldRefs.current[element];
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const focusable = target.querySelector<HTMLElement>(
+          'input, textarea, button, [contenteditable="true"], select',
+        );
+        focusable?.focus({ preventScroll: true });
+      }
     },
-    [],
+    [focusElement],
   );
-
-  const closeEditor = useCallback(() => {
-    setActiveElement(null);
-    setActiveZone(null);
-    setActiveAnchor(null);
-  }, []);
 
   const handleSave = async () => {
     setSaving(true);
@@ -1292,16 +1780,106 @@ const SiteCustomization: React.FC = () => {
     return Array.from(new Set([...base, ...custom]));
   }, [draft]);
 
-  const activeLabel = activeElement ? ELEMENT_LABELS[activeElement] ?? activeElement : null;
-  const elementType = activeElement
-    ? BACKGROUND_ELEMENT_KEYS.has(activeElement)
-      ? 'background'
-      : IMAGE_ELEMENT_KEYS.has(activeElement)
-      ? 'image'
-      : TEXT_ELEMENT_KEYS.has(activeElement)
-      ? 'text'
-      : 'text'
-    : null;
+  const renderField = useCallback(
+    (field: CustomizationField) => {
+      if (!draft) {
+        return null;
+      }
+      const commonProps = {
+        key: field.id,
+        element: field.element,
+        label: field.label,
+        description: field.description,
+        isActive: activeElement === field.element,
+        register: registerFieldRef,
+        onFocus: focusElement,
+      };
+
+      if (field.type === 'text') {
+        return (
+          <FieldWrapper {...commonProps}>
+            <TextFieldEditorContent
+              element={field.element}
+              draft={draft}
+              onApply={applyDraftUpdate}
+              fontOptions={fontOptions}
+              onAssetAdded={appendAssetToDraft}
+              multiline={field.multiline}
+              allowRichText={field.allowRichText}
+              showStyleOptions={field.showStyleOptions}
+              placeholder={field.placeholder}
+            />
+          </FieldWrapper>
+        );
+      }
+
+      if (field.type === 'image') {
+        return (
+          <FieldWrapper {...commonProps}>
+            <ImageFieldEditorContent
+              element={field.element}
+              draft={draft}
+              onApply={applyDraftUpdate}
+              onAssetAdded={appendAssetToDraft}
+              placeholder={field.placeholder}
+            />
+          </FieldWrapper>
+        );
+      }
+
+      return (
+        <FieldWrapper {...commonProps}>
+          <BackgroundFieldEditorContent
+            element={field.element}
+            draft={draft}
+            onApply={applyDraftUpdate}
+            onAssetAdded={appendAssetToDraft}
+          />
+        </FieldWrapper>
+      );
+    },
+    [activeElement, appendAssetToDraft, applyDraftUpdate, draft, focusElement, fontOptions, registerFieldRef],
+  );
+
+  const expandedContent = useMemo(() => {
+    if (!draft) {
+      return null;
+    }
+    return CUSTOMIZATION_SECTIONS.map(section => {
+      const isExpanded = expandedSections[section.id];
+      return (
+        <SectionAccordion
+          key={section.id}
+          section={section}
+          isExpanded={isExpanded}
+          onToggle={() =>
+            setExpandedSections(current => ({
+              ...current,
+              [section.id]: !current[section.id],
+            }))
+          }
+        >
+          <div className="space-y-6">
+            {section.groups.map(group => (
+              <div key={group.id} className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    {group.title}
+                  </h3>
+                  {group.description && (
+                    <p className="mt-1 text-sm text-slate-500">{group.description}</p>
+                  )}
+                </div>
+                <div className="space-y-4">
+                  {group.fields.map(renderField)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </SectionAccordion>
+      );
+    });
+  }, [draft, expandedSections, renderField]);
 
   if (loading) {
     return (
@@ -1321,13 +1899,24 @@ const SiteCustomization: React.FC = () => {
     );
   }
 
+  const assets = draft.assets?.library ?? [];
+
+  const handleLibraryUpload = useCallback(
+    async (file: File) => {
+      const url = await uploadCustomizationAsset(file, { tags: [guessAssetType(file)] });
+      const asset = createAssetFromFile(file, url);
+      appendAssetToDraft(asset);
+    },
+    [appendAssetToDraft],
+  );
+
   return (
     <div className="space-y-8 px-4 sm:px-6 lg:px-0">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Site public</h1>
           <p className="text-sm text-slate-500">
-            Cliquez sur l'icône en forme de crayon pour personnaliser chaque bloc de contenu, image ou logo.
+            Ajustez le contenu, les couleurs et les médias de votre page d’accueil en temps réel.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -1395,69 +1984,41 @@ const SiteCustomization: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {bestSellerError && (
               <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
                 <AlertTriangle className="h-5 w-5" aria-hidden="true" />
                 <p>{bestSellerError}</p>
               </div>
             )}
-            <div className="mx-auto w-full max-w-6xl">
-              <SitePreviewCanvas
-                content={draft}
-                bestSellerProducts={bestSellerProducts}
-                onEdit={(element, meta) => handleEdit(element, meta)}
-                activeZone={activeZone}
-              />
-            </div>
-            {bestSellerLoading && (
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                Chargement des produits populaires…
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+              <div className="space-y-4">
+                <div className="rounded-[2.5rem] border border-slate-200 bg-slate-50 p-6">
+                  <SitePreviewCanvas
+                    content={draft}
+                    bestSellerProducts={bestSellerProducts}
+                    onEdit={(element, meta) => handlePreviewEdit(element, meta)}
+                    activeZone={activeZone}
+                  />
+                </div>
+                {bestSellerLoading && (
+                  <div className="flex items-center gap-2 text-sm text-slate-500">
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    Chargement des produits populaires…
+                  </div>
+                )}
               </div>
-            )}
+              <div className="space-y-6">
+                {expandedContent}
+                <MediaLibrarySection assets={assets} onUpload={handleLibraryUpload} />
+              </div>
+            </div>
           </div>
         )}
       </div>
-
-      {activeElement && elementType === 'text' && activeLabel && (
-        <TextElementEditor
-          element={activeElement}
-          label={activeLabel}
-          draft={draft}
-          onApply={applyDraftUpdate}
-          onClose={closeEditor}
-          fontOptions={fontOptions}
-          onAssetAdded={appendAssetToDraft}
-          anchor={activeAnchor}
-        />
-      )}
-
-      {activeElement && elementType === 'image' && activeLabel && (
-        <ImageElementEditor
-          element={activeElement}
-          label={activeLabel}
-          draft={draft}
-          onApply={applyDraftUpdate}
-          onClose={closeEditor}
-          onAssetAdded={appendAssetToDraft}
-          anchor={activeAnchor}
-        />
-      )}
-
-      {activeElement && elementType === 'background' && activeLabel && (
-        <BackgroundElementEditor
-          element={activeElement}
-          label={activeLabel}
-          draft={draft}
-          onApply={applyDraftUpdate}
-          onClose={closeEditor}
-          onAssetAdded={appendAssetToDraft}
-          anchor={activeAnchor}
-        />
-      )}
     </div>
   );
 };
 
 export default SiteCustomization;
+
