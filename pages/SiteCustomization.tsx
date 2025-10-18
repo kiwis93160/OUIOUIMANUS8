@@ -1603,6 +1603,7 @@ const SiteCustomization: React.FC = () => {
   const [bestSellerError, setBestSellerError] = useState<string | null>(null);
   const [editorElement, setEditorElement] = useState<EditableElementKey | null>(null);
   const [editorAnchor, setEditorAnchor] = useState<DOMRect | DOMRectReadOnly | null>(null);
+  const [editorBoundary, setEditorBoundary] = useState<DOMRect | DOMRectReadOnly | null>(null);
   const [isLibraryOpen, setIsLibraryOpen] = useState<boolean>(false);
 
   useEffect(() => {
@@ -1701,18 +1702,23 @@ const SiteCustomization: React.FC = () => {
   const handlePreviewEdit = useCallback(
     (
       element: EditableElementKey,
-      meta: { zone: EditableZoneKey; anchor: DOMRect | DOMRectReadOnly | null },
+      meta: {
+        zone: EditableZoneKey;
+        anchor: DOMRect | DOMRectReadOnly | null;
+        boundary: DOMRect | DOMRectReadOnly | null;
+      },
     ) => {
       focusElement(element);
       setActiveZone(meta.zone);
       setEditorAnchor(meta.anchor ?? null);
+      setEditorBoundary(meta.boundary ?? null);
       if (!fieldMetaByElement.has(element)) {
         console.warn(`Aucun formulaire de personnalisation trouvé pour l'élément "${element}".`);
         return;
       }
       setEditorElement(element);
     },
-    [fieldMetaByElement, focusElement, setActiveZone, setEditorAnchor],
+    [fieldMetaByElement, focusElement, setActiveZone, setEditorAnchor, setEditorBoundary],
   );
 
   const handleSave = async () => {
@@ -1766,7 +1772,8 @@ const SiteCustomization: React.FC = () => {
     setActiveElement(null);
     setActiveZone(null);
     setEditorAnchor(null);
-  }, [setActiveElement, setActiveZone, setEditorAnchor, setEditorElement]);
+    setEditorBoundary(null);
+  }, [setActiveElement, setActiveZone, setEditorAnchor, setEditorBoundary, setEditorElement]);
 
   useEffect(() => {
     if (activeTab !== 'custom') {
@@ -2005,6 +2012,7 @@ const SiteCustomization: React.FC = () => {
         }
         size="lg"
         anchor={editorAnchor}
+        boundary={editorBoundary}
       >
         {activeFieldMeta ? (
           <div className="space-y-5" data-element-editor-modal="true">
