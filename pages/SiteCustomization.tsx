@@ -53,6 +53,10 @@ const COLOR_SUGGESTIONS = [
   'currentColor',
 ] as const;
 
+const DEFAULT_COLOR_PICKER_VALUE = '#ffffff';
+
+const isHexColor = (value: string): boolean => /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(value.trim());
+
 const TEXT_ELEMENT_KEYS = new Set<EditableElementKey>(STYLE_EDITABLE_ELEMENT_KEYS);
 
 const BACKGROUND_ELEMENT_KEYS = new Set<EditableElementKey>([
@@ -1308,6 +1312,22 @@ const BackgroundFieldEditorContent: React.FC<BackgroundFieldEditorContentProps> 
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
 
+  const colorPickerValue = isHexColor(color) ? color : DEFAULT_COLOR_PICKER_VALUE;
+
+  const handleColorPickerChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextColor = event.target.value;
+    setColor(nextColor);
+    setBackgroundType('color');
+  };
+
+  const handleColorInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextColor = event.target.value;
+    setColor(nextColor);
+    if (nextColor.trim().length > 0) {
+      setBackgroundType('color');
+    }
+  };
+
   useEffect(() => {
     setBackgroundType(background.type);
     setColor(background.color);
@@ -1319,14 +1339,20 @@ const BackgroundFieldEditorContent: React.FC<BackgroundFieldEditorContentProps> 
     const trimmedImage = imageUrl.trim();
     const normalizedImage = normalizeCloudinaryImageUrl(trimmedImage) ?? (trimmedImage.length > 0 ? trimmedImage : null);
 
+    const imageToUse = backgroundType === 'image' && normalizedImage ? normalizedImage : null;
+
     onApply(current => {
       applySectionBackground(current, element, {
-        type: backgroundType,
+        type: imageToUse ? 'image' : 'color',
         color: trimmedColor,
-        image: backgroundType === 'image' ? normalizedImage : null,
+        image: imageToUse,
       });
       return current;
     });
+
+    if (!imageToUse) {
+      setBackgroundType('color');
+    }
   };
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1373,12 +1399,22 @@ const BackgroundFieldEditorContent: React.FC<BackgroundFieldEditorContentProps> 
         <label className="text-sm font-medium text-slate-700" htmlFor={`${element}-background-color`}>
           Couleur
         </label>
-        <input
-          id={`${element}-background-color`}
-          className="ui-input w-full"
-          value={color}
-          onChange={event => setColor(event.target.value)}
-        />
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            type="color"
+            className="h-10 w-16 cursor-pointer rounded-md border border-slate-200 bg-white"
+            value={colorPickerValue}
+            onChange={handleColorPickerChange}
+            aria-label="Sélectionner une couleur"
+          />
+          <input
+            id={`${element}-background-color`}
+            className="ui-input flex-1 min-w-[12rem]"
+            value={color}
+            onChange={handleColorInputChange}
+            placeholder="#ffffff ou transparent"
+          />
+        </div>
         <div className="flex flex-wrap gap-2">
           {COLOR_SUGGESTIONS.map(colorValue => (
             <button
@@ -1386,7 +1422,10 @@ const BackgroundFieldEditorContent: React.FC<BackgroundFieldEditorContentProps> 
               type="button"
               className="h-8 w-8 rounded-full border border-slate-200"
               style={{ backgroundColor: colorValue }}
-              onClick={() => setColor(colorValue)}
+              onClick={() => {
+                setColor(colorValue);
+                setBackgroundType('color');
+              }}
             >
               <span className="sr-only">{colorValue}</span>
             </button>
@@ -1422,7 +1461,10 @@ const BackgroundFieldEditorContent: React.FC<BackgroundFieldEditorContentProps> 
             <button
               type="button"
               className="text-sm font-medium text-brand-primary hover:text-brand-primary/80"
-              onClick={() => setImageUrl('')}
+              onClick={() => {
+                setImageUrl('');
+                setBackgroundType('color');
+              }}
             >
               Supprimer l'image
             </button>
@@ -1602,8 +1644,6 @@ const SiteCustomization: React.FC = () => {
   const [bestSellerLoading, setBestSellerLoading] = useState<boolean>(false);
   const [bestSellerError, setBestSellerError] = useState<string | null>(null);
   const [editorElement, setEditorElement] = useState<EditableElementKey | null>(null);
-  const [editorAnchor, setEditorAnchor] = useState<DOMRect | DOMRectReadOnly | null>(null);
-  const [editorBoundary, setEditorBoundary] = useState<DOMRect | DOMRectReadOnly | null>(null);
   const [isLibraryOpen, setIsLibraryOpen] = useState<boolean>(false);
 
   useEffect(() => {
@@ -1710,15 +1750,13 @@ const SiteCustomization: React.FC = () => {
     ) => {
       focusElement(element);
       setActiveZone(meta.zone);
-      setEditorAnchor(meta.anchor ?? null);
-      setEditorBoundary(meta.boundary ?? null);
       if (!fieldMetaByElement.has(element)) {
         console.warn(`Aucun formulaire de personnalisation trouvé pour l'élément "${element}".`);
         return;
       }
       setEditorElement(element);
     },
-    [fieldMetaByElement, focusElement, setActiveZone, setEditorAnchor, setEditorBoundary],
+    [fieldMetaByElement, focusElement, setActiveZone],
   );
 
   const handleSave = async () => {
@@ -1771,9 +1809,7 @@ const SiteCustomization: React.FC = () => {
     setEditorElement(null);
     setActiveElement(null);
     setActiveZone(null);
-    setEditorAnchor(null);
-    setEditorBoundary(null);
-  }, [setActiveElement, setActiveZone, setEditorAnchor, setEditorBoundary, setEditorElement]);
+  }, [setActiveElement, setActiveZone, setEditorElement]);
 
   useEffect(() => {
     if (activeTab !== 'custom') {
@@ -2011,8 +2047,6 @@ const SiteCustomization: React.FC = () => {
             : 'Personnalisation'
         }
         size="lg"
-        anchor={editorAnchor}
-        boundary={editorBoundary}
       >
         {activeFieldMeta ? (
           <div className="space-y-5" data-element-editor-modal="true">
