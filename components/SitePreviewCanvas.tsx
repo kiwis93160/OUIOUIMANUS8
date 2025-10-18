@@ -52,7 +52,11 @@ interface SitePreviewCanvasProps {
   bestSellerProducts: Product[];
   onEdit: (
     element: EditableElementKey,
-    meta: { zone: EditableZoneKey; anchor: DOMRect | DOMRectReadOnly | null },
+    meta: {
+      zone: EditableZoneKey;
+      anchor: DOMRect | DOMRectReadOnly | null;
+      boundary: DOMRect | DOMRectReadOnly | null;
+    },
   ) => void;
   activeZone?: EditableZoneKey | null;
   showEditButtons?: boolean;
@@ -112,7 +116,16 @@ const EditableElement: React.FC<EditableElementProps> = ({
       (event.currentTarget.closest(`[data-zone="${zone}"]`) as HTMLElement | null) ??
       (event.currentTarget.parentElement as HTMLElement | null);
     const fallbackRect = anchorElement?.getBoundingClientRect() ?? null;
-    onEdit(id, { zone, anchor: buttonRect ?? fallbackRect });
+    const previewBoundary = event.currentTarget.closest('[data-preview-boundary="true"]') as
+      | HTMLElement
+      | null;
+    const boundaryRect = previewBoundary?.getBoundingClientRect() ?? null;
+
+    onEdit(id, {
+      zone,
+      anchor: buttonRect ?? fallbackRect,
+      boundary: boundaryRect,
+    });
   };
 
   return (
@@ -271,7 +284,10 @@ const SitePreviewCanvas: React.FC<SitePreviewCanvasProps> = ({
 
   return (
     <EditButtonVisibilityContext.Provider value={showEditButtons}>
-      <div className="space-y-6 rounded-[2.5rem] border border-gray-200 bg-slate-50 p-6 shadow-inner">
+      <div
+        className="space-y-6 rounded-[2.5rem] border border-gray-200 bg-slate-50 p-6 shadow-inner"
+        data-preview-boundary="true"
+      >
       <SectionCard zone="navigation" activeZone={activeZone}>
         <EditableElement
           id="navigation.style.background"
