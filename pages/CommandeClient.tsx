@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Product, Category, OrderItem, Order } from '../types';
 
@@ -222,6 +222,7 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
     const [validatingPromoCode, setValidatingPromoCode] = useState<boolean>(false);
     const [isFreeShipping, setIsFreeShipping] = useState<boolean>(false);
     const [now, setNow] = useState(() => new Date());
+    const cartUpdateTimeouts = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
     useEffect(() => {
         if (typeof window === 'undefined') {
@@ -427,24 +428,30 @@ const OrderMenuView: React.FC<OrderMenuViewProps> = ({ onOrderSubmitted }) => {
     };
 
     const handleCartItemQuantityChange = (itemId: string, delta: number) => {
+        // Annuler le timeout précédent pour cet item
+        const existingTimeout = cartUpdateTimeouts.current.get(itemId);
+        if (existingTimeout) {
+            clearTimeout(existingTimeout);
+        }
+
+        // Mise à jour immédiate de l'UI
         setCart(prevCart => {
-            return prevCart.flatMap(item => {
-                if (item.id !== itemId) {
-                    return item;
+            return prevCart.map(item => {
+                if (item.id === itemId) {
+                    const newQuantity = Math.max(0, item.quantite + delta);
+                    return { ...item, quantite: newQuantity };
                 }
-
-                const newQuantity = item.quantite + delta;
-
-                if (newQuantity <= 0) {
-                    return [];
-                }
-
-                return {
-                    ...item,
-                    quantite: newQuantity,
-                };
+                return item;
             });
         });
+
+        // Supprimer les items à 0 après un délai
+        const timeout = setTimeout(() => {
+            setCart(prevCart => prevCart.filter(item => item.quantite > 0));
+            cartUpdateTimeouts.current.delete(itemId);
+        }, 300);
+
+        cartUpdateTimeouts.current.set(itemId, timeout);
     };
 
     const handleReorder = (order: Order) => {
