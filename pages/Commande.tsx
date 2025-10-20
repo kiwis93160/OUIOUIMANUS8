@@ -119,6 +119,7 @@ const Commande: React.FC = () => {
     const syncQueueRef = useRef<Promise<void>>(Promise.resolve());
     const currentItemsSnapshotCacheRef = useRef<OrderItemsSnapshotCache | null>(null);
     const originalItemsSnapshotCacheRef = useRef<OrderItemsSnapshotCache | null>(null);
+    const quantityUpdateTimeouts = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
     const updateSnapshotCache = useCallback((
         cacheRef: MutableRefObject<OrderItemsSnapshotCache | null>,
@@ -471,15 +472,19 @@ const Commande: React.FC = () => {
         
         const targetItemId = currentOrder.items[itemIndex].id;
         
+        // Annuler le timeout précédent pour cet item
+        const existingTimeout = quantityUpdateTimeouts.current.get(targetItemId);
+        if (existingTimeout) {
+            clearTimeout(existingTimeout);
+        }
+        
+        // Mise à jour immédiate
         applyLocalItemsUpdate(items => {
             const actualIndex = items.findIndex(item => item.id === targetItemId);
             if (actualIndex === -1) return items;
             
-            const newQuantity = items[actualIndex].quantite + change;
-
-            if (newQuantity <= 0) {
-                return items.filter(item => item.id !== targetItemId);
-            }
+            const currentQuantity = items[actualIndex].quantite;
+            const newQuantity = Math.max(0, currentQuantity + change);
             
             return items.map(item => 
                 item.id === targetItemId 
@@ -487,6 +492,20 @@ const Commande: React.FC = () => {
                     : item
             );
         });
+
+        // Supprimer l'item après un délai s'il est à 0
+        const timeout = setTimeout(() => {
+            applyLocalItemsUpdate(items => {
+                const item = items.find(i => i.id === targetItemId);
+                if (item && item.quantite <= 0) {
+                    return items.filter(i => i.id !== targetItemId);
+                }
+                return items;
+            });
+            quantityUpdateTimeouts.current.delete(targetItemId);
+        }, 300);
+
+        quantityUpdateTimeouts.current.set(targetItemId, timeout);
     }, [applyLocalItemsUpdate]);
 
     const handleCommentChange = useCallback((itemIndex: number, newComment: string) => {
