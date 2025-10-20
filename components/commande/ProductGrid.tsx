@@ -98,7 +98,7 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                                 <img
                                     src={product.image}
                                     alt={product.nom_produit}
-                                    className="mb-3 aspect-square w-full max-w-[6rem] rounded-md object-cover"
+                                    className="mb-3 aspect-square w-full max-w-[18rem] rounded-md object-cover"
                                 />
                                 <p
                                     className="text-[clamp(0.9rem,1.8vw,1.05rem)] font-semibold leading-snug text-black text-balance text-center break-words whitespace-normal [hyphens:auto]"
