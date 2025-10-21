@@ -733,12 +733,12 @@ body {
   margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
 }
 
-.app-content__inner .section-title {
+.app-content .section-title {
   color: #f8fafc;
 }
 
-.app-content__inner .section-text,
-.app-content__inner .section-text--muted {
+.app-content .section-text,
+.app-content .section-text--muted {
   color: color-mix(in srgb, var(--color-surface) 78%, transparent);
 }
 
