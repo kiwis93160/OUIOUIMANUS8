@@ -567,7 +567,6 @@ const Login: React.FC = () => {
       )}
 
       <main>
-             <main>
                    
         <section id="accueil" className="section section-hero" style={{ ...heroBackgroundStyle, ...heroTextStyle }}>
           {activeOrderId ? (
@@ -891,6 +890,7 @@ const Login: React.FC = () => {
           </div>
         </section>
 </main>
+      
       <footer className="site-footer" style={{ ...footerBackgroundStyle, ...footerTextStyle }}>
         <div className="layout-container site-footer__inner" style={footerTextStyle}>
           <p style={getElementBodyTextStyle('footer.text')}>
