@@ -756,7 +756,7 @@ const Commande: React.FC = () => {
             order={order}
             onFinalize={handleFinalizeOrder}
         />
-        <Modal
+               <Modal
             isOpen={isExitConfirmOpen}
             onClose={() => setExitConfirmOpen(false)}
             title="Quitter sans envoyer ?"
@@ -766,7 +766,7 @@ const Commande: React.FC = () => {
                 <button onClick={() => setExitConfirmOpen(false)} className="ui-btn-secondary">
                     Non, rester
                 </button>
-                <button onClick={handleConfirmExit) className="ui-btn-danger">
+                <button onClick={handleConfirmExit} className="ui-btn-danger">
                     Oui, quitter
                 </button>
             </div>
