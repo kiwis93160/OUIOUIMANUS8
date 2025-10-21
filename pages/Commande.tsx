@@ -696,16 +696,16 @@ const Commande: React.FC = () => {
 
     return (
         <>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2.15fr)_minmax(0,0.85fr)] lg:items-start lg:min-h-[calc(100vh-10rem)]">
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)] lg:items-start min-h-screen">
             {/* Menu Section */}
             <div className="ui-card flex h-full flex-col overflow-hidden">
-                <div className="p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                        <button onClick={handleExitAttempt} className="ui-btn-dark" title="Retour au plan de salle">
-                            <ArrowLeft size={20} />
+                <div className="p-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <button onClick={handleExitAttempt} className="ui-btn-dark text-sm px-3 py-1.5" title="Retour au plan de salle">
+                            <ArrowLeft size={18} />
                             <span>Retour plan de salle</span>
                         </button>
-                        <h2 className="text-2xl font-semibold text-gray-900">Table {order.table_nom}</h2>
+                        <h2 className="text-xl font-semibold text-gray-900">Table {order.table_nom}</h2>
                     </div>
                 </div>
                 <ProductGrid
@@ -722,10 +722,10 @@ const Commande: React.FC = () => {
             </div>
 
             {/* Order Summary Section */}
-            <div className="flex flex-col lg:h-full">
-                <div className="lg:sticky lg:top-24">
+            <div className="flex flex-col h-full">
+                <div className="lg:sticky lg:top-2">
                     <OrderSummary
-                        className="mt-6 lg:mt-0 lg:h-full lg:max-w-[420px] lg:mx-auto"
+                        className="lg:h-full w-full"
                         categorizedItems={categorizedItems}
                         order={order}
                         total={order.total}
@@ -766,7 +766,7 @@ const Commande: React.FC = () => {
                 <button onClick={() => setExitConfirmOpen(false)} className="ui-btn-secondary">
                     Non, rester
                 </button>
-                <button onClick={handleConfirmExit} className="ui-btn-danger">
+                <button onClick={handleConfirmExit) className="ui-btn-danger">
                     Oui, quitter
                 </button>
             </div>
