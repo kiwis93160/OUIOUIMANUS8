@@ -88,24 +88,24 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
 
     return (
         <div className={`flex h-full min-w-[22rem] flex-col overflow-hidden rounded-xl text-gray-900 shadow-lg transition-shadow duration-300 hover:shadow-xl ${urgencyStyles.border} ${urgencyStyles.background}`}>
-            <div className="flex flex-col gap-3 px-5 py-4">
-                <h3 className={`font-semibold leading-tight text-gray-900 ${nameClass}`}>
-                    <span className="block max-w-full break-words text-balance">{displayName}</span>
-                </h3>
-                <p className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-gray-500 sm:text-xs">
-                    pedido a las {sentAtFormatted}
-                </p>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 sm:justify-between">
+            <div className="flex flex-col gap-2 px-5 py-4">
+                <div className="flex items-start justify-between gap-3">
+                    <h3 className={`font-semibold leading-tight text-gray-900 ${nameClass}`}>
+                        <span className="block max-w-full break-words text-balance">{displayName}</span>
+                    </h3>
                     <OrderTimer
                         startTime={order.date_envoi_cuisine || Date.now()}
                         variant="chip"
                         accentClassName={urgencyStyles.accent}
                     />
-                    <span
-                        className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-white shadow ${urgencyStyles.accent}`}
-                    >
-                        <span className="text-white/70">ITEMS</span>
-                        <span className="text-lg tracking-normal">{totalProducts}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-gray-500">
+                        Pedido a las {sentAtFormatted}
+                    </p>
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold uppercase text-white shadow ${urgencyStyles.accent}`}>
+                        <span>ITEMS</span>
+                        <span className="text-base">{totalProducts}</span>
                     </span>
                 </div>
             </div>
