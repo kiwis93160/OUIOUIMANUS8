@@ -33,7 +33,7 @@ const ReportModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                 } catch (error) {
                     console.error('Error al generar el informe diario', error);
                     setReport(null);
-                    setReportError('No fue posible generar el informe diario. Intenta nuevamente más tarde.');
+                    setReportError('No fue posible generar el reporte diario. Intenta nuevamente más tarde.');
                 } finally {
                     setLoading(false);
                 }
@@ -122,9 +122,9 @@ const ReportModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
         : 0;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Reporte diario" size="xl">
+        <Modal isOpen={isOpen} onClose={onClose} title="Reporte diario" size="md">
             <>
-                <div className="p-6 max-h-[70vh] overflow-y-auto">
+                <div className="max-h-[60vh] overflow-y-auto">
                      {loading && <p>Generando el reporte...</p>}
                      {!loading && reportError && (
                         <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -145,16 +145,16 @@ const ReportModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                                 </div>
                             )}
                             <div className="text-center border-b pb-4">
-                                 <h2 className="font-bold text-brand-secondary text-[clamp(1.75rem,4vw,2.75rem)]">Reporte OUIOUITACOS</h2>
-                                 <p className="text-gray-500">
+                                 <h2 className="font-bold text-brand-secondary text-[clamp(1.5rem,3.5vw,2rem)]">Reporte OUIOUITACOS</h2>
+                                 <p className="text-gray-500 text-sm">
                                      Generado el {new Date(report.generatedAt).toLocaleString('es-CO')}
                                  </p>
-                                 <p className="text-sm text-gray-500">
+                                 <p className="text-xs text-gray-500">
                                      Datos desde {new Date(report.startDate).toLocaleString('es-CO')}
                                  </p>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 gap-3">
                                 <ReportStat icon={<DollarSign/>} label="Ventas del día" value={formatCurrencyCOP(report.ventesDuJour)} />
                                 <ReportStat
                                     icon={<Users/>}
@@ -172,12 +172,12 @@ const ReportModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                             </div>
 
                             <div>
-                                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2 text-gray-800"><Package/> Productos vendidos</h3>
+                                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-gray-800"><Package size={20}/> Productos vendidos</h3>
                                 <div className="space-y-4">
                                     {report.soldProducts.map(category => (
                                         <div key={category.categoryName}>
-                                            <h4 className="font-bold text-brand-primary">{category.categoryName}</h4>
-                                            <ul className="list-disc list-inside pl-2 text-gray-700">
+                                            <h4 className="font-bold text-brand-primary text-sm">{category.categoryName}</h4>
+                                            <ul className="list-disc list-inside pl-2 text-gray-700 text-sm">
                                                 {category.products.map(product => (
                                                     <li key={product.id}>
                                                         {product.quantity}x {product.name} - <span className="font-semibold">{formatCurrencyCOP(product.totalSales)}</span>
@@ -186,35 +186,35 @@ const ReportModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                                             </ul>
                                         </div>
                                     ))}
-                                    <div className="space-y-3">
-                                        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-700 shadow-sm">
+                                    <div className="space-y-2">
+                                        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-sm">
                                             <p className="text-xs font-semibold uppercase tracking-wide">Total facturado</p>
-                                            <p className="mt-1 text-2xl font-bold">{formatCurrencyCOP(billedTotalBeforePromotions)}</p>
+                                            <p className="mt-1 text-xl font-bold">{formatCurrencyCOP(billedTotalBeforePromotions)}</p>
                                         </div>
-                                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700 shadow-sm">
+                                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-700 shadow-sm">
                                             <p className="text-xs font-semibold uppercase tracking-wide">Promotions appliquées</p>
-                                            <p className="mt-1 text-2xl font-bold">{formatCurrencyCOP(report.totalPromotionsApplied ?? 0)}</p>
+                                            <p className="mt-1 text-xl font-bold">{formatCurrencyCOP(report.totalPromotionsApplied ?? 0)}</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div>
-                                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2 text-gray-800"><LogIn/> Inicios de sesión desde las 05:00</h3>
+                                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-gray-800"><LogIn size={20}/> Inicios de sesión desde las 05:00</h3>
                                 {report.roleLoginsUnavailable ? (
-                                    <p className="text-gray-500">Inicios de sesión no disponibles: no es posible acceder al almacenamiento local.</p>
+                                    <p className="text-gray-500 text-sm">Inicios de sesión no disponibles: no es posible acceder al almacenamiento local.</p>
                                 ) : (
                                     (() => {
                                         const grouped = formatLoginsByRole(report.roleLogins);
                                         if (grouped.size === 0) {
-                                            return <p className="text-gray-500">No hay inicios de sesión registrados desde las 05:00.</p>;
+                                            return <p className="text-gray-500 text-sm">No hay inicios de sesión registrados desde las 05:00.</p>;
                                         }
                                         return (
                                             <ul className="space-y-2">
                                                 {Array.from(grouped.entries()).map(([roleName, times]) => (
-                                                    <li key={roleName} className="flex justify-between items-center bg-slate-100 p-2 rounded-md">
+                                                    <li key={roleName} className="flex justify-between items-center bg-slate-100 p-2 rounded-md text-sm">
                                                         <span className="font-semibold text-gray-800">{roleName}</span>
-                                                        <span className="text-sm text-gray-600">{times.join(', ')}</span>
+                                                        <span className="text-xs text-gray-600">{times.join(', ')}</span>
                                                     </li>
                                                 ))}
                                             </ul>
@@ -224,34 +224,34 @@ const ReportModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                             </div>
 
                             <div>
-                                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2 text-gray-800"><AlertTriangle className="text-orange-500"/> Ingredientes con inventario bajo</h3>
+                                 <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-gray-800"><AlertTriangle className="text-orange-500" size={20}/> Ingredientes con inventario bajo</h3>
                                  {report.lowStockIngredients.length > 0 ? (
                                     <ul className="space-y-1">
                                         {report.lowStockIngredients.map(ing => (
-                                            <li key={ing.id} className="flex justify-between items-center bg-orange-50 p-2 rounded-md text-orange-800">
+                                            <li key={ing.id} className="flex justify-between items-center bg-orange-50 p-2 rounded-md text-orange-800 text-sm">
                                                 <span>{ing.nom}</span>
                                                 <span className="font-bold">{ing.stock_actuel} / {ing.stock_minimum} {ing.unite}</span>
                                             </li>
                                         ))}
                                     </ul>
                                  ) : (
-                                    <p className="text-gray-500">No hay ingredientes con inventario bajo.</p>
+                                    <p className="text-gray-500 text-sm">No hay ingredientes con inventario bajo.</p>
                                  )}
                             </div>
                          </div>
                      )}
                 </div>
 
-                <div className="flex flex-col sm:flex-row justify-end gap-3 p-4 border-t">
-                    <button onClick={onClose} className="w-full sm:w-auto bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition">
+                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t mt-4">
+                    <button onClick={onClose} className="w-full sm:w-auto bg-gray-200 text-gray-800 font-bold py-2.5 px-4 rounded-lg hover:bg-gray-300 transition text-sm">
                         Cerrar
                     </button>
                     <button
                         onClick={handleSendToWhatsApp}
                         disabled={loading || !report}
-                        className="w-full sm:w-auto bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-2 disabled:bg-gray-400"
+                        className="w-full sm:w-auto bg-green-500 text-white font-bold py-2.5 px-4 rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
                     >
-                        <MessageSquare size={20}/> Enviar por WhatsApp
+                        <MessageSquare size={18}/> Enviar por WhatsApp
                     </button>
                 </div>
             </>
