@@ -699,7 +699,7 @@ const Commande: React.FC = () => {
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)] lg:items-start min-h-screen">
             {/* Menu Section */}
             <div className="flex h-full flex-col overflow-hidden">
-                <div className="p-2 bg-white/80 backdrop-blur-sm">
+                <div className="p-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                         <button onClick={handleExitAttempt} className="ui-btn-dark text-sm px-3 py-1.5" title="Retour au plan de salle">
                             <ArrowLeft size={18} />
