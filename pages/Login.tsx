@@ -890,7 +890,7 @@ const Login: React.FC = () => {
             </div>
           </div>
         </section>
-
+</main>
       <footer className="site-footer" style={{ ...footerBackgroundStyle, ...footerTextStyle }}>
         <div className="layout-container site-footer__inner" style={footerTextStyle}>
           <p style={getElementBodyTextStyle('footer.text')}>
