@@ -88,41 +88,43 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
 
     return (
         <div className={`flex h-full min-w-[22rem] flex-col overflow-hidden rounded-xl text-gray-900 shadow-lg transition-shadow duration-300 hover:shadow-xl ${urgencyStyles.border} ${urgencyStyles.background}`}>
-            <div className="flex flex-col gap-3 px-5 py-4">
-                <h3 className={`font-semibold leading-tight text-gray-900 ${nameClass}`}>
-                    <span className="block max-w-full break-words text-balance">{displayName}</span>
-                </h3>
-                <p className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-gray-500 sm:text-xs">
-                    pedido a las {sentAtFormatted}
-                </p>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 sm:justify-between">
+            <div className="flex flex-col gap-2 px-4 py-3">
+                <div className="flex items-start justify-between gap-3">
+                    <h3 className={`font-semibold leading-tight text-gray-900 ${nameClass}`}>
+                        <span className="block max-w-full break-words text-balance">{displayName}</span>
+                    </h3>
                     <OrderTimer
                         startTime={order.date_envoi_cuisine || Date.now()}
                         variant="chip"
                         accentClassName={urgencyStyles.accent}
                     />
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                    <p className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-gray-500 sm:text-xs">
+                        {sentAtFormatted}
+                    </p>
                     <span
-                        className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-white shadow ${urgencyStyles.accent}`}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-[0.2em] text-white shadow ${urgencyStyles.accent}`}
                     >
                         <span className="text-white/70">ITEMS</span>
-                        <span className="text-lg tracking-normal">{totalProducts}</span>
+                        <span className="text-base tracking-normal">{totalProducts}</span>
                     </span>
                 </div>
             </div>
-            <div className="flex-1 overflow-y-auto px-5">
-                <ul className="space-y-2 pb-4">
+            <div className="flex-1 overflow-y-auto px-4">
+                <ul className="space-y-1.5 pb-3">
                     {groupedItems.map((item) => (
-                        <li key={item.key} className="min-w-[22rem] rounded-lg border border-gray-200 bg-gray-50 px-3 py-3 shadow-sm">
-                            <div className="flex items-center gap-3">
-                                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white shadow-md ${urgencyStyles.accent}`}>
+                        <li key={item.key} className="min-w-[22rem] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-2 shadow-sm">
+                            <div className="flex items-center gap-2.5">
+                                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white shadow-md ${urgencyStyles.accent}`}>
                                     {item.quantite}
                                 </span>
-                                <p className="text-[clamp(1rem,2.1vw,1.35rem)] font-semibold leading-tight text-gray-900 whitespace-nowrap">
+                                <p className="text-[clamp(0.95rem,2vw,1.25rem)] font-semibold leading-tight text-gray-900 whitespace-nowrap">
                                     {item.nom_produit}
                                 </p>
                             </div>
                             {item.commentaire && (
-                                <p className="mt-2 rounded-md border border-dashed border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium italic text-blue-800">
+                                <p className="mt-1.5 rounded-md border border-dashed border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-medium italic text-blue-800">
                                     {item.commentaire}
                                 </p>
                             )}
@@ -131,12 +133,12 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
                 </ul>
             </div>
             {canMarkReady && (
-                <div className="border-t border-gray-200 px-5 pb-5 pt-4">
+                <div className="border-t border-gray-200 px-4 pb-4 pt-3">
                     <button
                         onClick={() => onReady(order.id, order.date_envoi_cuisine)}
-                        className="group inline-flex w-full items-center justify-center gap-3 rounded-lg border-2 border-transparent bg-black px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-sm transition hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/70 focus-visible:ring-offset-2"
+                        className="group inline-flex w-full items-center justify-center gap-2.5 rounded-lg border-2 border-transparent bg-black px-3 py-2.5 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-sm transition hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/70 focus-visible:ring-offset-2"
                     >
-                        <ChefHat size={20} className="shrink-0" />
+                        <ChefHat size={18} className="shrink-0" />
                         <span>LISTO</span>
                     </button>
                 </div>
