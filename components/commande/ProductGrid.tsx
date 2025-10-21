@@ -32,7 +32,7 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
 }) => {
     return (
         <div className="flex flex-1 flex-col overflow-hidden">
-            <div className="border-b bg-white/80 p-2">
+            <div className="border-b border-gray-200/30 p-2">
                 <div className="flex items-center gap-2 overflow-x-auto pb-2">
                     <button
                         onClick={() => onSelectCategory('all')}
@@ -76,9 +76,9 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                                 onClick={handleProductClick}
                                 onPointerDown={handlePointerDown}
                                 onKeyDown={handleKeyDown}
-                                className={`relative flex h-full flex-col items-center justify-between rounded-xl p-2 text-center transition-all focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 focus:ring-offset-gray-900 ${
+                                className={`relative flex flex-col items-center rounded-xl p-2 text-center transition-all focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 focus:ring-offset-gray-900 ${
                                     isSelected
-                                        ? 'bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-black shadow-xl shadow-orange-500/30'
+                                        ? 'bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-white shadow-xl shadow-orange-500/30'
                                         : 'border border-gray-200 bg-white text-black hover:shadow-lg'
                                 } ${isLowStock && !isSelected ? 'border-2 border-yellow-500' : ''}`}
                             >
@@ -89,7 +89,7 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                                 )}
                                 {isLowStock && (
                                     <div
-                                        className={`absolute right-1 top-1 rounded-full p-1 text-white ${isSelected ? 'bg-black/30' : 'bg-yellow-500'}`}
+                                        className={`absolute right-1 top-1 rounded-full p-1 ${isSelected ? 'bg-black/30 text-white' : 'bg-yellow-500 text-white'}`}
                                         title="Stock bas"
                                     >
                                         <AlertTriangle size={16} />
@@ -98,21 +98,21 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                                 <img
                                     src={product.image}
                                     alt={product.nom_produit}
-                                    className="mb-2 aspect-square w-full rounded-md object-cover"
+                                    className="mb-1.5 aspect-square w-full rounded-md object-cover"
                                 />
                                 <p
-                                    className="text-[clamp(0.9rem,1.8vw,1.05rem)] font-semibold leading-snug text-black text-balance text-center break-words whitespace-normal [hyphens:auto]"
+                                    className={`text-[clamp(0.85rem,1.6vw,0.95rem)] font-semibold leading-tight ${isSelected ? 'text-white' : 'text-black'} text-balance text-center break-words whitespace-normal [hyphens:auto]`}
                                     style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
                                 >
                                     {product.nom_produit}
                                 </p>
                                 <p
-                                    className="mt-1 w-full flex-1 text-xs text-black text-center leading-snug"
-                                    style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+                                    className={`mt-0.5 w-full text-[0.7rem] ${isSelected ? 'text-white/90' : 'text-black/70'} text-center leading-tight`}
+                                    style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
                                 >
                                     {product.description}
                                 </p>
-                                <p className="mt-2 font-bold text-black">
+                                <p className={`mt-1.5 font-bold text-sm ${isSelected ? 'text-white' : 'text-black'}`}>
                                     {formatCurrencyCOP(product.prix_vente)}
                                 </p>
                             </button>
