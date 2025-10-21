@@ -32,11 +32,11 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
 }) => {
     return (
         <div className="flex flex-1 flex-col overflow-hidden">
-            <div className="border-b bg-white/80 p-4">
-                <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-2">
+            <div className="border-b bg-white/80 p-2">
+                <div className="flex items-center gap-2 overflow-x-auto pb-2">
                     <button
                         onClick={() => onSelectCategory('all')}
-                        className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap transition ${
+                        className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold whitespace-nowrap transition ${
                             activeCategoryId === 'all'
                                 ? 'bg-brand-primary text-brand-secondary shadow'
                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -48,7 +48,7 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                         <button
                             key={cat.id}
                             onClick={() => onSelectCategory(cat.id)}
-                            className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold whitespace-nowrap transition ${
+                            className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-semibold whitespace-nowrap transition ${
                                 activeCategoryId === cat.id
                                     ? 'bg-brand-primary text-brand-secondary shadow'
                                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -59,8 +59,8 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                     ))}
                 </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-4">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="flex-1 overflow-y-auto p-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {filteredProducts.map((product) => {
                         const isLowStock = !isProductAvailable(product);
                         const quantityInCart = quantities[product.id] || 0;
@@ -76,7 +76,7 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                                 onClick={handleProductClick}
                                 onPointerDown={handlePointerDown}
                                 onKeyDown={handleKeyDown}
-                                className={`relative flex h-full flex-col items-center justify-between rounded-xl p-3 text-center transition-all focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 focus:ring-offset-gray-900 ${
+                                className={`relative flex h-full flex-col items-center justify-between rounded-xl p-2 text-center transition-all focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 focus:ring-offset-gray-900 ${
                                     isSelected
                                         ? 'bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-black shadow-xl shadow-orange-500/30'
                                         : 'border border-gray-200 bg-white text-black hover:shadow-lg'
@@ -98,7 +98,7 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                                 <img
                                     src={product.image}
                                     alt={product.nom_produit}
-                                    className="mb-3 aspect-square w-full rounded-md object-cover"
+                                    className="mb-2 aspect-square w-full rounded-md object-cover"
                                 />
                                 <p
                                     className="text-[clamp(0.9rem,1.8vw,1.05rem)] font-semibold leading-snug text-black text-balance text-center break-words whitespace-normal [hyphens:auto]"
@@ -112,7 +112,7 @@ const ProductGridComponent: React.FC<ProductGridProps> = ({
                                 >
                                     {product.description}
                                 </p>
-                                <p className="mt-3 font-bold text-black">
+                                <p className="mt-2 font-bold text-black">
                                     {formatCurrencyCOP(product.prix_vente)}
                                 </p>
                             </button>
