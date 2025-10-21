@@ -77,9 +77,9 @@ const ProtectedLayout: React.FC = () => {
             {/* Add other header elements like user menu here */}
           </header>
           <main className="app-content">
-           <main className="app-content">
-    <Outlet />
-</main>
+            <Outlet />
+          </main>
+        </div>
       </div>
       <ReportModal
         isOpen={isReportModalOpen}
