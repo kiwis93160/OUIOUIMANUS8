@@ -108,7 +108,7 @@ body {
 
 .section-hero {
   position: relative;
-  min-height: min(100dvh, 880px);
+  min-height: min(50dvh, 440px);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -508,25 +508,15 @@ body {
   backdrop-filter: saturate(140%) blur(4px);
 }
 
-.section-hero__inner {
+/* Section-hero__inner supprimée - styles fusionnés dans hero-content */
+
+.hero-content {
   position: relative;
   z-index: 1;
   width: min(1120px, 100%);
+  max-width: 100%;
   padding-inline: clamp(1.5rem, 5vw, 4rem);
-  padding-block: clamp(2.5rem, 6vw, 4.5rem);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(1.5rem, 4vw, 2.5rem);
-}
-
-.section-hero__inner.section-hero__inner--compact {
-  padding-top: clamp(0.625rem, 1.5vw, 1.125rem);
-  gap: clamp(0.75rem, 2vw, 1.5rem);
-}
-
-.hero-content {
-  max-width: 720px;
+  padding-block: clamp(2rem, 5vw, 3.5rem);
   text-align: center;
   display: flex;
   flex-direction: column;
