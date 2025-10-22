@@ -10,18 +10,18 @@ const computeNameSizeClass = (label: string) => {
     const trimmedLength = label.trim().length;
 
     if (trimmedLength <= 10) {
-        return 'text-[clamp(1.755rem,3.9vw,2.275rem)]';
+        return 'text-[clamp(1.35rem,3vw,1.75rem)]';
     }
 
     if (trimmedLength <= 16) {
-        return 'text-[clamp(1.625rem,3.77vw,2.08rem)]';
+        return 'text-[clamp(1.25rem,2.9vw,1.6rem)]';
     }
 
     if (trimmedLength <= 24) {
-        return 'text-[clamp(1.495rem,3.51vw,1.885rem)]';
+        return 'text-[clamp(1.15rem,2.7vw,1.45rem)]';
     }
 
-    return 'text-[clamp(1.365rem,3.25vw,1.69rem)]';
+    return 'text-[clamp(1.05rem,2.5vw,1.3rem)]';
 };
 
 const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId: string, ticketTimestamp?: number) => void; canMarkReady: boolean }> = ({ order, onReady, canMarkReady }) => {
@@ -114,7 +114,7 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
             <div className="flex-1 overflow-y-auto px-5">
                 <ul className="space-y-2 pb-4">
                     {groupedItems.map((item) => (
-                        <li key={item.key} className="min-w-[22rem] rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 shadow-sm">
+                        <li key={item.key} className="min-w-[22rem] rounded-lg border border-gray-200 bg-gray-50 px-3 py-3 shadow-sm">
                             <div className="flex items-center gap-3">
                                 <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white shadow-md ${urgencyStyles.accent}`}>
                                     {item.quantite}
