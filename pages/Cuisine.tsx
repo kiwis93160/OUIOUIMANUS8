@@ -106,8 +106,8 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
                                 <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white shadow-md ${urgencyStyles.accent}`}>
                                     {item.quantite}
                                 </span>
-                                {/* Product name with tight line-height */}
-                                <p className="text-[clamp(1rem,2.1vw,1.35rem)] font-semibold text-gray-900" style={{ lineHeight: '1.2' }}>
+                                {/* Product name with tight line-height and zero margin */}
+                                <p className="m-0 leading-tight text-[clamp(1rem,2.1vw,1.35rem)] font-semibold text-gray-900" style={{ lineHeight: '1.1', margin: 0 }}>
                                     {item.nom_produit}
                                 </p>
                             </div>
