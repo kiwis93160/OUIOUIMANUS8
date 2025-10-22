@@ -578,7 +578,7 @@ const Login: React.FC = () => {
                 'h2',
                 {
                   className: 'hero-title',
-                  style: getElementTextStyle('hero.title'),
+                  style: { ...getElementTextStyle('hero.title'), textTransform: 'uppercase' },
                 },
                 hero.title,
               )}

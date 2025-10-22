@@ -9,19 +9,20 @@ import { getOrderUrgencyStyles } from '../utils/orderUrgency';
 const computeNameSizeClass = (label: string) => {
     const trimmedLength = label.trim().length;
 
+    // Increased by 30% from original values
     if (trimmedLength <= 10) {
-        return 'text-[clamp(1.755rem,3.9vw,2.275rem)]';
+        return 'text-[clamp(2.282rem,5.07vw,2.958rem)]';
     }
 
     if (trimmedLength <= 16) {
-        return 'text-[clamp(1.625rem,3.77vw,2.08rem)]';
+        return 'text-[clamp(2.113rem,4.90vw,2.704rem)]';
     }
 
     if (trimmedLength <= 24) {
-        return 'text-[clamp(1.495rem,3.51vw,1.885rem)]';
+        return 'text-[clamp(1.944rem,4.56vw,2.451rem)]';
     }
 
-    return 'text-[clamp(1.365rem,3.25vw,1.69rem)]';
+    return 'text-[clamp(1.775rem,4.23vw,2.197rem)]';
 };
 
 const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId: string, ticketTimestamp?: number) => void; canMarkReady: boolean }> = ({ order, onReady, canMarkReady }) => {
@@ -114,7 +115,7 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
             <div className="flex-1 overflow-y-auto px-5">
                 <ul className="space-y-2 pb-4">
                     {groupedItems.map((item) => (
-                        <li key={item.key} className="min-w-[22rem] rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 shadow-sm">
+                        <li key={item.key} className="min-w-[22rem] rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 shadow-sm sm:py-1.5">
                             <div className="flex items-center gap-3">
                                 <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white shadow-md ${urgencyStyles.accent}`}>
                                     {item.quantite}
