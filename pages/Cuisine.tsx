@@ -6,7 +6,23 @@ import { useAuth } from '../contexts/AuthContext';
 import OrderTimer from '../components/OrderTimer';
 import { getOrderUrgencyStyles } from '../utils/orderUrgency';
 
-// Removed computeNameSizeClass - using explicit clamp() for +30% title size
+const computeNameSizeClass = (label: string) => {
+    const trimmedLength = label.trim().length;
+
+    if (trimmedLength <= 10) {
+        return 'text-[clamp(1.755rem,3.9vw,2.275rem)]';
+    }
+
+    if (trimmedLength <= 16) {
+        return 'text-[clamp(1.625rem,3.77vw,2.08rem)]';
+    }
+
+    if (trimmedLength <= 24) {
+        return 'text-[clamp(1.495rem,3.51vw,1.885rem)]';
+    }
+
+    return 'text-[clamp(1.365rem,3.25vw,1.69rem)]';
+};
 
 const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId: string, ticketTimestamp?: number) => void; canMarkReady: boolean }> = ({ order, onReady, canMarkReady }) => {
 
@@ -68,51 +84,47 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
         hour12: false,
     });
     const displayName = order.table_nom || `Para llevar #${order.id.slice(-4)}`;
+    const nameClass = computeNameSizeClass(displayName);
 
     return (
         <div className={`flex h-full min-w-[22rem] flex-col overflow-hidden rounded-xl text-gray-900 shadow-lg transition-shadow duration-300 hover:shadow-xl ${urgencyStyles.border} ${urgencyStyles.background}`}>
-            {/* Compact header with title/subtitle on left, badges on right */}
-            <div className="flex items-center justify-between gap-3 px-3 py-2">
-                <div className="flex flex-col gap-0.5 min-w-0">
-                    {/* Title +30% larger with robust clamp() */}
-                    <h3 className="font-semibold text-gray-900" style={{ fontSize: 'clamp(2.28rem, 5.07vw, 2.96rem)', lineHeight: '1.1' }}>
-                        <span className="block max-w-full break-words text-balance">{displayName}</span>
-                    </h3>
-                    <p className="text-xs font-medium text-gray-500">
-                        Pedido a las {sentAtFormatted}
-                    </p>
-                </div>
-                {/* Badges aligned horizontally on the right */}
-                <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold uppercase text-white shadow ${urgencyStyles.accent}`}>
-                        <span>ITEMS</span>
-                        <span className="text-base">{totalProducts}</span>
-                    </span>
-                    <OrderTimer
-                        startTime={order.date_envoi_cuisine || Date.now()}
-                        variant="chip"
-                        accentClassName={urgencyStyles.accent}
-                    />
+            <div className="flex flex-col gap-1.5 px-5 py-4">
+                <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-col gap-1">
+                        <h3 className={`font-semibold leading-tight text-gray-900 ${nameClass}`}>
+                            <span className="block max-w-full break-words text-balance">{displayName}</span>
+                        </h3>
+                        <p className="text-xs font-medium text-gray-500">
+                            Pedido a las {sentAtFormatted}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold uppercase text-white shadow ${urgencyStyles.accent}`}>
+                            <span>ITEMS</span>
+                            <span className="text-base">{totalProducts}</span>
+                        </span>
+                        <OrderTimer
+                            startTime={order.date_envoi_cuisine || Date.now()}
+                            variant="chip"
+                            accentClassName={urgencyStyles.accent}
+                        />
+                    </div>
                 </div>
             </div>
-            {/* Product list with compact spacing */}
-            <div className="flex-1 overflow-y-auto px-3">
-                <ul className="space-y-2 pb-2">
+            <div className="flex-1 overflow-y-auto px-5">
+                <ul className="space-y-2 pb-4">
                     {groupedItems.map((item) => (
-                        <li key={item.key} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 shadow-sm">
-                            {/* Product row with centered alignment */}
-                            <div className="flex items-center gap-2">
-                                {/* Square badge with equal width/height */}
-                                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white shadow-md ${urgencyStyles.accent}`}>
+                        <li key={item.key} className="min-w-[22rem] rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 shadow-sm">
+                            <div className="flex items-center gap-3">
+                                <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white shadow-md ${urgencyStyles.accent}`}>
                                     {item.quantite}
                                 </span>
-                                {/* Product name with tight line-height */}
-                                <p className="text-[clamp(1rem,2.1vw,1.35rem)] font-semibold text-gray-900" style={{ lineHeight: '1.2' }}>
+                                <p className="text-[clamp(1rem,2.1vw,1.35rem)] font-semibold leading-tight text-gray-900 whitespace-nowrap">
                                     {item.nom_produit}
                                 </p>
                             </div>
                             {item.commentaire && (
-                                <p className="mt-1.5 rounded-md border border-dashed border-blue-200 bg-blue-50 px-2 py-1.5 text-xs font-medium italic text-blue-800">
+                                <p className="mt-2 rounded-md border border-dashed border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium italic text-blue-800">
                                     {item.commentaire}
                                 </p>
                             )}
@@ -121,7 +133,7 @@ const KitchenTicketCard: React.FC<{ order: KitchenTicketOrder; onReady: (orderId
                 </ul>
             </div>
             {canMarkReady && (
-                <div className="border-t border-gray-200 px-3 pb-3 pt-2">
+                <div className="border-t border-gray-200 px-5 pb-5 pt-4">
                     <button
                         onClick={() => onReady(order.id, order.date_envoi_cuisine)}
                         className="group inline-flex w-full items-center justify-center gap-3 rounded-lg border-2 border-transparent bg-black px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-sm transition hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/70 focus-visible:ring-offset-2"
