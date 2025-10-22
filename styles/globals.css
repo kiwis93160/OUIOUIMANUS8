@@ -712,10 +712,18 @@ body {
   box-shadow: 0 12px 22px rgba(253, 224, 71, 0.28);
 }
 
-/* Header ultra-compact - 50% plus petit + NON FIXE */
+/* Header ultra-compact - 50% plus petit + NON FIXE - ROBUST OVERRIDES */
 .login-header {
   position: relative !important;
   padding-block: clamp(0.5rem, 1vw, 0.7rem) !important;
+}
+
+/* Force non-sticky/non-fixed even if classes are present */
+.login-header.fixed,
+.login-header.sticky {
+  position: relative !important;
+  top: auto !important;
+  z-index: auto !important;
 }
 
 .login-header__inner {
@@ -1101,8 +1109,9 @@ body {
 }
 
 .login-header {
-  position: sticky;
-  top: 0;
+  /* Overridden by more specific rule above - keeping for backwards compatibility */
+  position: relative;
+  top: auto;
   z-index: 50;
   backdrop-filter: blur(12px);
   background: color-mix(in srgb, var(--color-heading) 88%, transparent);
