@@ -525,15 +525,15 @@ body {
 }
 
 .hero-title {
-  font-size: clamp(3rem, 7vw, 5rem);
-  line-height: 1;
-  letter-spacing: -0.02em;
-  font-weight: 900;
-  color: var(--color-surface);
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  margin: 0;
-  text-transform: uppercase;
-  max-width: 100%;
+  font-size: clamp(3rem, 7vw, 5rem) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.02em !important;
+  font-weight: 900 !important;
+  color: var(--color-surface) !important;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+  margin: 0 !important;
+  text-transform: uppercase !important;
+  max-width: 100% !important;
 }
 
 .hero-subtitle {
@@ -712,27 +712,37 @@ body {
   box-shadow: 0 12px 22px rgba(253, 224, 71, 0.28);
 }
 
-/* Header optimisé - Réduction 30% */
+/* Header ultra-compact - 50% plus petit + NON FIXE */
 .login-header {
-  padding-block: clamp(1rem, 2vw, 1.4rem);
+  position: relative !important;
+  padding-block: clamp(0.5rem, 1vw, 0.7rem) !important;
 }
 
 .login-header__inner {
-  padding-block: clamp(0.8rem, 1.5vw, 1.2rem);
+  padding-block: clamp(0.4rem, 0.75vw, 0.6rem) !important;
+  padding-inline: clamp(1rem, 3vw, 2rem);
+}
+
+.login-brand {
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .login-brand__logo {
   height: clamp(2.5rem, 4vw, 3rem);
   width: auto;
+  margin: 0 !important;
 }
 
 .login-brand__name {
   font-size: clamp(1.5rem, 2.8vw, 2rem);
+  line-height: 1;
+  margin: 0 !important;
 }
 
 .login-nav__link {
   font-size: clamp(0.9rem, 1.8vw, 1rem);
-  padding: clamp(0.5rem, 1vw, 0.7rem) clamp(0.8rem, 1.5vw, 1.2rem);
+  padding: clamp(0.3rem, 0.5vw, 0.4rem) clamp(0.6rem, 1vw, 0.8rem);
 }
 
 .section-surface {
