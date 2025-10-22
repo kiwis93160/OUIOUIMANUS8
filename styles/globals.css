@@ -1,3 +1,32 @@
+/*
+ * CSS Variable-Based Theming System
+ * 
+ * This stylesheet uses CSS custom properties (variables) for visual customization
+ * while maintaining strict layout control. This approach enables rich theme
+ * customization without allowing content-driven layout changes.
+ * 
+ * Architecture:
+ * 1. Layout rules are defined in CSS with !important flags where necessary
+ * 2. Visual properties (colors, fonts) are exposed via CSS variables
+ * 3. Variables are injected inline from component props (Login.tsx)
+ * 
+ * Customizable Properties (via CSS variables):
+ * - Colors: --*-text-color, --*-bg-color
+ * - Backgrounds: --*-bg-image
+ * - Typography: --*-font-family, --*-font-size, --*-font-weight, --*-font-style
+ * 
+ * Protected Properties (locked with !important):
+ * - Position, display, flex/grid
+ * - Margins, padding (where layout-critical)
+ * - Transform, z-index
+ * - Width, height (where layout-critical)
+ * 
+ * Why !important is used:
+ * - Prevents content authors from breaking layout via inline styles
+ * - Ensures sticky/fixed positioning cannot be applied
+ * - Maintains responsive design integrity across all screen sizes
+ */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -106,17 +135,24 @@ body {
   text-align: center;
 }
 
+
 .section-hero {
-  position: relative;
+  /* Layout locked - position changes prevented */
+  position: relative !important;
   min-height: min(85vh, 700px);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  color: var(--color-surface);
+  overflow: hidden;
+  
+  /* Customizable visual properties via CSS variables */
+  color: var(--hero-text-color, var(--color-surface));
+  background-color: var(--hero-bg-color, #0f172a);
+  background-image: var(--hero-bg-image);
   background-size: cover;
   background-position: center;
-  overflow: hidden;
+  background-repeat: no-repeat;
 }
 
 .section-reviews {
@@ -522,32 +558,60 @@ body {
   flex-direction: column;
   align-items: center;
   gap: clamp(1rem, 2.5vw, 1.5rem);
+  
+  /* Customizable typography via CSS variables */
+  color: var(--hero-text-color, #f8fafc);
+  font-family: var(--hero-font-family, Inter, ui-sans-serif, system-ui, sans-serif);
+}
+
+.hero-content * {
+  /* Inherit hero text color for all children */
+  color: inherit;
+  font-family: inherit;
 }
 
 .hero-title {
-  font-size: clamp(3rem, 7vw, 5rem) !important;
+  /* Customizable via CSS variables */
+  font-size: var(--hero-font-size, clamp(3rem, 7vw, 5rem)) !important;
+  font-weight: var(--hero-font-weight, 900) !important;
+  font-style: var(--hero-font-style, normal) !important;
+  text-transform: var(--hero-text-transform, uppercase) !important;
+  
+  /* Layout locked */
   line-height: 1 !important;
   letter-spacing: -0.02em !important;
-  font-weight: 900 !important;
-  color: var(--color-surface) !important;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
   margin: 0 !important;
-  text-transform: uppercase !important;
   max-width: 100% !important;
+  
+  /* Visual styling */
+  color: var(--hero-text-color, var(--color-surface)) !important;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
 }
 
 .hero-subtitle {
-  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
-  color: rgba(255, 255, 255, 0.95);
+  /* Customizable typography via CSS variables */
+  font-size: var(--hero-subtitle-font-size, clamp(1.1rem, 2.5vw, 1.5rem));
+  font-family: var(--hero-subtitle-font-family, inherit);
+  font-weight: var(--hero-subtitle-font-weight, 500);
+  font-style: var(--hero-subtitle-font-style, normal);
+  color: var(--hero-subtitle-text-color, rgba(255, 255, 255, 0.95));
+  
+  /* Layout locked */
   max-width: 900px;
   margin: 0;
   line-height: 1.5;
-  font-weight: 500;
 }
 
 .hero-cta {
-  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
-  font-weight: 800;
+  /* Customizable typography via CSS variables */
+  font-size: var(--hero-cta-font-size, clamp(1.1rem, 2.5vw, 1.4rem));
+  font-family: var(--hero-cta-font-family, inherit);
+  font-weight: var(--hero-cta-font-weight, 800);
+  font-style: var(--hero-cta-font-style, normal);
+  color: var(--hero-cta-text-color, inherit);
+  background-color: var(--hero-cta-bg-color, transparent);
+  
+  /* Layout locked */
   padding-inline: clamp(2.5rem, 6vw, 4rem);
   padding-block: clamp(1.2rem, 3.5vw, 1.6rem);
   border-radius: 50px;
@@ -713,20 +777,32 @@ body {
 }
 
 /* Header ultra-compact - 50% plus petit + NON FIXE - ROBUST OVERRIDES */
+/* !important used to prevent layout changes via inline styles or classes */
 .login-header {
+  /* Layout locked - prevents position, sticky, or fixed positioning */
   position: relative !important;
+  top: auto !important;
+  
+  /* Locked padding to prevent geometry changes */
   padding-block: clamp(0.5rem, 1vw, 0.7rem) !important;
+  
+  /* Customizable visual properties via CSS variables */
+  background-color: var(--nav-bg-color, #0f172a);
+  color: var(--nav-text-color, #e2e8f0);
+  font-family: var(--nav-font-family, Inter, ui-sans-serif, system-ui, sans-serif);
 }
 
 /* Force non-sticky/non-fixed even if classes are present */
 .login-header.fixed,
 .login-header.sticky {
+  /* !important ensures content cannot override positioning */
   position: relative !important;
   top: auto !important;
   z-index: auto !important;
 }
 
 .login-header__inner {
+  /* Locked padding to prevent geometry changes */
   padding-block: clamp(0.4rem, 0.75vw, 0.6rem) !important;
   padding-inline: clamp(1rem, 3vw, 2rem);
 }
@@ -743,13 +819,27 @@ body {
 }
 
 .login-brand__name {
-  font-size: clamp(1.5rem, 2.8vw, 2rem);
+  /* Customizable typography via CSS variables */
+  font-size: var(--nav-brand-font-size, clamp(1.5rem, 2.8vw, 2rem));
+  font-family: var(--nav-brand-font-family, inherit);
+  font-weight: var(--nav-brand-font-weight, inherit);
+  font-style: var(--nav-brand-font-style, normal);
+  color: var(--nav-brand-text-color, inherit);
+  
+  /* Layout locked */
   line-height: 1;
   margin: 0 !important;
 }
 
 .login-nav__link {
-  font-size: clamp(0.9rem, 1.8vw, 1rem);
+  /* Customizable typography via CSS variables */
+  font-size: var(--nav-link-font-size, clamp(0.9rem, 1.8vw, 1rem));
+  font-family: var(--nav-link-font-family, inherit);
+  font-weight: var(--nav-link-font-weight, inherit);
+  font-style: var(--nav-link-font-style, normal);
+  color: var(--nav-link-text-color, inherit);
+  
+  /* Layout locked */
   padding: clamp(0.3rem, 0.5vw, 0.4rem) clamp(0.6rem, 1vw, 0.8rem);
 }
 
@@ -1109,15 +1199,20 @@ body {
 }
 
 .login-header {
-  /* Overridden by more specific rule above - keeping for backwards compatibility */
-  position: relative;
-  top: auto;
+  /* Layout locked - overridden by more specific rule above for safety */
+  position: relative !important;
+  top: auto !important;
   z-index: 50;
+  
+  /* Visual styling */
   backdrop-filter: blur(12px);
-  background: color-mix(in srgb, var(--color-heading) 88%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
-  color: var(--color-surface);
   padding-block: 1rem;
+  
+  /* Customizable via CSS variables (set inline on element) */
+  background: var(--nav-bg-color, color-mix(in srgb, var(--color-heading) 88%, transparent));
+  color: var(--nav-text-color, var(--color-surface));
+  font-family: var(--nav-font-family, inherit);
 }
 
 .login-header__inner {

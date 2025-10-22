@@ -259,15 +259,52 @@ const sanitizeElementStyleValue = (value: string | null | undefined): string | u
   return trimmed.length > 0 ? trimmed : undefined;
 };
 
+// Validate fontWeight: allow normal, bold, or numeric values (100-900)
+const sanitizeFontWeight = (value: string | null | undefined): string | undefined => {
+  const trimmed = sanitizeElementStyleValue(value);
+  if (!trimmed) {
+    return undefined;
+  }
+
+  // Allow 'normal', 'bold', or numeric values 100-900
+  if (trimmed === 'normal' || trimmed === 'bold') {
+    return trimmed;
+  }
+
+  const numeric = parseInt(trimmed, 10);
+  if (!isNaN(numeric) && numeric >= 100 && numeric <= 900 && numeric % 100 === 0) {
+    return trimmed;
+  }
+
+  return undefined;
+};
+
+// Validate fontStyle: allow normal, italic, or oblique
+const sanitizeFontStyle = (value: string | null | undefined): string | undefined => {
+  const trimmed = sanitizeElementStyleValue(value);
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (trimmed === 'normal' || trimmed === 'italic' || trimmed === 'oblique') {
+    return trimmed;
+  }
+
+  return undefined;
+};
+
 const sanitizeElementStyle = (style: ElementStyle | undefined | null): ElementStyle | null => {
   if (!style) {
     return null;
   }
 
+  // Only allow visual properties - disallow any layout/position properties
   const textColor = sanitizeElementStyleValue(style.textColor ?? null);
   const fontFamily = sanitizeElementStyleValue(style.fontFamily ?? null);
   const fontSize = sanitizeElementStyleValue(style.fontSize ?? null);
   const backgroundColor = sanitizeElementStyleValue(style.backgroundColor ?? null);
+  const fontWeight = sanitizeFontWeight(style.fontWeight ?? null);
+  const fontStyle = sanitizeFontStyle(style.fontStyle ?? null);
 
   const sanitized: ElementStyle = {};
 
@@ -282,6 +319,12 @@ const sanitizeElementStyle = (style: ElementStyle | undefined | null): ElementSt
   }
   if (backgroundColor) {
     sanitized.backgroundColor = backgroundColor;
+  }
+  if (fontWeight) {
+    sanitized.fontWeight = fontWeight;
+  }
+  if (fontStyle) {
+    sanitized.fontStyle = fontStyle;
   }
 
   return Object.keys(sanitized).length > 0 ? sanitized : null;
