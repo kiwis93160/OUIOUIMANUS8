@@ -19,6 +19,124 @@ const createRichTextValue = (html: string, plainText: string) => ({
   plainText,
 });
 
+describe('siteContent sanitization - fontWeight and fontStyle', () => {
+  it('accepts valid fontWeight values', () => {
+    const content = {
+      ...DEFAULT_SITE_CONTENT,
+      elementStyles: {
+        'hero.title': { fontWeight: 'bold' },
+        'hero.subtitle': { fontWeight: 'normal' },
+        'navigation.brand': { fontWeight: '700' },
+      },
+    };
+
+    const sanitized = sanitizeSiteContentInput(content);
+
+    expect(sanitized.elementStyles['hero.title']).toEqual({ fontWeight: 'bold' });
+    expect(sanitized.elementStyles['hero.subtitle']).toEqual({ fontWeight: 'normal' });
+    expect(sanitized.elementStyles['navigation.brand']).toEqual({ fontWeight: '700' });
+  });
+
+  it('rejects invalid fontWeight values', () => {
+    const content = {
+      ...DEFAULT_SITE_CONTENT,
+      elementStyles: {
+        'hero.title': { fontWeight: 'invalid' },
+        'hero.subtitle': { fontWeight: '550' }, // not a multiple of 100
+        'navigation.brand': { fontWeight: '1000' }, // too high
+      },
+    };
+
+    const sanitized = sanitizeSiteContentInput(content);
+
+    expect(sanitized.elementStyles['hero.title']).toBeUndefined();
+    expect(sanitized.elementStyles['hero.subtitle']).toBeUndefined();
+    expect(sanitized.elementStyles['navigation.brand']).toBeUndefined();
+  });
+
+  it('accepts valid fontStyle values', () => {
+    const content = {
+      ...DEFAULT_SITE_CONTENT,
+      elementStyles: {
+        'hero.title': { fontStyle: 'italic' },
+        'hero.subtitle': { fontStyle: 'normal' },
+        'navigation.brand': { fontStyle: 'oblique' },
+      },
+    };
+
+    const sanitized = sanitizeSiteContentInput(content);
+
+    expect(sanitized.elementStyles['hero.title']).toEqual({ fontStyle: 'italic' });
+    expect(sanitized.elementStyles['hero.subtitle']).toEqual({ fontStyle: 'normal' });
+    expect(sanitized.elementStyles['navigation.brand']).toEqual({ fontStyle: 'oblique' });
+  });
+
+  it('rejects invalid fontStyle values', () => {
+    const content = {
+      ...DEFAULT_SITE_CONTENT,
+      elementStyles: {
+        'hero.title': { fontStyle: 'underline' },
+        'hero.subtitle': { fontStyle: 'bold' },
+      },
+    };
+
+    const sanitized = sanitizeSiteContentInput(content);
+
+    expect(sanitized.elementStyles['hero.title']).toBeUndefined();
+    expect(sanitized.elementStyles['hero.subtitle']).toBeUndefined();
+  });
+
+  it('sanitizes only allowed visual properties', () => {
+    const content = {
+      ...DEFAULT_SITE_CONTENT,
+      elementStyles: {
+        'hero.title': {
+          textColor: '#ff0000',
+          backgroundColor: '#00ff00',
+          fontFamily: 'Arial',
+          fontSize: '20px',
+          fontWeight: 'bold',
+          fontStyle: 'italic',
+          // These should be stripped:
+          position: 'fixed' as any,
+          display: 'flex' as any,
+          transform: 'rotate(45deg)' as any,
+        },
+      },
+    };
+
+    const sanitized = sanitizeSiteContentInput(content);
+
+    expect(sanitized.elementStyles['hero.title']).toEqual({
+      textColor: '#ff0000',
+      backgroundColor: '#00ff00',
+      fontFamily: 'Arial',
+      fontSize: '20px',
+      fontWeight: 'bold',
+      fontStyle: 'italic',
+    });
+    expect(sanitized.elementStyles['hero.title']).not.toHaveProperty('position');
+    expect(sanitized.elementStyles['hero.title']).not.toHaveProperty('display');
+    expect(sanitized.elementStyles['hero.title']).not.toHaveProperty('transform');
+  });
+
+  it('trims whitespace from fontWeight and fontStyle', () => {
+    const content = {
+      ...DEFAULT_SITE_CONTENT,
+      elementStyles: {
+        'hero.title': { fontWeight: '  bold  ', fontStyle: '  italic  ' },
+      },
+    };
+
+    const sanitized = sanitizeSiteContentInput(content);
+
+    expect(sanitized.elementStyles['hero.title']).toEqual({
+      fontWeight: 'bold',
+      fontStyle: 'italic',
+    });
+  });
+});
+
 describe('siteContent instagram review element maps', () => {
   it('includes review6 and review7 keys in editable collections', () => {
     expect(EDITABLE_ELEMENT_KEYS).toContain(REVIEW6_MESSAGE_KEY);

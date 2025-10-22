@@ -18,6 +18,9 @@ import {
   createElementTextStyle,
   createHeroBackgroundStyle,
   createTextStyle,
+  createSectionVars,
+  createHeroVars,
+  createElementVars,
 } from '../utils/siteStyleHelpers';
 import { resolveZoneFromElement } from '../components/SitePreviewCanvas';
 import { getHomeRedirectPath } from '../utils/navigation';
@@ -187,6 +190,12 @@ const Login: React.FC = () => {
   const { navigation, hero, about, menu: menuContent, findUs, footer, onlineOrdering } = safeContent;
   const brandLogo = navigation.brandLogo ?? DEFAULT_BRAND_LOGO;
   const staffTriggerLogo = navigation.brandLogo ?? DEFAULT_BRAND_LOGO;
+  
+  // New variable-based approach for navigation and hero
+  const navigationVars = createSectionVars(navigation.style, 'nav');
+  const heroVars = createHeroVars(hero.style, hero.backgroundImage);
+  
+  // Keep legacy styles for other sections (backwards compatibility)
   const navigationBackgroundStyle = createBackgroundStyle(navigation.style);
   const navigationTextStyle = createTextStyle(navigation.style);
   const heroBackgroundStyle = createHeroBackgroundStyle(hero.style, hero.backgroundImage);
@@ -228,6 +237,12 @@ const Login: React.FC = () => {
   const getElementBackgroundStyle = (key: EditableElementKey) => {
     const zone = resolveZoneFromElement(key);
     return createElementBackgroundStyle(zoneStyleMap[zone], getElementStyle(key));
+  };
+
+  // New variable-based helper for elements
+  const getElementVars = (key: EditableElementKey, prefix: string) => {
+    const zone = resolveZoneFromElement(key);
+    return createElementVars(zoneStyleMap[zone], getElementStyle(key), prefix);
   };
 
   const elementRichText = safeContent.elementRichText ?? {};
@@ -443,9 +458,9 @@ const Login: React.FC = () => {
 
   return (
     <div className="login-page">
-      <header className="login-header" style={navigationBackgroundStyle}>
-        <div className="layout-container login-header__inner" style={navigationTextStyle}>
-          <div className="login-brand" style={navigationTextStyle}>
+      <header className="login-header" style={navigationVars}>
+        <div className="layout-container login-header__inner">
+          <div className="login-brand">
             <img
               src={brandLogo}
               alt={`Logo ${navigation.brand}`}
@@ -456,7 +471,7 @@ const Login: React.FC = () => {
               'span',
               {
                 className: 'login-brand__name',
-                style: getElementTextStyle('navigation.brand'),
+                style: getElementVars('navigation.brand', 'nav-brand'),
               },
               navigation.brand,
             )}
@@ -468,7 +483,7 @@ const Login: React.FC = () => {
               {
                 href: '#accueil',
                 className: 'login-nav__link',
-                style: getElementBodyTextStyle('navigation.links.home'),
+                style: getElementVars('navigation.links.home', 'nav-link'),
               },
               navigation.links.home,
             )}
@@ -478,7 +493,7 @@ const Login: React.FC = () => {
               {
                 href: '#apropos',
                 className: 'login-nav__link',
-                style: getElementBodyTextStyle('navigation.links.about'),
+                style: getElementVars('navigation.links.about', 'nav-link'),
               },
               navigation.links.about,
             )}
@@ -488,7 +503,7 @@ const Login: React.FC = () => {
               {
                 href: '#menu',
                 className: 'login-nav__link',
-                style: getElementBodyTextStyle('navigation.links.menu'),
+                style: getElementVars('navigation.links.menu', 'nav-link'),
               },
               navigation.links.menu,
             )}
@@ -513,11 +528,11 @@ const Login: React.FC = () => {
       </header>
 
       {isMobileMenuOpen && (
-        <div className="login-menu-overlay" role="dialog" aria-modal="true" style={navigationBackgroundStyle}>
+        <div className="login-menu-overlay" role="dialog" aria-modal="true" style={navigationVars}>
           <button type="button" onClick={() => setMobileMenuOpen(false)} className="login-menu-overlay__close" aria-label="Fermer le menu">
             <X size={28} />
           </button>
-          <nav className="login-menu-overlay__nav" aria-label="Navigation mobile" style={navigationTextStyle}>
+          <nav className="login-menu-overlay__nav" aria-label="Navigation mobile">
             {renderRichTextElement(
               'navigation.links.home',
               'a',
@@ -525,7 +540,7 @@ const Login: React.FC = () => {
                 href: '#accueil',
                 onClick: () => setMobileMenuOpen(false),
                 className: 'login-menu-overlay__link',
-                style: getElementBodyTextStyle('navigation.links.home'),
+                style: getElementVars('navigation.links.home', 'nav-link'),
               },
               navigation.links.home,
             )}
@@ -536,7 +551,7 @@ const Login: React.FC = () => {
                 href: '#apropos',
                 onClick: () => setMobileMenuOpen(false),
                 className: 'login-menu-overlay__link',
-                style: getElementBodyTextStyle('navigation.links.about'),
+                style: getElementVars('navigation.links.about', 'nav-link'),
               },
               navigation.links.about,
             )}
@@ -547,7 +562,7 @@ const Login: React.FC = () => {
                 href: '#menu',
                 onClick: () => setMobileMenuOpen(false),
                 className: 'login-menu-overlay__link',
-                style: getElementBodyTextStyle('navigation.links.menu'),
+                style: getElementVars('navigation.links.menu', 'nav-link'),
               },
               navigation.links.menu,
             )}
@@ -568,17 +583,20 @@ const Login: React.FC = () => {
 
       <main>
                    
-        <section id="accueil" className="section section-hero" style={{ ...heroBackgroundStyle, ...heroTextStyle }}>
+        <section id="accueil" className="section section-hero" style={heroVars}>
           {activeOrderId ? (
             <CustomerOrderTracker orderId={activeOrderId} onNewOrderClick={handleNewOrder} variant="hero" />
           ) : (
-            <div className="hero-content" style={heroTextStyle}>
+            <div className="hero-content">
               {renderRichTextElement(
                 'hero.title',
                 'h2',
                 {
                   className: 'hero-title',
-                  style: { ...getElementTextStyle('hero.title'), textTransform: 'uppercase' },
+                  style: { 
+                    ...getElementVars('hero.title', 'hero'),
+                    '--hero-text-transform': 'uppercase'
+                  } as React.CSSProperties,
                 },
                 hero.title,
               )}
@@ -587,17 +605,14 @@ const Login: React.FC = () => {
                 'p',
                 {
                   className: 'hero-subtitle',
-                  style: getElementBodyTextStyle('hero.subtitle'),
+                  style: getElementVars('hero.subtitle', 'hero-subtitle'),
                 },
                 hero.subtitle,
               )}
               <button
                 onClick={handleHeroCtaClick}
                 className={`ui-btn hero-cta ${isOrderingAvailable ? 'ui-btn-accent' : 'hero-cta--disabled'}`.trim()}
-                style={{
-                  ...getElementBodyTextStyle('hero.ctaLabel'),
-                  ...getElementBackgroundStyle('hero.ctaLabel'),
-                }}
+                style={getElementVars('hero.ctaLabel', 'hero-cta')}
                 disabled={!isOrderingAvailable}
                 aria-disabled={!isOrderingAvailable}
               >
