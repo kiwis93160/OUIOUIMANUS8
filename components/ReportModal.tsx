@@ -122,7 +122,7 @@ const ReportModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
         : 0;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Reporte diario" size="half">
+        <Modal isOpen={isOpen} onClose={onClose} title="Reporte diario" size="md">
             <>
                 <div className="max-h-[60vh] overflow-y-auto">
                      {loading && <p>Generando el reporte...</p>}
