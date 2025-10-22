@@ -90,6 +90,10 @@ body {
 
 .section {
   padding-block: clamp(3rem, 8vw, 6rem);
+  /* Guard rails: Ensure background properties are controlled by CSS, not inline styles */
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
 }
 
 .section-inner {
@@ -114,8 +118,10 @@ body {
   justify-content: center;
   align-items: center;
   color: var(--color-surface);
-  background-size: cover;
-  background-position: center;
+  /* Guard rails: Background sizing controlled by CSS to prevent inline override */
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
   overflow: hidden;
 }
 
@@ -818,6 +824,32 @@ body {
   justify-content: center;
 }
 
+/**
+ * Rich text guard wrapper
+ * 
+ * This class wraps user-provided rich text content to prevent layout manipulation
+ * via inline styles. While sanitizeInlineStyles removes dangerous properties,
+ * this provides an additional CSS-level protection layer.
+ * 
+ * Used in: Login.tsx, SitePreviewCanvas.tsx
+ */
+.richtext-guard,
+.richtext-guard * {
+  /* Prevent positioning manipulation */
+  position: static !important;
+  /* Prevent float-based layout breaking */
+  float: none !important;
+  /* Reset display manipulation attempts (allow only safe inline values) */
+  /* Note: We don't force display because that would break legitimate inline formatting */
+}
+
+/* Additional protections for direct children */
+.richtext-guard > * {
+  /* Prevent margin collapse and excessive spacing */
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 .menu-grid {
   display: grid;
   gap: clamp(1.5rem, 3vw, 2.5rem);
@@ -1115,6 +1147,10 @@ body {
   background: color-mix(in srgb, var(--color-heading) 94%, transparent);
   color: var(--color-surface);
   padding-block: clamp(1.75rem, 4vw, 2.5rem);
+  /* Guard rails: Ensure background properties controlled by CSS */
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
 }
 
 .site-footer__inner {
@@ -1141,6 +1177,10 @@ body {
   border-bottom: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
   color: var(--color-surface);
   padding-block: 1rem;
+  /* Guard rails: Ensure background properties controlled by CSS */
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
 }
 
 .login-header__inner {

@@ -26,13 +26,16 @@ export const formatFontFamily = (fontFamily?: string | null): string | undefined
   return `'${escaped}'`;
 };
 
+/**
+ * Create background style for sections.
+ * Only returns backgroundColor and backgroundImage as inline styles.
+ * Background size, position, and repeat are controlled by CSS classes to prevent
+ * content from overriding layout behavior via inline styles.
+ */
 export const createBackgroundStyle = (style: SectionStyle): CSSProperties => {
   if (style.background.type === 'image' && style.background.image) {
     return {
       backgroundImage: `url('${style.background.image}')`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
       backgroundColor: style.background.color,
     };
   }
@@ -40,6 +43,12 @@ export const createBackgroundStyle = (style: SectionStyle): CSSProperties => {
   return { backgroundColor: style.background.color };
 };
 
+/**
+ * Create hero background style with fallback image support.
+ * Only returns backgroundColor and backgroundImage as inline styles.
+ * Background size, position, and repeat are controlled by CSS classes to prevent
+ * content from overriding layout behavior via inline styles.
+ */
 export const createHeroBackgroundStyle = (
   style: SectionStyle,
   fallbackImage: string | null,
@@ -52,9 +61,6 @@ export const createHeroBackgroundStyle = (
       return {
         ...base,
         backgroundImage: `url('${image}')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
       };
     }
     return base;
@@ -64,9 +70,6 @@ export const createHeroBackgroundStyle = (
     return {
       ...base,
       backgroundImage: `url('${fallbackImage}')`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
     };
   }
 
@@ -83,6 +86,10 @@ export const createBodyTextStyle = (style: SectionStyle): CSSProperties => ({
   fontSize: style.fontSize,
 });
 
+/**
+ * Create text style for individual elements with optional per-element overrides.
+ * Supports fontWeight and fontStyle for bold/italic customization without layout impact.
+ */
 export const createElementTextStyle = (
   sectionStyle: SectionStyle,
   elementStyle?: ElementStyle | null,
@@ -96,9 +103,24 @@ export const createElementTextStyle = (
     style.backgroundColor = elementStyle.backgroundColor;
   }
 
+  // Support fontWeight for bold customization
+  if (elementStyle?.fontWeight && elementStyle.fontWeight.trim().length > 0) {
+    style.fontWeight = elementStyle.fontWeight;
+  }
+
+  // Support fontStyle for italic customization
+  if (elementStyle?.fontStyle && elementStyle.fontStyle.trim().length > 0) {
+    style.fontStyle = elementStyle.fontStyle;
+  }
+
   return style;
 };
 
+/**
+ * Create body text style for individual elements with optional per-element overrides.
+ * Includes fontSize in addition to text styling.
+ * Supports fontWeight and fontStyle for bold/italic customization without layout impact.
+ */
 export const createElementBodyTextStyle = (
   sectionStyle: SectionStyle,
   elementStyle?: ElementStyle | null,
