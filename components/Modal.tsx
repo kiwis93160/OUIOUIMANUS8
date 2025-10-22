@@ -7,7 +7,7 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'half';
   anchor?: DOMRect | DOMRectReadOnly | null;
   boundary?: DOMRect | DOMRectReadOnly | null;
 }
@@ -28,6 +28,7 @@ const Modal: React.FC<ModalProps> = ({
     md: 'max-w-lg',
     lg: 'max-w-2xl',
     xl: 'max-w-4xl',
+    half: '', // Custom handling for half size
   };
 
   const headingId = useId();
@@ -157,7 +158,13 @@ const Modal: React.FC<ModalProps> = ({
         : `calc(100vh - ${VIEWPORT_MARGIN * 2}px)`,
   };
 
-  if (preferredWidth !== null) {
+  if (size === 'half') {
+    // For 'half' size: 50% on large screens (≥1024px), viewport-minus-margins on smaller
+    baseStyle.width = 'calc(100vw - 32px)';
+    baseStyle.maxWidth = 'calc(100vw - 32px)';
+    baseStyle.minWidth = '320px';
+    // Use media query via CSS class for responsiveness (applied via className below)
+  } else if (preferredWidth !== null) {
     baseStyle.width = `${preferredWidth}px`;
     baseStyle.maxWidth = `${preferredWidth}px`;
   } else {
@@ -180,7 +187,7 @@ const Modal: React.FC<ModalProps> = ({
         aria-modal="true"
         aria-labelledby={headingId}
         className={`fixed flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ${
-          anchor && boundary ? 'max-w-none' : sizeClasses[size]
+          anchor && boundary ? 'max-w-none' : size === 'half' ? 'lg:!w-[50vw] lg:!max-w-[50vw]' : sizeClasses[size]
         } sm:max-h-[90vh] focus:outline-none`}
         style={{
           ...baseStyle,
