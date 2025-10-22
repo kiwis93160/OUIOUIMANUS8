@@ -1,3 +1,32 @@
+/*
+ * CSS Variable-Based Theming System
+ * 
+ * This stylesheet uses CSS custom properties (variables) for visual customization
+ * while maintaining strict layout control. This approach enables rich theme
+ * customization without allowing content-driven layout changes.
+ * 
+ * Architecture:
+ * 1. Layout rules are defined in CSS with !important flags where necessary
+ * 2. Visual properties (colors, fonts) are exposed via CSS variables
+ * 3. Variables are injected inline from component props (Login.tsx)
+ * 
+ * Customizable Properties (via CSS variables):
+ * - Colors: --*-text-color, --*-bg-color
+ * - Backgrounds: --*-bg-image
+ * - Typography: --*-font-family, --*-font-size, --*-font-weight, --*-font-style
+ * 
+ * Protected Properties (locked with !important):
+ * - Position, display, flex/grid
+ * - Margins, padding (where layout-critical)
+ * - Transform, z-index
+ * - Width, height (where layout-critical)
+ * 
+ * Why !important is used:
+ * - Prevents content authors from breaking layout via inline styles
+ * - Ensures sticky/fixed positioning cannot be applied
+ * - Maintains responsive design integrity across all screen sizes
+ */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -560,17 +589,29 @@ body {
 }
 
 .hero-subtitle {
-  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
-  color: rgba(255, 255, 255, 0.95);
+  /* Customizable typography via CSS variables */
+  font-size: var(--hero-subtitle-font-size, clamp(1.1rem, 2.5vw, 1.5rem));
+  font-family: var(--hero-subtitle-font-family, inherit);
+  font-weight: var(--hero-subtitle-font-weight, 500);
+  font-style: var(--hero-subtitle-font-style, normal);
+  color: var(--hero-subtitle-text-color, rgba(255, 255, 255, 0.95));
+  
+  /* Layout locked */
   max-width: 900px;
   margin: 0;
   line-height: 1.5;
-  font-weight: 500;
 }
 
 .hero-cta {
-  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
-  font-weight: 800;
+  /* Customizable typography via CSS variables */
+  font-size: var(--hero-cta-font-size, clamp(1.1rem, 2.5vw, 1.4rem));
+  font-family: var(--hero-cta-font-family, inherit);
+  font-weight: var(--hero-cta-font-weight, 800);
+  font-style: var(--hero-cta-font-style, normal);
+  color: var(--hero-cta-text-color, inherit);
+  background-color: var(--hero-cta-bg-color, transparent);
+  
+  /* Layout locked */
   padding-inline: clamp(2.5rem, 6vw, 4rem);
   padding-block: clamp(1.2rem, 3.5vw, 1.6rem);
   border-radius: 50px;
