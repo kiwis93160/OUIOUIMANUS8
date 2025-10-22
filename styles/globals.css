@@ -713,6 +713,8 @@ body {
 }
 
 /* Header ultra-compact - 50% plus petit + NON FIXE - ROBUST OVERRIDES */
+/* These overrides use !important to defeat inline styles and ensure the header
+   is never sticky/fixed and has compact padding (~50% of previous size) */
 .login-header {
   position: relative !important;
   padding-block: clamp(0.5rem, 1vw, 0.7rem) !important;
@@ -751,6 +753,27 @@ body {
 .login-nav__link {
   font-size: clamp(0.9rem, 1.8vw, 1rem);
   padding: clamp(0.3rem, 0.5vw, 0.4rem) clamp(0.6rem, 1vw, 0.8rem);
+}
+
+/* Hero title uppercase override - defeats inline styles */
+/* This ensures the hero title is ALWAYS uppercase regardless of content or inline styles */
+.section-hero .hero-content h1,
+.section-hero .hero-content h2,
+.section-hero .hero-content .hero-title {
+  text-transform: uppercase !important;
+}
+
+/* Cuisine card product row centering - ensures perfect vertical alignment */
+/* These helpers guarantee product name and badge are vertically centered with zero drift */
+.cuisine-product-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cuisine-product-name {
+  margin: 0 !important;
+  line-height: 1.2 !important;
 }
 
 .section-surface {
