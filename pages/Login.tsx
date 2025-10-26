@@ -816,110 +816,113 @@ const Login: React.FC = () => {
                       findUs.title,
                     )}
                   </div>
+                  <div className="relative aspect-square w-full">
+                    <div className="flex h-full flex-col overflow-hidden rounded-3xl border border-white/40 bg-transparent p-8 shadow-xl backdrop-blur">
+                      <div className="grid h-full grid-rows-3 gap-6">
+                        <article className="flex h-full flex-col justify-between gap-8 rounded-2xl border border-white/40 bg-white/15 p-10 text-left shadow-lg backdrop-blur">
+                          <div className="flex items-start gap-6">
+                            <MapPin className="h-14 w-14 flex-shrink-0 text-white" />
+                            <div className="space-y-5">
+                              {renderRichTextElement(
+                                'findUs.addressLabel',
+                                'h3',
+                                {
+                                  className: 'text-3xl font-semibold text-gray-900',
+                                  style: getElementTextStyle('findUs.addressLabel'),
+                                },
+                                findUs.addressLabel,
+                              )}
+                              {renderRichTextElement(
+                                'findUs.address',
+                                'p',
+                                {
+                                  className: 'whitespace-pre-line text-xl font-medium text-gray-700',
+                                  style: getElementBodyTextStyle('findUs.address'),
+                                },
+                                findUs.address,
+                              )}
+                            </div>
+                          </div>
+                        </article>
 
-                  <div className="grid h-full grid-rows-3 gap-6">
-                    <article className="flex h-full flex-col justify-between gap-8 rounded-3xl border border-white/40 bg-white/15 p-10 text-left shadow-lg backdrop-blur">
-                      <div className="flex items-start gap-6">
-                        <MapPin className="h-12 w-12 flex-shrink-0 text-white" />
-                        <div className="space-y-4">
-                          {renderRichTextElement(
-                            'findUs.addressLabel',
-                            'h3',
-                            {
-                              className: 'text-2xl font-semibold text-gray-900',
-                              style: getElementTextStyle('findUs.addressLabel'),
-                            },
-                            findUs.addressLabel,
-                          )}
-                          {renderRichTextElement(
-                            'findUs.address',
-                            'p',
-                            {
-                              className: 'whitespace-pre-line text-lg font-medium text-gray-700',
-                              style: getElementBodyTextStyle('findUs.address'),
-                            },
-                            findUs.address,
-                          )}
-                        </div>
-                      </div>
-                    </article>
+                        <article className="flex h-full flex-col justify-between gap-8 rounded-2xl border border-white/40 bg-white/15 p-10 text-left shadow-lg backdrop-blur">
+                          <div className="flex items-start gap-6">
+                            <Clock className="h-14 w-14 flex-shrink-0 text-white" />
+                            <div className="space-y-5">
+                              {renderRichTextElement(
+                                'findUs.hoursLabel',
+                                'h3',
+                                {
+                                  className: 'text-3xl font-semibold text-gray-900',
+                                  style: getElementTextStyle('findUs.hoursLabel'),
+                                },
+                                findUs.hoursLabel,
+                              )}
+                              {renderRichTextElement(
+                                'findUs.hours',
+                                'p',
+                                {
+                                  className: 'text-xl font-medium text-gray-700',
+                                  style: getElementBodyTextStyle('findUs.hours'),
+                                },
+                                findUs.hours,
+                              )}
+                            </div>
+                          </div>
+                        </article>
 
-                    <article className="flex h-full flex-col justify-between gap-8 rounded-3xl border border-white/40 bg-white/15 p-10 text-left shadow-lg backdrop-blur">
-                      <div className="flex items-start gap-6">
-                        <Clock className="h-12 w-12 flex-shrink-0 text-white" />
-                        <div className="space-y-4">
-                          {renderRichTextElement(
-                            'findUs.hoursLabel',
-                            'h3',
-                            {
-                              className: 'text-2xl font-semibold text-gray-900',
-                              style: getElementTextStyle('findUs.hoursLabel'),
-                            },
-                            findUs.hoursLabel,
-                          )}
-                          {renderRichTextElement(
-                            'findUs.hours',
-                            'p',
-                            {
-                              className: 'text-lg font-medium text-gray-700',
-                              style: getElementBodyTextStyle('findUs.hours'),
-                            },
-                            findUs.hours,
-                          )}
-                        </div>
-                      </div>
-                    </article>
-
-                    <article className="flex h-full flex-col justify-between gap-8 rounded-3xl border border-white/40 bg-white/15 p-10 text-left shadow-lg backdrop-blur">
-                      <div className="flex flex-col gap-6">
-                        <div className="flex items-start gap-6">
-                          <Phone className="h-12 w-12 flex-shrink-0 text-white" />
-                          <div className="flex-1 space-y-6">
-                            {renderRichTextElement(
-                              'findUs.cityLabel',
-                              'h3',
-                              {
-                                className: 'text-2xl font-semibold text-gray-900',
-                                style: getElementTextStyle('findUs.cityLabel'),
-                              },
-                              findUs.cityLabel,
-                            )}
-                            <div className="flex flex-col gap-5 text-lg font-medium text-gray-700" style={findUsBodyTextStyle}>
-                              <a
-                                href={`tel:${whatsappTestNumber}`}
-                                className="inline-flex items-center gap-3 text-lg font-semibold text-gray-900 transition hover:text-orange-500"
-                              >
-                                <Phone className="h-7 w-7 text-white" />
-                                {whatsappTestNumber}
-                              </a>
-                              <a
-                                href={whatsappUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-3 self-start rounded-full bg-green-500 px-5 py-3 text-base font-semibold text-white transition hover:bg-green-600"
-                              >
-                                <MessageCircle className="h-7 w-7 text-white" />
-                                WhatsApp
-                              </a>
-                              <div className="flex items-start gap-3">
-                                <Mail className="mt-1 h-7 w-7 flex-shrink-0 text-white" />
-                                <div className="min-w-0 break-all text-lg text-gray-700">
-                                  {renderRichTextElement(
-                                    'findUs.city',
-                                    'p',
-                                    {
-                                      className: 'break-all text-lg font-medium text-gray-700',
-                                      style: getElementBodyTextStyle('findUs.city'),
-                                    },
-                                    findUs.city,
-                                  )}
+                        <article className="flex h-full flex-col justify-between gap-8 rounded-2xl border border-white/40 bg-white/15 p-10 text-left shadow-lg backdrop-blur">
+                          <div className="flex flex-col gap-6">
+                            <div className="flex items-start gap-6">
+                              <Phone className="h-14 w-14 flex-shrink-0 text-white" />
+                              <div className="flex-1 space-y-6">
+                                {renderRichTextElement(
+                                  'findUs.cityLabel',
+                                  'h3',
+                                  {
+                                    className: 'text-3xl font-semibold text-gray-900',
+                                    style: getElementTextStyle('findUs.cityLabel'),
+                                  },
+                                  findUs.cityLabel,
+                                )}
+                                <div className="flex flex-col gap-5 text-xl font-medium text-gray-700" style={findUsBodyTextStyle}>
+                                  <a
+                                    href={`tel:${whatsappTestNumber}`}
+                                    className="inline-flex items-center gap-4 text-xl font-semibold text-gray-900 transition hover:text-orange-500"
+                                  >
+                                    <Phone className="h-8 w-8 text-white" />
+                                    {whatsappTestNumber}
+                                  </a>
+                                  <a
+                                    href={whatsappUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-4 self-start rounded-full bg-green-500 px-6 py-3 text-lg font-semibold text-white transition hover:bg-green-600"
+                                  >
+                                    <MessageCircle className="h-8 w-8 text-white" />
+                                    WhatsApp
+                                  </a>
+                                  <div className="flex items-start gap-4">
+                                    <Mail className="mt-1 h-8 w-8 flex-shrink-0 text-white" />
+                                    <div className="min-w-0 break-all text-xl text-gray-700">
+                                      {renderRichTextElement(
+                                        'findUs.city',
+                                        'p',
+                                        {
+                                          className: 'break-all text-xl font-medium text-gray-700',
+                                          style: getElementBodyTextStyle('findUs.city'),
+                                        },
+                                        findUs.city,
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </article>
                       </div>
-                    </article>
+                    </div>
                   </div>
                 </div>
 
