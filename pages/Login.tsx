@@ -929,6 +929,27 @@ const Login: React.FC = () => {
                         : null}
                     </div>
                   </div>
+                  <div className="flex justify-center">
+                    {hasMapLocation ? (
+                      <a
+                        href={findUsMapUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex w-full items-center justify-center gap-3 rounded-full bg-orange-500 px-6 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-orange-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
+                        style={getElementBodyTextStyle('findUs.mapLabel')}
+                      >
+                        <MapPin className="h-6 w-6 text-white" />
+                        {renderRichTextElement(
+                          'findUs.mapLabel',
+                          'span',
+                          {
+                            className: 'text-base font-semibold',
+                          },
+                          findUs.mapLabel,
+                        )}
+                      </a>
+                    ) : null}
+                  </div>
                 </div>
               </article>
             </div>
