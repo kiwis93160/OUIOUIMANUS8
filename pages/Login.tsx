@@ -803,14 +803,14 @@ const Login: React.FC = () => {
           <div className="section-inner">
             <div className="mx-auto max-w-6xl">
               <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-                <div className="space-y-8">
-                  <div className="space-y-4">
+                <div className="flex flex-col gap-10 lg:h-[420px] lg:max-h-[420px]">
+                  <div className="space-y-2 text-center">
                     {renderRichTextElement(
                       'findUs.title',
                       'h2',
                       {
                         className:
-                          'text-[clamp(2.25rem,5vw,3.5rem)] font-extrabold tracking-tight text-gray-900',
+                          'text-[clamp(2.25rem,5vw,3.5rem)] font-extrabold tracking-tight text-gray-900 text-center',
                         style: getElementTextStyle('findUs.title'),
                       },
                       findUs.title,
@@ -820,12 +820,12 @@ const Login: React.FC = () => {
                     </p>
                   </div>
 
-                  <div className="space-y-6">
-                    <div className="rounded-3xl border border-gray-100 bg-white/70 p-6 shadow-lg backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl">
+                  <div className="grid gap-4 lg:h-full lg:grid-rows-3 lg:overflow-y-auto">
+                    <article className="flex flex-col justify-between gap-4 rounded-3xl border border-gray-200 bg-white/80 p-6 shadow-lg backdrop-blur-sm">
                       <div className="flex items-start gap-4">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-pink-500 text-white shadow-lg">
-                          <MapPin className="h-7 w-7" />
-                        </div>
+                        <span className="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl">
+                          <MapPin className="h-7 w-7 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]" />
+                        </span>
                         <div className="space-y-2">
                           {renderRichTextElement(
                             'findUs.addressLabel',
@@ -847,13 +847,13 @@ const Login: React.FC = () => {
                           )}
                         </div>
                       </div>
-                    </div>
+                    </article>
 
-                    <div className="rounded-3xl border border-gray-100 bg-white/70 p-6 shadow-lg backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl">
+                    <article className="flex flex-col justify-between gap-4 rounded-3xl border border-gray-200 bg-white/80 p-6 shadow-lg backdrop-blur-sm">
                       <div className="flex items-start gap-4">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-500 text-white shadow-lg">
-                          <Clock className="h-7 w-7" />
-                        </div>
+                        <span className="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl">
+                          <Clock className="h-7 w-7 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]" />
+                        </span>
                         <div className="space-y-2">
                           {renderRichTextElement(
                             'findUs.hoursLabel',
@@ -875,14 +875,14 @@ const Login: React.FC = () => {
                           )}
                         </div>
                       </div>
-                    </div>
+                    </article>
 
-                    <div className="rounded-3xl border border-gray-100 bg-white/70 p-6 shadow-lg backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl">
+                    <article className="flex flex-col justify-between gap-4 rounded-3xl border border-gray-200 bg-white/80 p-6 shadow-lg backdrop-blur-sm">
                       <div className="flex flex-col gap-4">
                         <div className="flex items-start gap-4">
-                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-500 text-white shadow-lg">
-                            <Phone className="h-7 w-7" />
-                          </div>
+                          <span className="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl">
+                            <Phone className="h-7 w-7 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]" />
+                          </span>
                           <div className="flex-1 space-y-3">
                             {renderRichTextElement(
                               'findUs.cityLabel',
@@ -893,26 +893,29 @@ const Login: React.FC = () => {
                               },
                               findUs.cityLabel,
                             )}
-                            <div className="flex flex-col gap-3 text-base font-medium text-gray-700 sm:flex-row sm:items-center sm:justify-between" style={findUsBodyTextStyle}>
+                            <div
+                              className="flex flex-col gap-3 text-base font-medium text-gray-700 sm:flex-row sm:items-center sm:justify-between"
+                              style={findUsBodyTextStyle}
+                            >
                               <a
                                 href={`tel:${whatsappTestNumber}`}
                                 className="inline-flex items-center gap-2 text-gray-900 transition hover:text-orange-500"
                               >
-                                <Phone className="h-5 w-5" />
+                                <Phone className="h-5 w-5 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]" />
                                 {whatsappTestNumber}
                               </a>
                               <a
                                 href={whatsappUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-full bg-green-500 px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-green-600"
+                                className="inline-flex items-center gap-2 rounded-full bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
                               >
-                                <MessageCircle className="h-5 w-5" />
+                                <MessageCircle className="h-5 w-5 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]" />
                                 WhatsApp
                               </a>
                             </div>
                             <div className="flex items-start gap-2">
-                              <Mail className="mt-1 h-5 w-5 text-orange-500" />
+                              <Mail className="mt-1 h-5 w-5 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]" />
                               <div className="min-w-0">
                                 {renderRichTextElement(
                                   'findUs.city',
@@ -928,7 +931,7 @@ const Login: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </article>
                   </div>
                 </div>
 
