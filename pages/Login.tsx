@@ -815,6 +815,9 @@ const Login: React.FC = () => {
                       },
                       findUs.title,
                     )}
+                    <p className="text-lg leading-relaxed text-gray-600" style={findUsBodyTextStyle}>
+                      Visítanos y sumérgete en la atmósfera vibrante de nuestra taquería favorita.
+                    </p>
                   </div>
 
                   <div className="grid gap-4 lg:h-full lg:grid-rows-[repeat(3,minmax(0,1fr))] lg:overflow-hidden">
