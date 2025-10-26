@@ -784,7 +784,7 @@ const SitePreviewCanvas: React.FC<SitePreviewCanvasProps> = ({
                 <div className="find-us-details">
                   <div className="find-us-detail" style={findUsTextStyle}>
                     <MapPin className="find-us-detail__icon" aria-hidden="true" />
-                    <div>
+                    <div className="find-us-detail__content">
                       <EditableElement
                         id="findUs.addressLabel"
                         label="Modifier le libellé de l'adresse"
@@ -823,7 +823,7 @@ const SitePreviewCanvas: React.FC<SitePreviewCanvasProps> = ({
                   </div>
                 <div className="find-us-detail" style={findUsTextStyle}>
                   <Clock className="find-us-detail__icon" aria-hidden="true" />
-                  <div>
+                  <div className="find-us-detail__content">
                     <EditableElement
                       id="findUs.hoursLabel"
                       label="Modifier le libellé des horaires"
@@ -862,7 +862,7 @@ const SitePreviewCanvas: React.FC<SitePreviewCanvasProps> = ({
                 </div>
                 <div className="find-us-detail" style={findUsTextStyle}>
                   <Mail className="find-us-detail__icon" aria-hidden="true" />
-                  <div>
+                  <div className="find-us-detail__content">
                     <EditableElement
                       id="findUs.cityLabel"
                       label="Modifier le libellé de l'email"

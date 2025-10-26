@@ -826,17 +826,17 @@ const Login: React.FC = () => {
 
             <div className="mx-auto mt-10 grid w-full max-w-6xl gap-8 md:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
               <div className="grid gap-6">
-                <article className="h-full rounded-[24px] border border-white/70 bg-white/75 p-4 shadow-[0_24px_48px_-30px_rgba(15,23,42,0.5)] backdrop-blur">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-orange-500 text-white">
-                      <MapPin className="h-5 w-5" />
+                <article className="h-full rounded-[24px] border border-white/70 bg-white/75 p-5 shadow-[0_24px_48px_-30px_rgba(15,23,42,0.5)] backdrop-blur">
+                  <div className="flex items-start gap-4 sm:gap-5">
+                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-orange-500/95 text-white shadow-lg">
+                      <MapPin className="h-7 w-7" />
                     </div>
-                    <div className="flex-1 space-y-2">
+                    <div className="flex-1 space-y-3">
                       {renderRichTextElement(
                         'findUs.addressLabel',
                         'h3',
                         {
-                          className: 'text-xl font-semibold text-gray-900',
+                          className: 'text-2xl font-semibold text-gray-900',
                           style: getElementTextStyle('findUs.addressLabel'),
                         },
                         findUs.addressLabel,
@@ -845,7 +845,7 @@ const Login: React.FC = () => {
                         'findUs.address',
                         'p',
                         {
-                          className: 'whitespace-pre-line text-base font-medium text-gray-700',
+                          className: 'whitespace-pre-line text-lg font-medium text-gray-700 leading-relaxed',
                           style: getElementBodyTextStyle('findUs.address'),
                         },
                         sanitizedAddress,
@@ -854,17 +854,17 @@ const Login: React.FC = () => {
                   </div>
                 </article>
 
-                <article className="h-full rounded-[24px] border border-white/70 bg-white/75 p-4 shadow-[0_24px_48px_-30px_rgba(15,23,42,0.5)] backdrop-blur">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-orange-500 text-white">
-                      <Clock className="h-5 w-5" />
+                <article className="h-full rounded-[24px] border border-white/70 bg-white/75 p-5 shadow-[0_24px_48px_-30px_rgba(15,23,42,0.5)] backdrop-blur">
+                  <div className="flex items-start gap-4 sm:gap-5">
+                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-orange-500/95 text-white shadow-lg">
+                      <Clock className="h-7 w-7" />
                     </div>
-                    <div className="flex-1 space-y-2">
+                    <div className="flex-1 space-y-3">
                       {renderRichTextElement(
                         'findUs.hoursLabel',
                         'h3',
                         {
-                          className: 'text-xl font-semibold text-gray-900',
+                          className: 'text-2xl font-semibold text-gray-900',
                           style: getElementTextStyle('findUs.hoursLabel'),
                         },
                         findUs.hoursLabel,
@@ -873,7 +873,7 @@ const Login: React.FC = () => {
                         'findUs.hours',
                         'p',
                         {
-                          className: 'whitespace-pre-line text-base font-medium text-gray-700',
+                          className: 'whitespace-pre-line text-lg font-medium text-gray-700 leading-relaxed',
                           style: getElementBodyTextStyle('findUs.hours'),
                         },
                         findUs.hours,
@@ -882,38 +882,38 @@ const Login: React.FC = () => {
                   </div>
                 </article>
 
-                <article className="h-full rounded-[24px] border border-white/70 bg-white/75 p-4 shadow-[0_24px_48px_-30px_rgba(15,23,42,0.5)] backdrop-blur">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-orange-500 text-white">
-                      <Phone className="h-5 w-5" />
+                <article className="h-full rounded-[24px] border border-white/70 bg-white/75 p-5 shadow-[0_24px_48px_-30px_rgba(15,23,42,0.5)] backdrop-blur">
+                  <div className="flex items-start gap-4 sm:gap-5">
+                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-orange-500/95 text-white shadow-lg">
+                      <Phone className="h-7 w-7" />
                     </div>
-                    <div className="flex-1 space-y-3">
+                    <div className="flex-1 space-y-4">
                       {renderRichTextElement(
                         'findUs.cityLabel',
                         'h3',
                         {
-                          className: 'text-xl font-semibold text-gray-900',
+                          className: 'text-2xl font-semibold text-gray-900',
                           style: getElementTextStyle('findUs.cityLabel'),
                         },
                         findUs.cityLabel,
                       )}
-                      <div className="flex flex-col gap-3 text-base font-medium text-gray-700" style={findUsBodyTextStyle}>
-                        <div className="flex items-center gap-2">
+                      <div className="flex flex-col gap-4 text-lg font-medium text-gray-700" style={findUsBodyTextStyle}>
+                        <div className="flex flex-wrap items-center gap-3">
                           <a
                             href={`tel:${whatsappTestNumber}`}
-                            className="inline-flex items-center gap-2 text-base font-semibold text-gray-900 transition hover:text-orange-500"
+                            className="inline-flex items-center gap-2 text-lg font-semibold text-gray-900 transition hover:text-orange-500"
                           >
-                            <Phone className="h-5 w-5 text-orange-500" />
+                            <Phone className="h-6 w-6 text-orange-500" />
                             {whatsappTestNumber}
                           </a>
                           <a
                             href={whatsappUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white transition hover:bg-green-600"
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-green-500 text-white transition hover:bg-green-600"
                             aria-label="Nous écrire sur WhatsApp"
                           >
-                            <MessageCircle className="h-4 w-4" />
+                            <MessageCircle className="h-5 w-5" />
                           </a>
                         </div>
                       </div>
